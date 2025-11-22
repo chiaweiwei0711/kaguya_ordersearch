@@ -17,7 +17,8 @@ const MOCK_ORDERS: Order[] = [
     status: OrderStatus.PENDING,
     shippingStatus: "已抵台",
     isShipped: false,
-    shippingDate: "",
+    shippingDate: "10月下旬",
+    paymentMethod: "匯款",
     createdAt: "2023-10-27"
   }
 ];
@@ -96,6 +97,7 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
           shippingStatus: String(row[map.shippingStatus] || ""),
           isShipped: isShipped,
           shippingDate: String(row[map.shippingDate] || ""),
+          paymentMethod: String(row[map.paymentMethod] || "未指定"), // 新增：讀取付款方式
           createdAt: new Date().toISOString().split('T')[0]
         });
       }
@@ -115,12 +117,10 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
         if (isPureAlphaNum) {
             // 情境 A: 純英數搜尋 (e.g. "v", "abc", "123")
             // 邏輯: 嚴格比對 (Strict Equality)
-            // 結果: "v" 只能搜到 "v"，不會搜到 "victon"
             return target === normalizedQuery;
         } else {
             // 情境 B: 包含中文、符號、顏文字 (e.g. "黎黎", ":)")
             // 邏輯: 包含比對 (Includes)
-            // 結果: "黎黎" 可以搜到 "黎黎", "黎黎:)", "黎黎(´･ᴥ･｀)"
             return target.includes(normalizedQuery);
         }
     });
