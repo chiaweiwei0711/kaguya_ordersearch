@@ -8,9 +8,7 @@ import { APP_CONFIG } from './config';
 
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
-// Row 1: Cargo Status (Multi-select)
 const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '商品轉送中', '已抵台'];
-// Row 2: Delivery Status (Single-select)
 const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 
 const App: React.FC = () => {
@@ -24,33 +22,25 @@ const App: React.FC = () => {
   const [payingOrders, setPayingOrders] = useState<Order[]>([]);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   
-  // Detail Modal State
   const [selectedDetailOrder, setSelectedDetailOrder] = useState<Order | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   
-  // Selection State
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
 
-  // --- New Filter State ---
-  // Row 1: Multi-select
   const [cargoFilters, setCargoFilters] = useState<string[]>([]);
-  // Row 2: Single-select (string or null)
   const [deliveryFilter, setDeliveryFilter] = useState<string | null>(null);
 
-  // --- 篩選邏輯 ---
   const filteredOrders = useMemo(() => {
     return foundOrders.filter(order => {
-      const isPending = order.status === OrderStatus.PENDING; // 尚未付款
-      const isPaid = order.status === OrderStatus.PAID; // 已付款 (已對帳)
+      const isPending = order.status === OrderStatus.PENDING;
+      const isPaid = order.status === OrderStatus.PAID;
       const isArrived = order.shippingStatus.includes("已抵台");
       const isShipped = order.isShipped;
 
-      // 1. Tab Filtering (Basic Tabs)
       let matchesTab = false;
       if (activeTab === 'deposit') {
         matchesTab = isPending;
       } else if (activeTab === 'balance') {
-        // 顯示：已付款 + 已抵台 + 尚未出貨 (需要補尾款/下單)
         matchesTab = isPaid && isArrived && !isShipped;
       } else if (activeTab === 'completed') {
         matchesTab = isPaid && isArrived && isShipped;
@@ -60,11 +50,7 @@ const App: React.FC = () => {
 
       if (!matchesTab) return false;
 
-      // 2. Advanced Status Filtering (Only applies to 'all' tab)
       if (activeTab === 'all') {
-        
-        // Check Row 1: Cargo Filters (OR Logic within this row)
-        // If no filters selected, pass. If filters selected, must match at least one.
         let matchesCargo = true;
         if (cargoFilters.length > 0) {
             matchesCargo = cargoFilters.some(filter => 
@@ -72,8 +58,6 @@ const App: React.FC = () => {
             );
         }
 
-        // Check Row 2: Delivery Filter (Single Logic)
-        // If no filter selected, pass. If selected, must match exactly.
         let matchesDelivery = true;
         if (deliveryFilter) {
             if (deliveryFilter === '已出貨') {
@@ -82,8 +66,6 @@ const App: React.FC = () => {
                 matchesDelivery = !order.isShipped;
             }
         }
-
-        // Composite Logic: Tab AND Cargo AND Delivery
         return matchesCargo && matchesDelivery;
       }
 
@@ -95,7 +77,6 @@ const App: React.FC = () => {
     return filteredOrders.filter(o => selectedOrderIds.has(o.id));
   }, [filteredOrders, selectedOrderIds]);
 
-  // 計算金額
   const totalSelectedAmount = useMemo(() => {
     if (activeTab === 'deposit') {
       return selectedOrdersData.reduce((sum, o) => sum + o.depositAmount, 0);
@@ -114,7 +95,6 @@ const App: React.FC = () => {
     setErrorMsg('');
     setFoundOrders([]);
     setSelectedOrderIds(new Set());
-    // Reset filters on new search
     setCargoFilters([]);
     setDeliveryFilter(null);
     
@@ -161,7 +141,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Row 1 Logic: Multi-select
   const toggleCargoFilter = (filter: string) => {
     setCargoFilters(prev => {
       if (prev.includes(filter)) {
@@ -172,7 +151,6 @@ const App: React.FC = () => {
     });
   };
 
-  // Row 2 Logic: Single-select (Toggle on/off)
   const toggleDeliveryFilter = (filter: string) => {
     setDeliveryFilter(prev => prev === filter ? null : filter);
   };
@@ -203,14 +181,17 @@ const App: React.FC = () => {
       {/* --- Y2K Header --- */}
       <div className="relative pt-12 pb-8 px-6 flex flex-col items-center text-center overflow-hidden">
         
-        {/* Background Decorations (Y2K Glows) */}
+        {/* Background Decorations */}
         <div className="absolute top-[-150px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-pink-600/20 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
         
-        {/* Star Decoration */}
+        {/* Decorative Stars - Added More */}
         <Sparkles className="absolute top-10 right-10 text-pink-500 w-8 h-8 animate-pulse" />
-        <Star className="absolute top-20 left-10 text-pink-400 w-5 h-5 animate-bounce" />
+        <Star className="absolute top-24 left-8 text-pink-400 w-6 h-6 animate-bounce" fill="currentColor" />
+        <Star className="absolute top-12 left-[20%] text-white w-4 h-4 animate-pulse" />
+        <Star className="absolute bottom-20 right-[15%] text-pink-600 w-5 h-5 animate-pulse" fill="currentColor" />
+        <Sparkles className="absolute top-40 right-4 text-purple-400 w-5 h-5 animate-spin-slow" />
 
-        {/* Logo Area - TOP */}
+        {/* Logo Area */}
         <div className="relative z-10 mb-6 animate-float">
           <div className="h-32 md:h-48 mx-auto flex items-center justify-center">
              <img 
@@ -221,19 +202,18 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Title - Bold & Big */}
+        {/* Main Title */}
         <h2 className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tight drop-shadow-[0_3px_0_rgba(236,72,153,1)]">
           自助查詢訂單系統
         </h2>
 
-        {/* Subtitle - KEEP ITALIC */}
+        {/* Subtitle */}
         <p className="text-pink-400 font-black italic tracking-widest uppercase text-base md:text-lg drop-shadow-sm mb-8 border-b-2 border-pink-500/30 pb-2">
           Kaguya日本動漫周邊專業代購
         </p>
 
-        {/* Announcement Bar (Large Info Card) */}
+        {/* Announcement Bar */}
         <div className="w-full max-w-2xl bg-black/40 backdrop-blur-md border-2 border-pink-500 rounded-3xl p-6 mb-8 animate-fade-in-up shadow-[0_0_25px_rgba(236,72,153,0.25)] text-center relative overflow-hidden group hover:border-pink-400 transition-colors">
-          {/* Scanlines effect overlay */}
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-0 bg-[length:100%_2px,3px_100%]"></div>
           
           <div className="relative z-10">
@@ -246,18 +226,17 @@ const App: React.FC = () => {
                本查詢系統提供 Kaguyaさま 的顧客們更輕鬆便利的一站式訂單查詢體驗，從付款、貨況查詢到抵台下單出貨，所有流程都可以簡單完成！希望大家可以開心購物！
              </p>
              
-             {/* Divider */}
              <div className="h-px w-full bg-gradient-to-r from-transparent via-pink-500/50 to-transparent my-5"></div>
 
-             {/* Reminders */}
-             <div className="flex flex-col gap-4 text-base md:text-xl font-bold text-white">
-                <div className="flex items-center justify-center gap-3 bg-gray-900/50 px-5 py-3 rounded-full border border-gray-700 hover:border-pink-500 transition-colors w-full">
-                   <MessageCircle size={20} className="text-pink-400 shrink-0"/> 
-                   <span>付款請查 <span className="text-pink-400 text-2xl ml-1 font-black">待付款訂單</span></span>
+             {/* Reminders - Smaller Text for Mobile */}
+             <div className="flex flex-col gap-4 font-bold text-white">
+                <div className="flex items-center justify-center gap-2 bg-gray-900/50 px-4 py-3 rounded-full border border-gray-700 hover:border-pink-500 transition-colors w-full text-xs md:text-xl whitespace-nowrap overflow-hidden">
+                   <MessageCircle className="w-4 h-4 md:w-6 md:h-6 text-pink-400 shrink-0"/> 
+                   <span>付款請查 <span className="text-pink-400 text-sm md:text-2xl ml-1 font-black">待付款訂單</span></span>
                 </div>
-                <div className="flex items-center justify-center gap-3 bg-gray-900/50 px-5 py-3 rounded-full border border-gray-700 hover:border-[#06C755] transition-colors w-full">
-                   <Truck size={20} className="text-[#06C755] shrink-0"/> 
-                   <span>已抵台下單請查 <span className="text-[#06C755] text-2xl ml-1 font-black">可出貨訂單</span></span>
+                <div className="flex items-center justify-center gap-2 bg-gray-900/50 px-4 py-3 rounded-full border border-gray-700 hover:border-[#06C755] transition-colors w-full text-xs md:text-xl whitespace-nowrap overflow-hidden">
+                   <Truck className="w-4 h-4 md:w-6 md:h-6 text-[#06C755] shrink-0"/> 
+                   <span>已抵台下單請查 <span className="text-[#06C755] text-sm md:text-2xl ml-1 font-black">可出貨訂單</span></span>
                 </div>
              </div>
           </div>
@@ -289,13 +268,11 @@ const App: React.FC = () => {
                 {isLoading ? '...' : <ArrowRight className="w-7 h-7" />}
               </button>
             </div>
-            {/* Warning Text */}
             <p className="text-pink-500 text-sm md:text-base font-bold mt-3 text-center drop-shadow-[0_0_8px_rgba(236,72,153,0.6)]">
                若您更改社群暱稱 請務必私訊官賴協助修改 否則查不到訂單喔！
             </p>
         </div>
 
-        {/* Error Alert */}
         {errorMsg && (
           <div className="bg-red-900/30 border-2 border-red-500 rounded-2xl p-4 mb-6 flex items-start gap-3 animate-fade-in">
             <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -306,11 +283,9 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Tabs & Results */}
         {hasSearched && !errorMsg && (
           <div className="animate-fade-in space-y-6">
             
-            {/* Tabs */}
             <div className="flex justify-center gap-4 overflow-x-auto pb-4 px-2">
               {[
                 { id: 'deposit', label: '待付款訂單' },
@@ -337,10 +312,8 @@ const App: React.FC = () => {
               ))}
             </div>
 
-            {/* --- FILTER SECTION (Only for 'all' tab) --- */}
             {activeTab === 'all' && (
                 <div className="bg-gray-900/50 border-2 border-gray-700 rounded-3xl p-6 mb-6">
-                    {/* Row 1: Cargo Status (Multi) */}
                     <div className="mb-6">
                         <h4 className="text-pink-400 font-black text-base uppercase mb-3 flex items-center gap-2">
                             <Box className="w-5 h-5" /> 貨況篩選
@@ -366,7 +339,6 @@ const App: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Row 2: Delivery Status (Single) */}
                     <div>
                         <h4 className="text-[#06C755] font-black text-base uppercase mb-3 flex items-center gap-2">
                             <Truck className="w-5 h-5" /> 出貨篩選
@@ -394,7 +366,6 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            {/* Order List */}
             <div className="space-y-4">
               {filteredOrders.length === 0 ? (
                 <div className="text-center py-20 text-gray-500 bg-gray-900/30 rounded-3xl border border-gray-800 border-dashed">
@@ -402,7 +373,6 @@ const App: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  {/* Select All (Only for actionable tabs) */}
                   {(activeTab === 'deposit' || activeTab === 'balance') && (
                     <div className="flex justify-end px-2">
                       <button 
@@ -429,11 +399,9 @@ const App: React.FC = () => {
                             : 'border-gray-800 hover:border-gray-600 hover:shadow-lg'
                         }`}
                       >
-                        {/* Glow effect on hover */}
                         <div className="absolute inset-0 bg-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
                         <div className="flex items-center gap-4 relative z-10">
-                          {/* Checkbox */}
                           {showCheckbox && (
                             <div 
                               onClick={(e) => toggleOrderSelection(e, order.id)}
@@ -446,9 +414,7 @@ const App: React.FC = () => {
                           )}
 
                           <div className="flex-1">
-                            {/* Status Tags */}
                             <div className="flex flex-wrap gap-2 mb-2">
-                                {/* Shipping Status Tag */}
                                 {order.isShipped ? (
                                     <span className="bg-[#06C755] text-black px-2 py-0.5 rounded text-[10px] font-black uppercase border border-[#06C755]">已出貨</span>
                                 ) : (
@@ -462,15 +428,9 @@ const App: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Order Info - NO ITALIC */}
                             <h3 className="text-xl font-black text-white mb-1 line-clamp-1">
                                 {order.groupName}
                             </h3>
-                            
-                            {/* Hide Item Name in List, Show in Detail */}
-                            {/* <p className="text-gray-400 text-sm font-bold line-clamp-1 mb-2">
-                                {order.items[0].name}
-                            </p> */}
                             
                             <div className="flex justify-between items-end mt-3">
                                 <span className="text-gray-500 text-xs font-bold bg-gray-900 px-2 py-1 rounded border border-gray-800">
@@ -498,7 +458,6 @@ const App: React.FC = () => {
         )}
       </div>
 
-      {/* Bottom Action Bar */}
       {(selectedOrdersData.length > 0) && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-xl border-t-2 border-pink-500 z-40 animate-fade-in-up">
           <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
@@ -521,7 +480,7 @@ const App: React.FC = () => {
               {activeTab === 'deposit' ? (
                  <>
                    <MessageCircle className="w-6 h-6" /> 
-                   LINE 結帳
+                   官方LINE付款
                  </>
               ) : (
                  <>
