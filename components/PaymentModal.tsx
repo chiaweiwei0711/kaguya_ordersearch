@@ -55,14 +55,15 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
         {/* Content */}
         <div className="p-6 overflow-y-auto custom-scrollbar bg-[#0a0a0a]">
           
-          {/* User Info (New Added) */}
-          <div className="mb-6 bg-gray-900/50 rounded-xl p-4 border border-gray-800 flex items-center gap-4">
-             <div className="bg-pink-500/20 p-3 rounded-full border border-pink-500/50">
+          {/* User Info (New Added) - 顯示社群暱稱 */}
+          <div className="mb-6 bg-gray-900/50 rounded-xl p-4 border border-gray-800 flex items-center gap-4 relative overflow-hidden">
+             <div className="absolute inset-0 bg-pink-500/5 pointer-events-none"></div>
+             <div className="bg-pink-500/20 p-3 rounded-full border border-pink-500/50 shrink-0 relative z-10">
                <User className="w-6 h-6 text-pink-500" />
              </div>
-             <div>
+             <div className="relative z-10">
                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">社群暱稱</p>
-               <p className="text-xl font-black text-white tracking-tight">{order.customerPhone}</p>
+               <p className="text-xl font-black text-white tracking-tight leading-none">{order.customerPhone}</p>
              </div>
           </div>
 
