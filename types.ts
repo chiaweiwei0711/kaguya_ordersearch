@@ -32,6 +32,7 @@ export interface Order {
   isShipped: boolean; // 根據「出貨」欄位
   
   shippingDate: string; // 出貨日期
+  paymentMethod: string; // 付款方式 (無卡/匯款)
   createdAt: string; // 這裡通常用匯款日期或系統日期
 }
 
@@ -55,6 +56,7 @@ export interface ColumnMapping {
   
   groupName: string;    // 團名
   shippingDate: string; // 出貨日期
+  paymentMethod: string; // 付款方式
 }
 
 export interface VirtualAccountResponse {
