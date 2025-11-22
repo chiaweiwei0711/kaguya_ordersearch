@@ -1,4 +1,3 @@
-
 import { APP_CONFIG } from "../config";
 import { Order, OrderStatus, OrderItem } from "../types";
 
@@ -23,10 +22,33 @@ const MOCK_ORDERS: Order[] = [
   }
 ];
 
+// Helper: 生成穩定的 ID (Content Hash)
+// 解決 Google Sheet 行數浮動導致 ID 改變的問題
+const generateStableId = (row: any, map: any): string => {
+  // 將 團名 + 社群名稱 + 商品名 + 金額 串接起來當作唯一識別
+  // 只要內容不改，ID 就不會變，就算插入新行數也不影響
+  const rawString = `${row[map.groupName]}-${row[map.customerPhone]}-${row[map.itemName]}-${row[map.productTotal]}-${row[map.depositAmount]}`;
+  
+  // 簡單的 Hash 函數 (轉成 Base64)
+  try {
+    return btoa(unescape(encodeURIComponent(rawString))).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
+  } catch (e) {
+    return `ROW-${Math.random().toString(36).substr(2, 9)}`;
+  }
+};
+
+// Helper: 標準化字串 (移除空白、轉小寫) 用於模糊搜尋
+const normalizeString = (str: string): string => {
+  if (!str) return "";
+  // 移除所有空白 (space, tab, newline) 並轉小寫
+  return String(str).replace(/\s+/g, '').toLowerCase();
+};
+
 export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
   if (!APP_CONFIG.API_URL) return MOCK_ORDERS.filter(o => o.customerPhone === query);
 
   try {
+    // API 端還是傳送原始 query，讓 GAS 做初步篩選 (如果有的話)
     const response = await fetch(`${APP_CONFIG.API_URL}?phone=${encodeURIComponent(query)}`);
     
     if (!response.ok) {
@@ -47,18 +69,31 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     const map = APP_CONFIG.COLUMN_MAPPING;
     const ordersMap = new Map<string, Order>();
 
+    // 前端再次進行「強力模糊搜尋」
+    // 因為 GAS 可能只是簡單的 indexOf，這裡我們把空白都拿掉再比對一次
+    const normalizedQuery = normalizeString(query);
+
     rawRows.forEach((row: any) => {
-      const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
+      // 1. 檢查是否符合搜尋條件 (忽略空白)
+      const customerNickName = String(row[map.customerPhone] || "");
+      const normalizedTarget = normalizeString(customerNickName);
+      
+      // 如果搜尋字串不在目標暱稱內，且目標暱稱也不在搜尋字串內，就跳過
+      if (!normalizedTarget.includes(normalizedQuery) && !normalizedQuery.includes(normalizedTarget)) {
+        return; 
+      }
+
+      // 2. 生成穩定 ID
+      const orderId = generateStableId(row, map);
       
       // 判斷對賬狀態 (TRUE 為已付款, FALSE/Empty 為待付款)
       const isReconciledRaw = String(row[map.isReconciled] || "").toUpperCase();
       const isReconciled = isReconciledRaw === "TRUE";
       
       // 判斷狀態
-      // 這裡將 PENDING 的顯示文字改為 "尚未付款"
       let status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
       
-      // 判斷出貨狀態 (讀取 "出貨" 欄位)
+      // 判斷出貨狀態
       const isShippedRaw = String(row[map.isShipped] || "").toUpperCase();
       const isShipped = isShippedRaw === "TRUE";
 
@@ -71,11 +106,8 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
 
       const productTotal = parseMoney(row[map.productTotal]);
       const balanceDue = parseMoney(row[map.balanceDue]);
-      // 匯款金額 (訂金) = 商品金額 - 餘款 (因為有時候匯款金額欄位可能沒填或是填錯，用算式最準，或者直接讀取)
-      // 但根據您的表格，"匯款金額" 欄位是存在的，我們先讀取它
       let depositAmount = parseMoney(row[map.depositAmount]);
 
-      // 如果匯款金額是 0 但總額 > 0 且餘款 > 0，嘗試自動回推訂金
       if (depositAmount === 0 && productTotal > 0) {
         depositAmount = productTotal - balanceDue;
       }
@@ -84,40 +116,35 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
 
       const item: OrderItem = {
         name: String(row[map.itemName] || "代購商品"),
-        price: productTotal, // 單價暫用總價顯示
+        price: productTotal,
         quantity: totalQuantity
       };
 
       if (ordersMap.has(orderId)) {
-        // 處理同一訂單 ID 多筆資料的情況 (如果有)
         const existing = ordersMap.get(orderId)!;
         existing.items.push(item);
       } else {
         ordersMap.set(orderId, {
           id: orderId,
           source: String(row[map.source] || ""),
-          customerName: String(row[map.customerPhone]), // 使用社群名稱
-          customerPhone: String(row[map.customerPhone]),
+          customerName: customerNickName,
+          customerPhone: customerNickName,
           groupName: String(row[map.groupName] || ""),
-          
           items: [item],
           totalQuantity: totalQuantity,
-          
           productTotal: productTotal,
           depositAmount: depositAmount,
           balanceDue: balanceDue,
-          
           status: status,
-          shippingStatus: String(row[map.shippingStatus] || ""), // e.g. 已抵台
-          isShipped: isShipped, // e.g. TRUE/FALSE
+          shippingStatus: String(row[map.shippingStatus] || ""),
+          isShipped: isShipped,
           shippingDate: String(row[map.shippingDate] || ""),
-          
-          createdAt: new Date().toISOString().split('T')[0] // 暫無日期欄位，用今日
+          createdAt: new Date().toISOString().split('T')[0]
         });
       }
     });
 
-    return Array.from(ordersMap.values()).filter(o => o.customerPhone === query);
+    return Array.from(ordersMap.values());
 
   } catch (error: any) {
     console.error("Fetch Error:", error);
