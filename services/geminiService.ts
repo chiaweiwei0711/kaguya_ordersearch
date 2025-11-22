@@ -1,8 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { Order } from "../types";
 
-// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
-// Assumes process.env.API_KEY is pre-configured and valid.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generatePaymentSuccessMessage = async (order: Order): Promise<string> => {

@@ -8,9 +8,9 @@ import { APP_CONFIG } from './config';
 
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
-// Row 1: Logistics Status (Multi-select)
+// Row 1: Cargo Status (Multi-select)
 const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '商品轉送中', '已抵台'];
-// Row 2: Fulfillment Status (Single-select)
+// Row 2: Delivery Status (Single-select)
 const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 
 const App: React.FC = () => {
@@ -324,216 +324,216 @@ const App: React.FC = () => {
                       setActiveTab(tab.id as TabType); 
                       setSelectedOrderIds(new Set()); 
                       setCargoFilters([]); 
-                      setDeliveryFilter(null); 
+                      setDeliveryFilter(null);
                   }}
-                  className={`px-8 py-4 rounded-full text-base md:text-lg font-black transition-all whitespace-nowrap border-2 relative overflow-hidden group
-                    ${activeTab === tab.id
-                      ? 'bg-pink-500 text-black border-pink-400 shadow-[0_0_20px_rgba(236,72,153,0.5)] scale-105 z-10' 
-                      : 'bg-black text-gray-400 border-gray-700 hover:border-pink-500 hover:text-pink-300'}
-                  `}
+                  className={`px-6 py-3 rounded-full font-black whitespace-nowrap transition-all border-2 ${
+                    activeTab === tab.id
+                      ? 'bg-pink-500 text-black border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.4)] scale-105'
+                      : 'bg-gray-900 text-gray-400 border-gray-700 hover:border-pink-500 hover:text-white'
+                  }`}
                 >
-                  {/* Gloss Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none opacity-50"></div>
-                  <span className="relative z-10">{tab.label}</span>
+                  {tab.label}
                 </button>
               ))}
             </div>
 
-            {/* Advanced Status Filters (BIGGER SIZE) - Only visible for 'All' tab */}
+            {/* --- FILTER SECTION (Only for 'all' tab) --- */}
             {activeTab === 'all' && (
-                <div className="bg-[#111] p-6 md:p-8 rounded-3xl border-2 border-gray-800 animate-fade-in space-y-8 shadow-2xl">
-                    {/* Row 1: Cargo Status (Multi-select) */}
-                    <div className="flex flex-col items-center gap-5">
-                        <span className="text-pink-500 text-lg md:text-xl font-black tracking-wider drop-shadow-[0_0_5px_rgba(236,72,153,0.5)]">
-                            貨況篩選 (可多選)
-                        </span>
-                        <div className="flex flex-wrap gap-4 justify-center">
-                            {ITEM_STATUS_OPTIONS.map(filter => {
-                                const isActive = cargoFilters.includes(filter);
+                <div className="bg-gray-900/50 border-2 border-gray-700 rounded-3xl p-6 mb-6">
+                    {/* Row 1: Cargo Status (Multi) */}
+                    <div className="mb-6">
+                        <h4 className="text-pink-400 font-black text-base uppercase mb-3 flex items-center gap-2">
+                            <Box className="w-5 h-5" /> 貨況篩選
+                        </h4>
+                        <div className="flex flex-wrap gap-3">
+                            {ITEM_STATUS_OPTIONS.map(status => {
+                                const isSelected = cargoFilters.includes(status);
                                 return (
                                     <button
-                                        key={filter}
-                                        onClick={() => toggleCargoFilter(filter)}
-                                        className={`px-6 py-3 rounded-xl text-base md:text-lg font-bold border-2 transition-all flex items-center gap-3 active:scale-95
-                                        ${isActive 
-                                            ? 'bg-blue-900/40 text-blue-300 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]' 
-                                            : 'bg-black text-gray-400 border-gray-700 hover:border-gray-500 hover:text-gray-200'}
-                                        `}
+                                        key={status}
+                                        onClick={() => toggleCargoFilter(status)}
+                                        className={`px-5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all flex items-center gap-2 ${
+                                            isSelected 
+                                            ? 'bg-pink-500 text-black border-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]' 
+                                            : 'bg-black text-gray-400 border-gray-700 hover:border-gray-500'
+                                        }`}
                                     >
-                                        {isActive ? <CheckSquare className="w-5 h-5 md:w-6 md:h-6"/> : <Square className="w-5 h-5 md:w-6 md:h-6"/>}
-                                        {filter}
+                                        {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                                        {status}
                                     </button>
-                                )
+                                );
                             })}
                         </div>
                     </div>
 
-                    {/* Divider */}
-                    <div className="h-0.5 w-full bg-gray-800/50"></div>
-
-                    {/* Row 2: Delivery Status (Single-select) */}
-                    <div className="flex flex-col items-center gap-5">
-                        <span className="text-[#06C755] text-lg md:text-xl font-black tracking-wider drop-shadow-[0_0_5px_rgba(6,199,85,0.5)]">
-                            出貨篩選 (單選)
-                        </span>
-                        <div className="flex flex-wrap gap-4 justify-center">
-                            {DELIVERY_STATUS_OPTIONS.map(filter => {
-                                const isActive = deliveryFilter === filter;
-                                const isShipped = filter === '已出貨';
+                    {/* Row 2: Delivery Status (Single) */}
+                    <div>
+                        <h4 className="text-[#06C755] font-black text-base uppercase mb-3 flex items-center gap-2">
+                            <Truck className="w-5 h-5" /> 出貨篩選
+                        </h4>
+                        <div className="flex flex-wrap gap-3">
+                            {DELIVERY_STATUS_OPTIONS.map(status => {
+                                const isSelected = deliveryFilter === status;
                                 return (
                                     <button
-                                        key={filter}
-                                        onClick={() => toggleDeliveryFilter(filter)}
-                                        className={`px-6 py-3 rounded-full text-base md:text-lg font-bold border-2 transition-all flex items-center gap-3 active:scale-95
-                                        ${isActive 
-                                            ? (isShipped 
-                                                ? 'bg-[#06C755]/20 text-[#06C755] border-[#06C755] shadow-[0_0_15px_rgba(6,199,85,0.4)]'
-                                                : 'bg-red-900/20 text-red-400 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]')
-                                            : 'bg-black text-gray-400 border-gray-700 hover:border-gray-500 hover:text-gray-200'}
-                                        `}
+                                        key={status}
+                                        onClick={() => toggleDeliveryFilter(status)}
+                                        className={`px-5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all flex items-center gap-2 ${
+                                            isSelected 
+                                            ? 'bg-[#06C755] text-white border-[#06C755] shadow-[0_0_10px_rgba(6,199,85,0.5)]' 
+                                            : 'bg-black text-gray-400 border-gray-700 hover:border-gray-500'
+                                        }`}
                                     >
-                                        {isActive ? <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6"/> : <Circle className="w-5 h-5 md:w-6 md:h-6"/>}
-                                        {filter}
+                                        {isSelected ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                                        {status}
                                     </button>
-                                )
+                                );
                             })}
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Selection Bar */}
-            {(activeTab === 'deposit' || activeTab === 'balance') && filteredOrders.length > 0 && (
-               <div className="flex justify-between items-center px-6 bg-gray-900/80 backdrop-blur rounded-full py-3 border border-gray-700 shadow-lg">
-                  <span className="text-sm font-black text-pink-400 uppercase tracking-wider flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" /> {activeTab === 'deposit' ? '選擇訂金項目' : '選擇補款項目'}
-                  </span>
-                  <button 
-                    onClick={toggleSelectAll}
-                    className={`text-sm font-bold flex items-center gap-2 px-4 py-2 rounded-full transition-colors border ${
-                        isAllSelected 
-                        ? 'bg-pink-500 text-black border-pink-500' 
-                        : 'bg-black text-gray-400 border-gray-600'
-                    }`}
-                  >
-                    {isAllSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                    {isAllSelected ? "取消全選" : "全選"}
-                  </button>
-               </div>
-            )}
-
-            {filteredOrders.length === 0 ? (
-              <div className="text-center py-16 bg-black/40 rounded-3xl border-2 border-dashed border-gray-800">
-                <div className="bg-gray-900 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-700">
-                  <Box className="w-10 h-10 text-gray-600" />
+            {/* Order List */}
+            <div className="space-y-4">
+              {filteredOrders.length === 0 ? (
+                <div className="text-center py-20 text-gray-500 bg-gray-900/30 rounded-3xl border border-gray-800 border-dashed">
+                  <p className="text-xl font-bold">沒有找到符合的訂單</p>
                 </div>
-                <p className="text-gray-500 font-bold text-lg">
-                   {activeTab === 'all' && (cargoFilters.length > 0 || deliveryFilter) 
-                      ? '沒有符合篩選條件的訂單' 
-                      : '沒有此狀態的訂單'}
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {filteredOrders.map((order) => {
-                  const isPending = order.status === OrderStatus.PENDING; 
-                  const isSelected = selectedOrderIds.has(order.id);
-                  
-                  // Actionable logic
-                  const isActionable = (activeTab === 'deposit' && isPending) || 
-                                       (activeTab === 'balance' && !order.isShipped);
+              ) : (
+                <>
+                  {/* Select All (Only for actionable tabs) */}
+                  {(activeTab === 'deposit' || activeTab === 'balance') && (
+                    <div className="flex justify-end px-2">
+                      <button 
+                        onClick={toggleSelectAll}
+                        className="text-sm font-bold text-pink-400 hover:text-pink-300 flex items-center gap-2 transition-colors"
+                      >
+                        {isAllSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                        全選本頁
+                      </button>
+                    </div>
+                  )}
 
-                  return (
-                    <div 
-                      key={order.id} 
-                      onClick={() => openDetailModal(order)}
-                      className={`group relative bg-[#111] rounded-2xl p-6 transition-all duration-300 cursor-pointer border-2 overflow-hidden
-                        ${isSelected 
-                          ? 'border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.3)] bg-gray-900' 
-                          : 'border-gray-800 hover:border-pink-500 hover:shadow-[0_0_15px_rgba(236,72,153,0.2)]'}
-                      `}
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                         <div>
-                           <span className={`inline-block px-2 py-1 rounded text-xs font-bold mb-2 ${
-                              order.status === OrderStatus.PAID ? 'bg-pink-900 text-pink-300' : 'bg-yellow-900 text-yellow-300'
-                           }`}>
-                              {order.status === OrderStatus.PAID ? '已付款' : '待付款'}
-                           </span>
-                           <h3 className="font-bold text-lg text-white leading-tight">
-                             {order.groupName || order.items[0].name}
-                           </h3>
-                         </div>
-                         
-                         {/* Checkbox for selection */}
-                         {(isActionable) && (
+                  {filteredOrders.map((order) => {
+                    const isSelected = selectedOrderIds.has(order.id);
+                    const showCheckbox = activeTab === 'deposit' || activeTab === 'balance';
+                    
+                    return (
+                      <div 
+                        key={order.id} 
+                        onClick={() => openDetailModal(order)}
+                        className={`bg-[#0a0a0a] border-2 rounded-3xl p-5 cursor-pointer transition-all hover:-translate-y-1 group relative overflow-hidden ${
+                          isSelected 
+                            ? 'border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.2)]' 
+                            : 'border-gray-800 hover:border-gray-600 hover:shadow-lg'
+                        }`}
+                      >
+                        {/* Glow effect on hover */}
+                        <div className="absolute inset-0 bg-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+
+                        <div className="flex items-center gap-4 relative z-10">
+                          {/* Checkbox */}
+                          {showCheckbox && (
                             <div 
                               onClick={(e) => toggleOrderSelection(e, order.id)}
-                              className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
-                                isSelected ? 'bg-pink-500 border-pink-500' : 'border-gray-600 hover:border-pink-400'
+                              className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all border-2 shrink-0 ${
+                                isSelected ? 'bg-pink-500 border-pink-500 text-black' : 'bg-black border-gray-600 text-transparent hover:border-pink-500'
                               }`}
                             >
-                               {isSelected && <Check size={16} className="text-black stroke-[4]" />}
+                              <Check size={20} strokeWidth={4} />
                             </div>
-                         )}
-                      </div>
+                          )}
 
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-sm text-gray-400">
-                           <span>金額</span>
-                           <span className="text-white font-bold">NT$ {order.productTotal}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-gray-400">
-                           <span>{activeTab === 'balance' ? '餘款' : '訂金'}</span>
-                           <span className="text-pink-400 font-bold">NT$ {activeTab === 'balance' ? order.balanceDue : order.depositAmount}</span>
-                        </div>
-                         {order.shippingStatus && (
-                           <div className="flex justify-between text-sm text-gray-400">
-                             <span>狀態</span>
-                             <span className="text-blue-400">{order.shippingStatus}</span>
-                           </div>
-                         )}
-                      </div>
-                      
-                      <div className="pt-4 border-t border-gray-800 flex justify-between items-center">
-                          <span className="text-xs text-gray-500">{order.id}</span>
-                          <span className="text-xs text-pink-500 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                            查看詳情 <ArrowRight size={12} />
-                          </span>
-                      </div>
+                          <div className="flex-1">
+                            {/* Status Tags */}
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {/* Shipping Status Tag */}
+                                {order.isShipped ? (
+                                    <span className="bg-[#06C755] text-black px-2 py-0.5 rounded text-[10px] font-black uppercase border border-[#06C755]">已出貨</span>
+                                ) : (
+                                    <span className="bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-black uppercase border border-red-500 animate-pulse">尚未出貨</span>
+                                )}
+                                
+                                {order.shippingStatus && (
+                                    <span className="bg-gray-800 text-gray-300 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-600">
+                                        {order.shippingStatus}
+                                    </span>
+                                )}
+                            </div>
 
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                            {/* Order Info - NO ITALIC */}
+                            <h3 className="text-xl font-black text-white mb-1 line-clamp-1">
+                                {order.groupName}
+                            </h3>
+                            
+                            {/* Hide Item Name in List, Show in Detail */}
+                            {/* <p className="text-gray-400 text-sm font-bold line-clamp-1 mb-2">
+                                {order.items[0].name}
+                            </p> */}
+                            
+                            <div className="flex justify-between items-end mt-3">
+                                <span className="text-gray-500 text-xs font-bold bg-gray-900 px-2 py-1 rounded border border-gray-800">
+                                    共 {order.totalQuantity} 件商品
+                                </span>
+                                
+                                <div className="text-right">
+                                    <p className="text-xs text-gray-400 font-bold mb-0.5">
+                                        {activeTab === 'deposit' ? '應付訂金' : (activeTab === 'balance' ? '應補尾款' : '商品總額')}
+                                    </p>
+                                    <p className="text-2xl font-black text-pink-500 tracking-tighter drop-shadow-[0_0_5px_rgba(236,72,153,0.6)]">
+                                        ${activeTab === 'deposit' ? order.depositAmount : (activeTab === 'balance' ? order.balanceDue : order.productTotal)}
+                                    </p>
+                                </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Bar */}
-      {selectedOrdersData.length > 0 && (
-         <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-lg border-t border-pink-500/30 p-4 z-40 animate-slide-up">
-            <div className="max-w-3xl mx-auto flex justify-between items-center">
-               <div>
-                  <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">已選 {selectedOrdersData.length} 筆</p>
-                  <p className="text-white font-black text-2xl">
-                    <span className="text-sm text-pink-500 mr-1">$</span>
-                    {totalSelectedAmount.toLocaleString()}
-                  </p>
-               </div>
-               <button 
-                 onClick={handleBottomAction}
-                 className="bg-pink-600 hover:bg-pink-500 text-white px-8 py-3 rounded-xl font-black shadow-[0_0_20px_rgba(236,72,153,0.4)] transition-all active:scale-95 flex items-center gap-2"
-               >
-                 {activeTab === 'deposit' ? '前往結帳' : '前往賣貨便'}
-                 <ArrowRight className="w-5 h-5" />
-               </button>
+      {/* Bottom Action Bar */}
+      {(selectedOrdersData.length > 0) && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-xl border-t-2 border-pink-500 z-40 animate-fade-in-up">
+          <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+            <div>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">已選擇 {selectedOrdersData.length} 筆</p>
+              <p className="text-3xl font-black text-white tracking-tighter">
+                <span className="text-pink-500 mr-1">$</span>
+                {totalSelectedAmount.toLocaleString()}
+              </p>
             </div>
-         </div>
+            
+            <button
+              onClick={handleBottomAction}
+              className={`px-8 py-4 rounded-2xl font-black text-lg transition-all active:scale-95 flex items-center gap-2 shadow-lg border-2 ${
+                activeTab === 'deposit' 
+                  ? 'bg-[#06C755] text-white border-[#06C755] shadow-[0_0_20px_rgba(6,199,85,0.4)]'
+                  : 'bg-pink-500 text-black border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.4)]'
+              }`}
+            >
+              {activeTab === 'deposit' ? (
+                 <>
+                   <MessageCircle className="w-6 h-6" /> 
+                   LINE 結帳
+                 </>
+              ) : (
+                 <>
+                   <Truck className="w-6 h-6" /> 
+                   前往賣貨便下單
+                 </>
+              )}
+            </button>
+          </div>
+        </div>
       )}
 
-      {/* Modals */}
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
@@ -541,12 +541,12 @@ const App: React.FC = () => {
         totalAmount={totalSelectedAmount}
       />
 
-      <OrderDetailModal 
-         isOpen={isDetailModalOpen}
-         onClose={() => setIsDetailModalOpen(false)}
-         order={selectedDetailOrder}
+      <OrderDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        order={selectedDetailOrder}
       />
-
+      
     </div>
   );
 };
