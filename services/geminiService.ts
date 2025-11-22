@@ -1,18 +1,11 @@
-/// <reference types="vite/client" />
 import { GoogleGenAI } from "@google/genai";
 import { Order } from "../types";
 
-// 修正：在 Vite 前端環境中，不能使用 process.env。
-// 如果您有設定 .env 檔案，請使用 import.meta.env.VITE_API_KEY
-// 如果沒有，這裡保持空字串即可 (這樣前端就不會崩潰，只是 AI 功能會失效，但不會影響查詢)
-const apiKey = import.meta.env.VITE_API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+// Assumes process.env.API_KEY is pre-configured and valid.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generatePaymentSuccessMessage = async (order: Order): Promise<string> => {
-  if (!apiKey) {
-    return "付款成功！感謝您的購買，我們會盡快為您出貨。";
-  }
-
   try {
     const itemsList = order.items.map(item => `${item.name} x${item.quantity}`).join(', ');
     
@@ -40,8 +33,6 @@ export const generatePaymentSuccessMessage = async (order: Order): Promise<strin
 };
 
 export const analyzeCustomerSentiment = async (query: string): Promise<string> => {
-    if(!apiKey) return "Unknown";
-    
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
