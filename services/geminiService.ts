@@ -1,10 +1,18 @@
 import { GoogleGenAI } from "@google/genai";
 import { Order } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// FIX: Use import.meta.env for Vite (Frontend) instead of process.env
+// process.env causes "ReferenceError: process is not defined" (White Screen) in browsers.
+// In Netlify, set the environment variable as "VITE_API_KEY"
+const apiKey = import.meta.env.VITE_API_KEY || "";
+
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 export const generatePaymentSuccessMessage = async (order: Order): Promise<string> => {
   try {
+    // Safety check to prevent crashing if API key is missing
+    if (!apiKey) return "付款確認成功！我們會盡快安排出貨。";
+
     const itemsList = order.items.map(item => `${item.name} x${item.quantity}`).join(', ');
     
     const prompt = `
@@ -32,6 +40,8 @@ export const generatePaymentSuccessMessage = async (order: Order): Promise<strin
 
 export const analyzeCustomerSentiment = async (query: string): Promise<string> => {
     try {
+        if (!apiKey) return "Inquiry";
+        
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: `Analyze the sentiment/intent of this customer query: "${query}". Return one word: Urgent, Inquiry, or Complaint.`
