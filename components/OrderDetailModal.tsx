@@ -20,7 +20,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
 團名: ${order.groupName}
 商品: ${order.items.map(i => i.name).join(', ')}
 總額: ${order.productTotal}
-已付: ${order.depositAmount}
+應付訂金: ${order.depositAmount}
 餘款: ${order.balanceDue}
 付款方式: ${order.paymentMethod}
     `.trim();
@@ -41,7 +41,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[60] p-4 animate-fade-in">
       <div className="bg-[#050505] rounded-3xl shadow-[0_0_50px_rgba(236,72,153,0.3)] w-full max-w-lg overflow-hidden relative flex flex-col max-h-[90vh] border-2 border-gray-800 ring-1 ring-pink-500/20">
         
-        {/* Header - NO ITALIC */}
+        {/* Header */}
         <div className="bg-black text-white p-5 flex justify-between items-center shrink-0 border-b border-gray-800">
           <h3 className="font-black text-2xl tracking-tighter flex items-center gap-3 text-white">
             <div className="bg-pink-500 w-4 h-4 rotate-45 shadow-[0_0_10px_#ec4899]"></div>
@@ -52,7 +52,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
           </button>
         </div>
 
-        {/* User Info Banner (PINNED AT TOP) - 這裡絕對看得到 */}
+        {/* User Info Banner */}
         <div className="bg-gray-900 p-4 border-b border-gray-800 flex items-center gap-4 relative overflow-hidden shrink-0">
              <div className="absolute inset-0 bg-pink-500/5 pointer-events-none"></div>
              <div className="bg-pink-500/20 p-3 rounded-full border border-pink-500/50 shrink-0 relative z-10">
@@ -67,7 +67,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
         {/* Scrollable Content */}
         <div className="p-6 overflow-y-auto custom-scrollbar bg-[#0a0a0a]">
           
-          {/* Status Badges - NO ITALIC */}
+          {/* Status Badges */}
           <div className="flex flex-wrap gap-2 mb-6">
               {order.isShipped ? (
                   <span className="bg-[#06C755] text-black px-3 py-1 rounded-md text-xs font-black uppercase tracking-wide border-2 border-[#06C755] shadow-[0_0_10px_rgba(6,199,85,0.4)]">已出貨</span>
@@ -90,12 +90,12 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
               </span>
           </div>
 
-          {/* Main Info - NO ITALIC */}
+          {/* Main Info */}
           <div className="mb-6 border-l-4 border-pink-500 pl-4">
             <p className="font-bold text-2xl text-white">{order.groupName}</p>
           </div>
 
-          {/* Additional Info Grid: Shipping Date & Payment Method */}
+          {/* Additional Info Grid */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800 flex items-start gap-3">
                <div className="bg-gray-800 p-2 rounded-lg shrink-0">
@@ -141,7 +141,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
             </div>
           </div>
 
-          {/* Financials - NO ITALIC */}
+          {/* Financials */}
           <div className="mb-6">
              <h4 className="text-sm font-black text-gray-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
                 <DollarSign className="w-4 h-4 text-pink-500" /> 金額試算
@@ -152,7 +152,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                     <span className="font-bold text-white">${order.productTotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm font-bold">已付訂金</span>
+                    <span className="text-gray-400 text-sm font-bold">應付訂金</span>
                     <span className="font-bold text-gray-500">
                         - ${order.depositAmount.toLocaleString()}
                     </span>
