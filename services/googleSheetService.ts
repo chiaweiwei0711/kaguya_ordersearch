@@ -72,6 +72,15 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
 
       const totalQuantity = Number(row[map.quantity]) || 1;
 
+      // --- 抓取付款方式 ---
+      // 優先讀取設定的欄位，如果讀不到，嘗試讀取 "付款方式" (硬編碼備案)
+      // 如果還是空的，顯示 "匯款/無卡" (預設值)
+      let paymentMethodRaw = row[map.paymentMethod];
+      if (!paymentMethodRaw && row["付款方式"]) {
+          paymentMethodRaw = row["付款方式"];
+      }
+      const paymentMethod = String(paymentMethodRaw || "匯款/無卡");
+
       const item: OrderItem = {
         name: String(row[map.itemName] || "代購商品"),
         price: productTotal,
@@ -97,30 +106,21 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
           shippingStatus: String(row[map.shippingStatus] || ""),
           isShipped: isShipped,
           shippingDate: String(row[map.shippingDate] || ""),
-          paymentMethod: String(row[map.paymentMethod] || "未指定"), // 新增：讀取付款方式
+          paymentMethod: paymentMethod,
           createdAt: new Date().toISOString().split('T')[0]
         });
       }
     });
 
     // --- 智慧分流搜尋邏輯 ---
-    // 1. 清理搜尋關鍵字
     const normalizedQuery = query.trim().toLowerCase();
-    
-    // 2. 判斷是否為「純英文/數字」且長度較短 (防止 v 搜到 victon)
-    // Regex: 只有 a-z 和 0-9
     const isPureAlphaNum = /^[a-z0-9]+$/i.test(normalizedQuery);
 
     return Array.from(ordersMap.values()).filter(o => {
         const target = String(o.customerPhone).trim().toLowerCase();
-        
         if (isPureAlphaNum) {
-            // 情境 A: 純英數搜尋 (e.g. "v", "abc", "123")
-            // 邏輯: 嚴格比對 (Strict Equality)
             return target === normalizedQuery;
         } else {
-            // 情境 B: 包含中文、符號、顏文字 (e.g. "黎黎", ":)")
-            // 邏輯: 包含比對 (Includes)
             return target.includes(normalizedQuery);
         }
     });
