@@ -47,15 +47,11 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     const ordersMap = new Map<string, Order>();
 
     rawRows.forEach((row: any) => {
-      // 使用原本的 ID 邏輯，若無 ID 則使用 Random
-      // 注意：如果 Excel 沒有填 ID，隨機 ID 會導致勾選框在重新整理時重置，這是正常的
       const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
       
       const isReconciledRaw = String(row[map.isReconciled] || "").toUpperCase();
       const isReconciled = isReconciledRaw === "TRUE";
-      
       let status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
-      
       const isShippedRaw = String(row[map.isShipped] || "").toUpperCase();
       const isShipped = isShippedRaw === "TRUE";
 
@@ -105,16 +101,28 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
       }
     });
 
-    // --- 基礎模糊搜尋邏輯 ---
-    // 1. 去除搜尋關鍵字的前後空白，並轉小寫
+    // --- 智慧分流搜尋邏輯 ---
+    // 1. 清理搜尋關鍵字
     const normalizedQuery = query.trim().toLowerCase();
+    
+    // 2. 判斷是否為「純英文/數字」且長度較短 (防止 v 搜到 victon)
+    // Regex: 只有 a-z 和 0-9
+    const isPureAlphaNum = /^[a-z0-9]+$/i.test(normalizedQuery);
 
     return Array.from(ordersMap.values()).filter(o => {
-        // 2. 去除資料庫暱稱的前後空白，並轉小寫
-        const normalizedTarget = String(o.customerPhone).trim().toLowerCase();
-        // 3. 進行完全比對 (Equal)
-        // 這能確保 'v' 不會搜到 'victon'，但 'Kaguya' 能搜到 'kaguya'
-        return normalizedTarget === normalizedQuery;
+        const target = String(o.customerPhone).trim().toLowerCase();
+        
+        if (isPureAlphaNum) {
+            // 情境 A: 純英數搜尋 (e.g. "v", "abc", "123")
+            // 邏輯: 嚴格比對 (Strict Equality)
+            // 結果: "v" 只能搜到 "v"，不會搜到 "victon"
+            return target === normalizedQuery;
+        } else {
+            // 情境 B: 包含中文、符號、顏文字 (e.g. "黎黎", ":)")
+            // 邏輯: 包含比對 (Includes)
+            // 結果: "黎黎" 可以搜到 "黎黎", "黎黎:)", "黎黎(´･ᴥ･｀)"
+            return target.includes(normalizedQuery);
+        }
     });
 
   } catch (error: any) {
