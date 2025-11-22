@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { X, Copy, ExternalLink, CheckCircle, Package, DollarSign, Calendar, CreditCard } from 'lucide-react';
+import { X, Copy, ExternalLink, CheckCircle, Package, DollarSign, Calendar, CreditCard, User } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { APP_CONFIG } from '../config';
 
@@ -43,7 +42,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
       <div className="bg-[#050505] rounded-3xl shadow-[0_0_50px_rgba(236,72,153,0.3)] w-full max-w-lg overflow-hidden relative flex flex-col max-h-[90vh] border-2 border-gray-800 ring-1 ring-pink-500/20">
         
         {/* Header - NO ITALIC */}
-        <div className="bg-black text-white p-6 flex justify-between items-center shrink-0 border-b-2 border-gray-800">
+        <div className="bg-black text-white p-5 flex justify-between items-center shrink-0 border-b border-gray-800">
           <h3 className="font-black text-2xl tracking-tighter flex items-center gap-3 text-white">
             <div className="bg-pink-500 w-4 h-4 rotate-45 shadow-[0_0_10px_#ec4899]"></div>
             訂單詳情
@@ -53,7 +52,19 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
           </button>
         </div>
 
-        {/* Content */}
+        {/* User Info Banner (PINNED AT TOP) - 這裡絕對看得到 */}
+        <div className="bg-gray-900 p-4 border-b border-gray-800 flex items-center gap-4 relative overflow-hidden shrink-0">
+             <div className="absolute inset-0 bg-pink-500/5 pointer-events-none"></div>
+             <div className="bg-pink-500/20 p-3 rounded-full border border-pink-500/50 shrink-0 relative z-10">
+               <User className="w-6 h-6 text-pink-500" />
+             </div>
+             <div className="relative z-10">
+               <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">社群暱稱 (請核對)</p>
+               <p className="text-xl font-black text-white tracking-tight leading-none">{order.customerPhone}</p>
+             </div>
+        </div>
+
+        {/* Scrollable Content */}
         <div className="p-6 overflow-y-auto custom-scrollbar bg-[#0a0a0a]">
           
           {/* Status Badges - NO ITALIC */}
