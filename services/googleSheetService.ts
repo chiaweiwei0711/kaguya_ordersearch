@@ -1,4 +1,3 @@
-
 import { APP_CONFIG } from "../config";
 import { Order, OrderStatus, OrderItem } from "../types";
 
@@ -48,21 +47,18 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     const ordersMap = new Map<string, Order>();
 
     rawRows.forEach((row: any) => {
+      // 使用原本的 ID 邏輯，若無 ID 則使用 Random
+      // 注意：如果 Excel 沒有填 ID，隨機 ID 會導致勾選框在重新整理時重置，這是正常的
       const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
       
-      // 判斷對賬狀態 (TRUE 為已付款, FALSE/Empty 為待付款)
       const isReconciledRaw = String(row[map.isReconciled] || "").toUpperCase();
       const isReconciled = isReconciledRaw === "TRUE";
       
-      // 判斷狀態
-      // 這裡將 PENDING 的顯示文字改為 "尚未付款"
       let status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
       
-      // 判斷出貨狀態 (讀取 "出貨" 欄位)
       const isShippedRaw = String(row[map.isShipped] || "").toUpperCase();
       const isShipped = isShippedRaw === "TRUE";
 
-      // 金額處理
       const parseMoney = (val: any) => {
         if (typeof val === 'number') return val;
         if (!val) return 0;
@@ -71,11 +67,8 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
 
       const productTotal = parseMoney(row[map.productTotal]);
       const balanceDue = parseMoney(row[map.balanceDue]);
-      // 匯款金額 (訂金) = 商品金額 - 餘款 (因為有時候匯款金額欄位可能沒填或是填錯，用算式最準，或者直接讀取)
-      // 但根據您的表格，"匯款金額" 欄位是存在的，我們先讀取它
       let depositAmount = parseMoney(row[map.depositAmount]);
 
-      // 如果匯款金額是 0 但總額 > 0 且餘款 > 0，嘗試自動回推訂金
       if (depositAmount === 0 && productTotal > 0) {
         depositAmount = productTotal - balanceDue;
       }
@@ -84,40 +77,45 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
 
       const item: OrderItem = {
         name: String(row[map.itemName] || "代購商品"),
-        price: productTotal, // 單價暫用總價顯示
+        price: productTotal,
         quantity: totalQuantity
       };
 
       if (ordersMap.has(orderId)) {
-        // 處理同一訂單 ID 多筆資料的情況 (如果有)
         const existing = ordersMap.get(orderId)!;
         existing.items.push(item);
       } else {
         ordersMap.set(orderId, {
           id: orderId,
           source: String(row[map.source] || ""),
-          customerName: String(row[map.customerPhone]), // 使用社群名稱
+          customerName: String(row[map.customerPhone]),
           customerPhone: String(row[map.customerPhone]),
           groupName: String(row[map.groupName] || ""),
-          
           items: [item],
           totalQuantity: totalQuantity,
-          
           productTotal: productTotal,
           depositAmount: depositAmount,
           balanceDue: balanceDue,
-          
           status: status,
-          shippingStatus: String(row[map.shippingStatus] || ""), // e.g. 已抵台
-          isShipped: isShipped, // e.g. TRUE/FALSE
+          shippingStatus: String(row[map.shippingStatus] || ""),
+          isShipped: isShipped,
           shippingDate: String(row[map.shippingDate] || ""),
-          
-          createdAt: new Date().toISOString().split('T')[0] // 暫無日期欄位，用今日
+          createdAt: new Date().toISOString().split('T')[0]
         });
       }
     });
 
-    return Array.from(ordersMap.values()).filter(o => o.customerPhone === query);
+    // --- 基礎模糊搜尋邏輯 ---
+    // 1. 去除搜尋關鍵字的前後空白，並轉小寫
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return Array.from(ordersMap.values()).filter(o => {
+        // 2. 去除資料庫暱稱的前後空白，並轉小寫
+        const normalizedTarget = String(o.customerPhone).trim().toLowerCase();
+        // 3. 進行完全比對 (Equal)
+        // 這能確保 'v' 不會搜到 'victon'，但 'Kaguya' 能搜到 'kaguya'
+        return normalizedTarget === normalizedQuery;
+    });
 
   } catch (error: any) {
     console.error("Fetch Error:", error);
