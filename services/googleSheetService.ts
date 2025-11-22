@@ -1,7 +1,7 @@
 import { APP_CONFIG } from "../config";
 import { Order, OrderStatus, OrderItem } from "../types";
 
-// 模擬資料 (當 API 沒連上時顯示)
+// 模擬資料
 const MOCK_ORDERS: Order[] = [
   {
     id: "MOCK-1",
@@ -23,13 +23,8 @@ const MOCK_ORDERS: Order[] = [
 ];
 
 // Helper: 生成穩定的 ID (Content Hash)
-// 解決 Google Sheet 行數浮動導致 ID 改變的問題
 const generateStableId = (row: any, map: any): string => {
-  // 將 團名 + 社群名稱 + 商品名 + 金額 串接起來當作唯一識別
-  // 只要內容不改，ID 就不會變，就算插入新行數也不影響
   const rawString = `${row[map.groupName]}-${row[map.customerPhone]}-${row[map.itemName]}-${row[map.productTotal]}-${row[map.depositAmount]}`;
-  
-  // 簡單的 Hash 函數 (轉成 Base64)
   try {
     return btoa(unescape(encodeURIComponent(rawString))).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
   } catch (e) {
@@ -37,124 +32,48 @@ const generateStableId = (row: any, map: any): string => {
   }
 };
 
-// Helper: 全形轉半形 (解決輸入法差異)
-const toHalfWidth = (str: string) => {
-  return str.replace(/[\uff01-\uff5e]/g, function(ch) {
-    return String.fromCharCode(ch.charCodeAt(0) - 0xfee0);
-  }).replace(/\u3000/g, ' ');
-};
-
-// Helper: 提取核心文字 (移除符號與空白，轉小寫)
-const getCoreText = (str: string) => {
-  // 只保留：中文、日文(平假/片假/漢字)、韓文、英文、數字
-  // 移除所有標點符號、Emoji、特殊符號
-  return str.replace(/[^\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff\uac00-\ud7afa-zA-Z0-9]/g, '').toLowerCase();
-};
-
-// Helper: 檢查是否包含 CJK (中日韓)
-const hasCJK = (str: string) => {
-  return /[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(str);
-};
-
 export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
   if (!APP_CONFIG.API_URL) return MOCK_ORDERS.filter(o => o.customerPhone === query);
 
   try {
-    // API 端還是傳送原始 query，但我們主要依賴前端過濾
     const response = await fetch(`${APP_CONFIG.API_URL}?phone=${encodeURIComponent(query)}`);
     
     if (!response.ok) {
-      throw new Error(`連線失敗 (${response.status})。請確認 Apps Script 部署為「任何人 (Anyone)」可讀取。`);
+      throw new Error(`連線失敗 (${response.status})`);
     }
 
     const data = await response.json();
 
-    if (data.status === "error") {
-      throw new Error(data.message || "Google Sheet 發生錯誤");
-    }
-
-    if (data.status !== "success") {
-      return [];
-    }
+    if (data.status !== "success") return [];
 
     const rawRows = data.data;
     const map = APP_CONFIG.COLUMN_MAPPING;
     const ordersMap = new Map<string, Order>();
 
-    // 準備搜尋鍵值
-    // 1. 轉半形 (統一格式)
-    const queryHalf = toHalfWidth(query).trim();
-    // 2. 取得「核心文字」 (無符號)
-    const queryCore = getCoreText(queryHalf);
-    // 3. 判斷是否包含中文/日文
-    const queryIsCJK = hasCJK(queryCore);
+    // 嚴格搜尋：去除前後空白
+    const exactQuery = query.trim();
 
-    // 判斷是否為純符號搜尋 (例如只搜 ":)")
-    const isSymbolSearch = queryCore.length === 0;
-    // 純符號搜尋用的字串 (只去空白)
-    const queryRawNoSpace = queryHalf.replace(/\s+/g, '').toLowerCase();
-
-    // 如果連去空白後都是空的，直接回傳空
-    if (!queryRawNoSpace) {
-      return [];
-    }
+    if (!exactQuery) return [];
 
     rawRows.forEach((row: any) => {
-      const customerNickName = String(row[map.customerPhone] || "");
+      const customerNickName = String(row[map.customerPhone] || "").trim();
       
-      // 準備目標鍵值
-      const targetHalf = toHalfWidth(customerNickName);
-      const targetCore = getCoreText(targetHalf);
-      
-      let isMatch = false;
-
-      if (isSymbolSearch) {
-        // 模式 A: 純符號搜尋 (e.g. ":)")
-        // 邏輯: 去除空白後完全相等
-        const targetRawNoSpace = targetHalf.replace(/\s+/g, '').toLowerCase();
-        if (targetRawNoSpace === queryRawNoSpace) {
-          isMatch = true;
-        }
-      } else {
-        if (queryIsCJK) {
-          // 模式 B: 中日文模糊搜尋 (e.g. "黎黎")
-          // 邏輯: 核心文字使用 Includes (包含)
-          // 效果: "黎黎" 可以搜到 "黎黎:)", "黎黎二號"
-          if (targetCore.includes(queryCore)) {
-            isMatch = true;
-          }
-        } else {
-          // 模式 C: 英文/數字精確搜尋 (e.g. "v")
-          // 邏輯: 核心文字使用 Equals (相等)
-          // 效果: "v" === "v" (Match), "victon" !== "v" (No Match)
-          // 效果: "Kaguya" === "Kaguya" (Match "Kaguya ❤️")
-          if (targetCore === queryCore) {
-            isMatch = true;
-          }
-        }
-      }
-
-      if (!isMatch) {
+      // 嚴格比對：完全一樣才算 (Case Sensitive)
+      // 如果您希望 "abc" 能搜到 "ABC"，可以改成 customerNickName.toLowerCase() === exactQuery.toLowerCase()
+      if (customerNickName !== exactQuery) {
         return;
       }
 
-      // --- 以下為資料組裝 (維持不變) ---
-      
-      // 2. 生成穩定 ID
+      // --- 資料組裝 ---
       const orderId = generateStableId(row, map);
       
-      // 判斷對賬狀態 (TRUE 為已付款, FALSE/Empty 為待付款)
       const isReconciledRaw = String(row[map.isReconciled] || "").toUpperCase();
       const isReconciled = isReconciledRaw === "TRUE";
-      
-      // 判斷狀態
       let status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
       
-      // 判斷出貨狀態
       const isShippedRaw = String(row[map.isShipped] || "").toUpperCase();
       const isShipped = isShippedRaw === "TRUE";
 
-      // 金額處理
       const parseMoney = (val: any) => {
         if (typeof val === 'number') return val;
         if (!val) return 0;
@@ -206,7 +125,7 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
   } catch (error: any) {
     console.error("Fetch Error:", error);
     if (error.message === "Failed to fetch") {
-      throw new Error("無法連線到資料庫。請確認 Google Apps Script URL 正確且權限為「任何人」。");
+      throw new Error("無法連線到資料庫。");
     }
     throw error;
   }
