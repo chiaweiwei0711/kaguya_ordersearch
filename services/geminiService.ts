@@ -1,7 +1,11 @@
+/// <reference types="vite/client" />
 import { GoogleGenAI } from "@google/genai";
 import { Order } from "../types";
 
-const apiKey = process.env.API_KEY || '';
+// 修正：在 Vite 前端環境中，不能使用 process.env。
+// 如果您有設定 .env 檔案，請使用 import.meta.env.VITE_API_KEY
+// 如果沒有，這裡保持空字串即可 (這樣前端就不會崩潰，只是 AI 功能會失效，但不會影響查詢)
+const apiKey = import.meta.env.VITE_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 export const generatePaymentSuccessMessage = async (order: Order): Promise<string> => {
@@ -36,8 +40,6 @@ export const generatePaymentSuccessMessage = async (order: Order): Promise<strin
 };
 
 export const analyzeCustomerSentiment = async (query: string): Promise<string> => {
-    // Mock function to show AI usage potential - categorizes user intent
-    // Not strictly used in the main flow but demonstrates capability
     if(!apiKey) return "Unknown";
     
     try {
