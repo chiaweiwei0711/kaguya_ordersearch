@@ -36,5 +36,6 @@ export const APP_CONFIG = {
     shippingStatus: "狀態", // e.g., 已抵台, 25天左右
     
     shippingDate: "出貨日期",
+    paymentMethod: "付款方式"
   } as ColumnMapping
 };
