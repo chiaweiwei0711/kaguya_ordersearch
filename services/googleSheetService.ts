@@ -1,3 +1,4 @@
+
 import { APP_CONFIG } from "../config";
 import { Order, OrderStatus, OrderItem } from "../types";
 
@@ -37,18 +38,23 @@ const generateStableId = (row: any, map: any): string => {
   }
 };
 
-// Helper: 標準化字串 (移除空白、轉小寫) 用於模糊搜尋
+// Helper: 標準化字串 (強力清洗模式)
+// 只保留：中文、英文、數字、日文(平假/片假)
+// 移除：所有符號、空格、Emoji
 const normalizeString = (str: string): string => {
   if (!str) return "";
-  // 移除所有空白 (space, tab, newline) 並轉小寫
-  return String(str).replace(/\s+/g, '').toLowerCase();
+  return String(str)
+    // 正則表達式解釋：保留 CJK漢字, A-Z, 0-9, 日文平假名, 日文片假名
+    // [^\u4e00-\u9fa5a-zA-Z0-9\u3040-\u309f\u30a0-\u30ff] 代表「除了這些以外的字元」
+    .replace(/[^\u4e00-\u9fa5a-zA-Z0-9\u3040-\u309f\u30a0-\u30ff]/g, '')
+    .toLowerCase();
 };
 
 export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
   if (!APP_CONFIG.API_URL) return MOCK_ORDERS.filter(o => o.customerPhone === query);
 
   try {
-    // API 端還是傳送原始 query，讓 GAS 做初步篩選 (如果有的話)
+    // API 端還是傳送原始 query，但我們主要依賴前端過濾
     const response = await fetch(`${APP_CONFIG.API_URL}?phone=${encodeURIComponent(query)}`);
     
     if (!response.ok) {
@@ -69,17 +75,23 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     const map = APP_CONFIG.COLUMN_MAPPING;
     const ordersMap = new Map<string, Order>();
 
-    // 前端再次進行「強力模糊搜尋」
-    // 因為 GAS 可能只是簡單的 indexOf，這裡我們把空白都拿掉再比對一次
+    // 前端進行「嚴格清洗後的精確比對」
     const normalizedQuery = normalizeString(query);
 
+    // 如果清洗後搜尋字串是空的 (例如只打了符號)，直接回傳空陣列
+    if (!normalizedQuery) {
+      return [];
+    }
+
     rawRows.forEach((row: any) => {
-      // 1. 檢查是否符合搜尋條件 (忽略空白)
+      // 1. 檢查是否符合搜尋條件
       const customerNickName = String(row[map.customerPhone] || "");
       const normalizedTarget = normalizeString(customerNickName);
       
-      // 如果搜尋字串不在目標暱稱內，且目標暱稱也不在搜尋字串內，就跳過
-      if (!normalizedTarget.includes(normalizedQuery) && !normalizedQuery.includes(normalizedTarget)) {
+      // 關鍵修改：使用嚴格相等 (===) 而不是包含 (includes)
+      // 這樣 'v' 就不會搜到 'vv' 或 'victon'
+      // 但 '黎黎:)' (清洗後 '黎黎') 會被 '黎黎' (清洗後 '黎黎') 搜到
+      if (normalizedTarget !== normalizedQuery) {
         return; 
       }
 
