@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { X, Copy, ExternalLink, CheckCircle, Package, DollarSign } from 'lucide-react';
+import { X, Copy, ExternalLink, CheckCircle, Package, DollarSign, Calendar, CreditCard } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { APP_CONFIG } from '../config';
 
@@ -22,6 +23,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
 總額: ${order.productTotal}
 已付: ${order.depositAmount}
 餘款: ${order.balanceDue}
+付款方式: ${order.paymentMethod}
     `.trim();
     
     navigator.clipboard.writeText(text).then(() => {
@@ -78,8 +80,34 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
           </div>
 
           {/* Main Info - NO ITALIC */}
-          <div className="mb-8 border-l-4 border-pink-500 pl-4">
+          <div className="mb-6 border-l-4 border-pink-500 pl-4">
             <p className="font-bold text-2xl text-white">{order.groupName}</p>
+          </div>
+
+          {/* Additional Info Grid: Shipping Date & Payment Method */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800 flex items-start gap-3">
+               <div className="bg-gray-800 p-2 rounded-lg shrink-0">
+                 <Calendar className="w-5 h-5 text-pink-400" />
+               </div>
+               <div>
+                 <p className="text-xs text-gray-400 font-bold mb-0.5">預計出貨</p>
+                 <p className="text-sm font-black text-white leading-tight">
+                    {order.shippingDate || "尚未排定"}
+                 </p>
+               </div>
+            </div>
+            <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800 flex items-start gap-3">
+               <div className="bg-gray-800 p-2 rounded-lg shrink-0">
+                 <CreditCard className="w-5 h-5 text-[#06C755]" />
+               </div>
+               <div>
+                 <p className="text-xs text-gray-400 font-bold mb-0.5">付款方式</p>
+                 <p className="text-sm font-black text-white leading-tight">
+                    {order.paymentMethod}
+                 </p>
+               </div>
+            </div>
           </div>
 
           {/* Items */}
