@@ -38,16 +38,18 @@ const generateStableId = (row: any, map: any): string => {
   }
 };
 
-// Helper: 標準化字串 (強力清洗模式)
-// 只保留：中文、英文、數字、日文(平假/片假)
-// 移除：所有符號、空格、Emoji
-const normalizeString = (str: string): string => {
+// Helper 1: 強力清洗 (只保留中英數日文，移除所有符號)
+const normalizeStrict = (str: string): string => {
   if (!str) return "";
   return String(str)
-    // 正則表達式解釋：保留 CJK漢字, A-Z, 0-9, 日文平假名, 日文片假名
-    // [^\u4e00-\u9fa5a-zA-Z0-9\u3040-\u309f\u30a0-\u30ff] 代表「除了這些以外的字元」
     .replace(/[^\u4e00-\u9fa5a-zA-Z0-9\u3040-\u309f\u30a0-\u30ff]/g, '')
     .toLowerCase();
+};
+
+// Helper 2: 基本清洗 (只移除空格，保留符號) - 用於純符號暱稱
+const normalizeBasic = (str: string): string => {
+  if (!str) return "";
+  return String(str).replace(/\s+/g, '').toLowerCase();
 };
 
 export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
@@ -75,24 +77,41 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     const map = APP_CONFIG.COLUMN_MAPPING;
     const ordersMap = new Map<string, Order>();
 
-    // 前端進行「嚴格清洗後的精確比對」
-    const normalizedQuery = normalizeString(query);
+    // 準備搜尋鍵值
+    // 1. 取得「強力清洗版」搜尋詞 (無符號)
+    const queryStrict = normalizeStrict(query);
+    // 2. 取得「基本清洗版」搜尋詞 (含符號，無空格)
+    const queryBasic = normalizeBasic(query);
 
-    // 如果清洗後搜尋字串是空的 (例如只打了符號)，直接回傳空陣列
-    if (!normalizedQuery) {
+    // 如果連基本清洗後都是空的，直接回傳空
+    if (!queryBasic) {
       return [];
     }
 
     rawRows.forEach((row: any) => {
-      // 1. 檢查是否符合搜尋條件
       const customerNickName = String(row[map.customerPhone] || "");
-      const normalizedTarget = normalizeString(customerNickName);
       
-      // 關鍵修改：使用嚴格相等 (===) 而不是包含 (includes)
-      // 這樣 'v' 就不會搜到 'vv' 或 'victon'
-      // 但 '黎黎:)' (清洗後 '黎黎') 會被 '黎黎' (清洗後 '黎黎') 搜到
-      if (normalizedTarget !== normalizedQuery) {
-        return; 
+      let isMatch = false;
+
+      // --- 智慧比對邏輯 ---
+      if (queryStrict.length > 0) {
+        // 情境 A: 搜尋詞包含文字/數字 (例如 "Kaguya :)")
+        // 使用「強力清洗」比對： DB("Kaguya ❤️") -> "kaguya" === QUERY("Kaguya :)") -> "kaguya"
+        const targetStrict = normalizeStrict(customerNickName);
+        if (targetStrict === queryStrict) {
+          isMatch = true;
+        }
+      } else {
+        // 情境 B: 搜尋詞全是符號 (例如 ":)")，強力清洗後變空字串
+        // 使用「基本清洗」比對： DB(":)") -> ":)" === QUERY(":)") -> ":)"
+        const targetBasic = normalizeBasic(customerNickName);
+        if (targetBasic === queryBasic) {
+          isMatch = true;
+        }
+      }
+
+      if (!isMatch) {
+        return;
       }
 
       // 2. 生成穩定 ID
