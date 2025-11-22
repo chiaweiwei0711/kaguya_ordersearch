@@ -5,6 +5,9 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generatePaymentSuccessMessage = async (order: Order): Promise<string> => {
   try {
+    // Safety check to prevent crashing if API key is missing
+    if (!process.env.API_KEY) return "付款確認成功！我們會盡快安排出貨。";
+
     const itemsList = order.items.map(item => `${item.name} x${item.quantity}`).join(', ');
     
     const prompt = `
@@ -32,6 +35,8 @@ export const generatePaymentSuccessMessage = async (order: Order): Promise<strin
 
 export const analyzeCustomerSentiment = async (query: string): Promise<string> => {
     try {
+        if (!process.env.API_KEY) return "Inquiry";
+        
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: `Analyze the sentiment/intent of this customer query: "${query}". Return one word: Urgent, Inquiry, or Complaint.`

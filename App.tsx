@@ -352,13 +352,13 @@ const App: React.FC = () => {
                                     <button
                                         key={status}
                                         onClick={() => toggleCargoFilter(status)}
-                                        className={`px-5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all flex items-center gap-2 ${
+                                        className={`px-6 py-3 rounded-xl text-sm md:text-base font-bold border-2 transition-all flex items-center gap-2 ${
                                             isSelected 
-                                            ? 'bg-pink-500 text-black border-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]' 
+                                            ? 'bg-pink-500 text-black border-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.5)] scale-105' 
                                             : 'bg-black text-gray-400 border-gray-700 hover:border-gray-500'
                                         }`}
                                     >
-                                        {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                                        {isSelected ? <CheckSquare size={20} /> : <Square size={20} />}
                                         {status}
                                     </button>
                                 );
@@ -378,13 +378,13 @@ const App: React.FC = () => {
                                     <button
                                         key={status}
                                         onClick={() => toggleDeliveryFilter(status)}
-                                        className={`px-5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all flex items-center gap-2 ${
+                                        className={`px-6 py-3 rounded-xl text-sm md:text-base font-bold border-2 transition-all flex items-center gap-2 ${
                                             isSelected 
-                                            ? 'bg-[#06C755] text-white border-[#06C755] shadow-[0_0_10px_rgba(6,199,85,0.5)]' 
+                                            ? 'bg-[#06C755] text-white border-[#06C755] shadow-[0_0_10px_rgba(6,199,85,0.5)] scale-105' 
                                             : 'bg-black text-gray-400 border-gray-700 hover:border-gray-500'
                                         }`}
                                     >
-                                        {isSelected ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                                        {isSelected ? <CheckCircle2 size={20} /> : <Circle size={20} />}
                                         {status}
                                     </button>
                                 );
