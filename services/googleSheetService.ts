@@ -50,6 +50,13 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     rawRows.forEach((row: any) => {
       const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
       
+      // 強制讀取社群名稱：優先讀 Config 設定，如果沒有，嘗試直接讀 "社群名稱"
+      let customerPhoneRaw = row[map.customerPhone];
+      if (!customerPhoneRaw && row["社群名稱"]) {
+          customerPhoneRaw = row["社群名稱"];
+      }
+      const customerPhone = String(customerPhoneRaw || "");
+
       const isReconciledRaw = String(row[map.isReconciled] || "").toUpperCase();
       const isReconciled = isReconciledRaw === "TRUE";
       let status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
@@ -72,9 +79,7 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
 
       const totalQuantity = Number(row[map.quantity]) || 1;
 
-      // --- 抓取付款方式 ---
-      // 優先讀取設定的欄位，如果讀不到，嘗試讀取 "付款方式" (硬編碼備案)
-      // 如果還是空的，顯示 "匯款/無卡" (預設值)
+      // 強制讀取付款方式：優先讀 Config 設定，如果沒有，嘗試讀 "付款方式"
       let paymentMethodRaw = row[map.paymentMethod];
       if (!paymentMethodRaw && row["付款方式"]) {
           paymentMethodRaw = row["付款方式"];
@@ -94,8 +99,8 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
         ordersMap.set(orderId, {
           id: orderId,
           source: String(row[map.source] || ""),
-          customerName: String(row[map.customerPhone]),
-          customerPhone: String(row[map.customerPhone]),
+          customerName: customerPhone,
+          customerPhone: customerPhone,
           groupName: String(row[map.groupName] || ""),
           items: [item],
           totalQuantity: totalQuantity,
