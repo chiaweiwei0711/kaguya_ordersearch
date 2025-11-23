@@ -268,7 +268,7 @@ const App: React.FC = () => {
                 className="bg-pink-500 hover:bg-pink-400 text-black p-3 rounded-2xl font-black transition-all shadow-[0_0_15px_rgba(236,72,153,0.6)] active:scale-95 flex items-center justify-center border-2 border-pink-300 min-w-[60px]"
               >
                 {isLoading ? (
-                    <span className="text-sm font-bold whitespace-nowrap px-2">查询中請稍候</span>
+                    <span className="text-sm font-bold whitespace-nowrap px-2">查詢中請稍候</span>
                 ) : (
                     <ArrowRight className="w-6 h-6" />
                 )}
