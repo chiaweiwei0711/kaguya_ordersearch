@@ -30,9 +30,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
   const themeShadow = isShipping ? 'shadow-[0_0_40px_rgba(6,199,85,0.4)]' : 'shadow-[0_0_40px_rgba(236,72,153,0.4)]';
 
   const generateLineMessage = () => {
-    // 1. 補尾款模式 (賣貨便)：簡潔格式
+    // 1. 補尾款模式 (賣貨便)：極簡格式 (商品名 x數量)
     if (isShipping) {
-        return orders.map(o => `${o.groupName}_${o.items[0].name} x${o.totalQuantity}`).join('\n');
+        // 移除團名，只保留商品名稱
+        return orders.map(o => `${o.items[0].name} x${o.totalQuantity}`).join('\n');
     }
 
     // 2. 付訂金模式 (LINE)：詳細格式
