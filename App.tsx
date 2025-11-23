@@ -190,10 +190,10 @@ const App: React.FC = () => {
   const isAllSelected = filteredOrders.length > 0 && filteredOrders.length === selectedOrderIds.size;
 
   return (
-    <div className="min-h-screen font-sans pb-32 text-white selection:bg-pink-500 selection:text-white">
+    <div className="min-h-screen font-sans pb-32 text-white selection:bg-pink-500 selection:text-white relative flex flex-col">
       
       {/* --- Y2K Header --- */}
-      <div className="relative pt-12 pb-8 px-6 flex flex-col items-center text-center overflow-hidden">
+      <div className="relative pt-12 pb-8 px-6 flex flex-col items-center text-center overflow-hidden shrink-0">
         <div className="absolute top-[-150px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-pink-600/20 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
         <Sparkles className="absolute top-10 right-10 text-pink-500 w-8 h-8 animate-pulse" />
         <Star className="absolute top-20 left-10 text-pink-400 w-5 h-5 animate-bounce" />
@@ -246,9 +246,10 @@ const App: React.FC = () => {
 
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 -mt-4 relative z-20">
+      {/* Main Content */}
+      <div className="max-w-3xl mx-auto px-4 -mt-4 relative z-20 flex-1 w-full">
         
-        {/* Search Box - Optimized Button Size */}
+        {/* Search Box */}
         <div className="mb-8">
             <div className="bg-black rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] p-2 flex items-center gap-2 border-2 border-pink-500 ring-4 ring-pink-500/20">
               <div className="relative flex-1">
@@ -264,7 +265,6 @@ const App: React.FC = () => {
               <button 
                 onClick={handleSearch}
                 disabled={isLoading}
-                // 修改：縮小按鈕尺寸 (p-5 -> p-3)，改為顯示文字 loading
                 className="bg-pink-500 hover:bg-pink-400 text-black p-3 rounded-2xl font-black transition-all shadow-[0_0_15px_rgba(236,72,153,0.6)] active:scale-95 flex items-center justify-center border-2 border-pink-300 min-w-[60px]"
               >
                 {isLoading ? (
@@ -461,6 +461,19 @@ const App: React.FC = () => {
                 </>
               )}
             </div>
+
+            {/* Disclaimer for Deposit Tab */}
+            {activeTab === 'deposit' && foundOrders.length > 0 && (
+              <div className="mt-8 p-4 rounded-2xl bg-gray-900/50 border border-gray-800 text-center animate-fade-in">
+                <p className="text-gray-400 text-xs md:text-sm font-bold leading-relaxed">
+                  <span className="text-pink-500 mr-1">⚠️</span>
+                  已付款但顯示尚未付款，代表尚未對帳完成。
+                  <br className="hidden md:block" />
+                  如官賴已回覆已對帳，2日內狀態卻未改變，請私訊官賴詢問！
+                </p>
+              </div>
+            )}
+
           </div>
         )}
       </div>
@@ -500,7 +513,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 傳入 modalType 讓 Modal 知道現在是哪種模式 */}
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
@@ -514,6 +526,13 @@ const App: React.FC = () => {
         onClose={() => setIsDetailModalOpen(false)}
         order={selectedDetailOrder}
       />
+
+      {/* Footer */}
+      <footer className="py-8 text-center text-gray-600 text-xs font-bold relative z-10 mt-auto">
+        <p>本網頁由 Kaguyaさま日本動漫周邊代購 設計</p>
+        <p className="mt-1">統編：60071756</p>
+        <p className="mt-2 opacity-50">© {new Date().getFullYear()} All Rights Reserved.</p>
+      </footer>
       
     </div>
   );
