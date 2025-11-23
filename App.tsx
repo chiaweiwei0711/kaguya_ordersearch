@@ -8,7 +8,9 @@ import { APP_CONFIG } from './config';
 
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
+// Row 1: Cargo Status (Multi-select)
 const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '商品轉送中', '已抵台'];
+// Row 2: Delivery Status (Single-select)
 const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 
 const App: React.FC = () => {
@@ -21,26 +23,34 @@ const App: React.FC = () => {
   
   const [payingOrders, setPayingOrders] = useState<Order[]>([]);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  // 新增：控制 Modal 是「付訂金(deposit)」還是「補尾款(shipping)」模式
+  const [modalType, setModalType] = useState<'deposit' | 'shipping'>('deposit');
   
+  // Detail Modal State
   const [selectedDetailOrder, setSelectedDetailOrder] = useState<Order | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   
+  // Selection State
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
 
+  // --- New Filter State ---
   const [cargoFilters, setCargoFilters] = useState<string[]>([]);
   const [deliveryFilter, setDeliveryFilter] = useState<string | null>(null);
 
+  // --- 篩選邏輯 ---
   const filteredOrders = useMemo(() => {
     return foundOrders.filter(order => {
-      const isPending = order.status === OrderStatus.PENDING;
-      const isPaid = order.status === OrderStatus.PAID;
+      const isPending = order.status === OrderStatus.PENDING; // 尚未付款
+      const isPaid = order.status === OrderStatus.PAID; // 已付款 (已對帳)
       const isArrived = order.shippingStatus.includes("已抵台");
       const isShipped = order.isShipped;
 
+      // 1. Tab Filtering (Basic Tabs)
       let matchesTab = false;
       if (activeTab === 'deposit') {
         matchesTab = isPending;
       } else if (activeTab === 'balance') {
+        // 顯示：已付款 + 已抵台 + 尚未出貨 (需要補尾款/下單)
         matchesTab = isPaid && isArrived && !isShipped;
       } else if (activeTab === 'completed') {
         matchesTab = isPaid && isArrived && isShipped;
@@ -50,6 +60,7 @@ const App: React.FC = () => {
 
       if (!matchesTab) return false;
 
+      // 2. Advanced Status Filtering (Only applies to 'all' tab)
       if (activeTab === 'all') {
         let matchesCargo = true;
         if (cargoFilters.length > 0) {
@@ -77,6 +88,7 @@ const App: React.FC = () => {
     return filteredOrders.filter(o => selectedOrderIds.has(o.id));
   }, [filteredOrders, selectedOrderIds]);
 
+  // 計算金額
   const totalSelectedAmount = useMemo(() => {
     if (activeTab === 'deposit') {
       return selectedOrdersData.reduce((sum, o) => sum + o.depositAmount, 0);
@@ -163,14 +175,16 @@ const App: React.FC = () => {
   const handleBottomAction = () => {
     if (selectedOrdersData.length === 0) return;
 
+    setPayingOrders(selectedOrdersData);
+    
+    // 判斷是付訂金還是補尾款
     if (activeTab === 'deposit') {
-      setPayingOrders(selectedOrdersData);
-      setIsPaymentModalOpen(true);
+      setModalType('deposit');
     } else if (activeTab === 'balance') {
-      if (APP_CONFIG.MAIHUOBIAN_URL) {
-        window.open(APP_CONFIG.MAIHUOBIAN_URL, '_blank');
-      }
+      setModalType('shipping');
     }
+    
+    setIsPaymentModalOpen(true);
   };
 
   const isAllSelected = filteredOrders.length > 0 && filteredOrders.length === selectedOrderIds.size;
@@ -180,18 +194,10 @@ const App: React.FC = () => {
       
       {/* --- Y2K Header --- */}
       <div className="relative pt-12 pb-8 px-6 flex flex-col items-center text-center overflow-hidden">
-        
-        {/* Background Decorations */}
         <div className="absolute top-[-150px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-pink-600/20 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
-        
-        {/* Decorative Stars - Added More */}
         <Sparkles className="absolute top-10 right-10 text-pink-500 w-8 h-8 animate-pulse" />
-        <Star className="absolute top-24 left-8 text-pink-400 w-6 h-6 animate-bounce" fill="currentColor" />
-        <Star className="absolute top-12 left-[20%] text-white w-4 h-4 animate-pulse" />
-        <Star className="absolute bottom-20 right-[15%] text-pink-600 w-5 h-5 animate-pulse" fill="currentColor" />
-        <Sparkles className="absolute top-40 right-4 text-purple-400 w-5 h-5 animate-spin-slow" />
+        <Star className="absolute top-20 left-10 text-pink-400 w-5 h-5 animate-bounce" />
 
-        {/* Logo Area */}
         <div className="relative z-10 mb-6 animate-float">
           <div className="h-32 md:h-48 mx-auto flex items-center justify-center">
              <img 
@@ -202,17 +208,14 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Title */}
         <h2 className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tight drop-shadow-[0_3px_0_rgba(236,72,153,1)]">
           自助查詢訂單系統
         </h2>
 
-        {/* Subtitle */}
         <p className="text-pink-400 font-black italic tracking-widest uppercase text-base md:text-lg drop-shadow-sm mb-8 border-b-2 border-pink-500/30 pb-2">
           Kaguya日本動漫周邊專業代購
         </p>
 
-        {/* Announcement Bar */}
         <div className="w-full max-w-2xl bg-black/40 backdrop-blur-md border-2 border-pink-500 rounded-3xl p-6 mb-8 animate-fade-in-up shadow-[0_0_25px_rgba(236,72,153,0.25)] text-center relative overflow-hidden group hover:border-pink-400 transition-colors">
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-0 bg-[length:100%_2px,3px_100%]"></div>
           
@@ -228,15 +231,14 @@ const App: React.FC = () => {
              
              <div className="h-px w-full bg-gradient-to-r from-transparent via-pink-500/50 to-transparent my-5"></div>
 
-             {/* Reminders - Smaller Text for Mobile */}
-             <div className="flex flex-col gap-4 font-bold text-white">
-                <div className="flex items-center justify-center gap-2 bg-gray-900/50 px-4 py-3 rounded-full border border-gray-700 hover:border-pink-500 transition-colors w-full text-xs md:text-xl whitespace-nowrap overflow-hidden">
-                   <MessageCircle className="w-4 h-4 md:w-6 md:h-6 text-pink-400 shrink-0"/> 
-                   <span>付款請查 <span className="text-pink-400 text-sm md:text-2xl ml-1 font-black">待付款訂單</span></span>
+             <div className="flex flex-col gap-4 text-base md:text-xl font-bold text-white">
+                <div className="flex items-center justify-center gap-3 bg-gray-900/50 px-5 py-3 rounded-full border border-gray-700 hover:border-pink-500 transition-colors w-full">
+                   <MessageCircle size={20} className="text-pink-400 shrink-0"/> 
+                   <span>付款請查 <span className="text-pink-400 text-2xl ml-1 font-black">待付款訂單</span></span>
                 </div>
-                <div className="flex items-center justify-center gap-2 bg-gray-900/50 px-4 py-3 rounded-full border border-gray-700 hover:border-[#06C755] transition-colors w-full text-xs md:text-xl whitespace-nowrap overflow-hidden">
-                   <Truck className="w-4 h-4 md:w-6 md:h-6 text-[#06C755] shrink-0"/> 
-                   <span>已抵台下單請查 <span className="text-[#06C755] text-sm md:text-2xl ml-1 font-black">可出貨訂單</span></span>
+                <div className="flex items-center justify-center gap-3 bg-gray-900/50 px-5 py-3 rounded-full border border-gray-700 hover:border-[#06C755] transition-colors w-full">
+                   <Truck size={20} className="text-[#06C755] shrink-0"/> 
+                   <span>已抵台下單請查 <span className="text-[#06C755] text-2xl ml-1 font-black">可出貨訂單</span></span>
                 </div>
              </div>
           </div>
@@ -244,10 +246,9 @@ const App: React.FC = () => {
 
       </div>
 
-      {/* Main Content */}
       <div className="max-w-3xl mx-auto px-4 -mt-4 relative z-20">
         
-        {/* Search Box */}
+        {/* Search Box - Optimized Button Size */}
         <div className="mb-8">
             <div className="bg-black rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] p-2 flex items-center gap-2 border-2 border-pink-500 ring-4 ring-pink-500/20">
               <div className="relative flex-1">
@@ -263,9 +264,14 @@ const App: React.FC = () => {
               <button 
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="bg-pink-500 hover:bg-pink-400 text-black p-5 rounded-2xl font-black transition-all shadow-[0_0_15px_rgba(236,72,153,0.6)] active:scale-95 flex items-center justify-center border-2 border-pink-300"
+                // 修改：縮小按鈕尺寸 (p-5 -> p-3)，改為顯示文字 loading
+                className="bg-pink-500 hover:bg-pink-400 text-black p-3 rounded-2xl font-black transition-all shadow-[0_0_15px_rgba(236,72,153,0.6)] active:scale-95 flex items-center justify-center border-2 border-pink-300 min-w-[60px]"
               >
-                {isLoading ? '...' : <ArrowRight className="w-7 h-7" />}
+                {isLoading ? (
+                    <span className="text-sm font-bold whitespace-nowrap px-2">查询中請稍候</span>
+                ) : (
+                    <ArrowRight className="w-6 h-6" />
+                )}
               </button>
             </div>
             <p className="text-pink-500 text-sm md:text-base font-bold mt-3 text-center drop-shadow-[0_0_8px_rgba(236,72,153,0.6)]">
@@ -286,6 +292,7 @@ const App: React.FC = () => {
         {hasSearched && !errorMsg && (
           <div className="animate-fade-in space-y-6">
             
+            {/* Tabs */}
             <div className="flex justify-center gap-4 overflow-x-auto pb-4 px-2">
               {[
                 { id: 'deposit', label: '待付款訂單' },
@@ -493,11 +500,13 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* 傳入 modalType 讓 Modal 知道現在是哪種模式 */}
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         orders={payingOrders}
         totalAmount={totalSelectedAmount}
+        type={modalType}
       />
 
       <OrderDetailModal
