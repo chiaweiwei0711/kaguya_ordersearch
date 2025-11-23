@@ -1,3 +1,4 @@
+
 import { APP_CONFIG } from "../config";
 import { Order, OrderStatus, OrderItem } from "../types";
 
@@ -117,17 +118,17 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
       }
     });
 
-    // --- 智慧分流搜尋邏輯 ---
+    // --- 嚴格搜尋邏輯 (Strict Search) ---
+    // 1. 清理搜尋關鍵字 (去空白、轉小寫)
     const normalizedQuery = query.trim().toLowerCase();
-    const isPureAlphaNum = /^[a-z0-9]+$/i.test(normalizedQuery);
 
     return Array.from(ordersMap.values()).filter(o => {
+        // 2. 只有當 Excel 裡的暱稱 (去空白、轉小寫後) 跟搜尋關鍵字 **完全一樣** 時才回傳
         const target = String(o.customerPhone).trim().toLowerCase();
-        if (isPureAlphaNum) {
-            return target === normalizedQuery;
-        } else {
-            return target.includes(normalizedQuery);
-        }
+        
+        // 使用 === 進行嚴格比對
+        // "黎黎" !== "黎黎:)"
+        return target === normalizedQuery;
     });
 
   } catch (error: any) {
