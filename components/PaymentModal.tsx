@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { MessageCircle, Copy, CheckCircle, X, Sparkles, Truck } from 'lucide-react';
+import { X, Sparkles, CheckCircle, Truck, ArrowRight, Copy, MessageCircle } from 'lucide-react';
 import { Order } from '../types';
 import { APP_CONFIG } from '../config';
 
@@ -8,7 +9,7 @@ interface PaymentModalProps {
   totalAmount: number;
   isOpen: boolean;
   onClose: () => void;
-  // 新增屬性：區分是付訂金還是補尾款
+  // 屬性：區分是付訂金還是補尾款
   type: 'deposit' | 'shipping';
 }
 
@@ -29,35 +30,38 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
   const themeGradient = isShipping ? 'from-green-600 to-emerald-900' : 'from-pink-600 to-purple-900';
   const themeShadow = isShipping ? 'shadow-[0_0_40px_rgba(6,199,85,0.4)]' : 'shadow-[0_0_40px_rgba(236,72,153,0.4)]';
 
-  const generateLineMessage = () => {
+  // 產生訂單明細
+  const generateDetailMessage = () => {
     // 1. 補尾款模式 (賣貨便)：極簡格式 (商品名 x數量)
     if (isShipping) {
-        // 移除團名，只保留商品名稱
         return orders.map(o => `${o.items[0].name} x${o.totalQuantity}`).join('\n');
     }
 
-    // 2. 付訂金模式 (LINE)：詳細格式
-    const totalProduct = orders.reduce((sum, o) => sum + o.productTotal, 0);
+    // 2. 付訂金模式 (LINE)：指定格式
     const totalDeposit = orders.reduce((sum, o) => sum + o.depositAmount, 0);
-    const seriesList = orders.map(o => o.groupName).join('\n');
+    // 使用 Set 去除重複的團名，避免同一團多筆訂單時重複顯示
+    const uniqueGroups = Array.from(new Set(orders.map(o => o.groupName))).join('\n');
 
-    return `您好，我要付款！
+    return `Kaguya訂購付款確認
+--------------------
 ♦️社群暱稱：${orders[0].customerPhone}
 ♦️訂購商品系列：
-${seriesList}
-♦️商品金額：$${totalProduct.toLocaleString()}
-♦️應付訂金：$${totalDeposit.toLocaleString()}
-已確認訂購商品與金額無誤！`;
+${uniqueGroups}
+♦️付款金額：$${totalDeposit.toLocaleString()}
+♦️您的匯款帳號末五碼：
+*（無卡請拍明細回傳）*
+---------------------
+已確認訂購商品與付款金額無誤！`;
   };
 
-  const handleCopyAndRedirect = () => {
-    const message = generateLineMessage();
+  const handleAction = () => {
+    const message = generateDetailMessage();
     navigator.clipboard.writeText(message).then(() => {
       setIsCopied(true);
+      // 延遲開啟連結，讓使用者先看到「已複製」
       setTimeout(() => {
-        if (targetUrl) {
-            window.open(targetUrl, '_blank');
-        }
+        if (targetUrl) window.open(targetUrl, '_blank');
+        setIsCopied(false);
       }, 800);
     });
   };
@@ -73,80 +77,68 @@ ${seriesList}
           <X className="w-5 h-5 stroke-[3]" />
         </button>
 
-        {/* Header - Dynamic Theme */}
-        <div className={`bg-gradient-to-br ${themeGradient} p-8 text-white text-center relative overflow-hidden border-b-2 ${themeBorder}`}>
+        {/* Header */}
+        <div className={`bg-gradient-to-br ${themeGradient} p-6 text-white text-center relative overflow-hidden border-b-2 ${themeBorder}`}>
           <div className="absolute inset-0 opacity-30" style={{backgroundImage: 'radial-gradient(circle, white 1.5px, transparent 1.5px)', backgroundSize: '12px 12px'}}></div>
           <Sparkles className="absolute top-4 left-4 w-6 h-6 text-white/50 animate-pulse" />
           
-          <h3 className="font-black text-3xl flex items-center justify-center gap-2 relative z-10 tracking-tighter drop-shadow-[0_2px_0_rgba(0,0,0,0.5)]">
-            {isShipping ? '尾款下單' : '訂金結帳'}
+          <h3 className="font-black text-2xl flex items-center justify-center gap-2 drop-shadow-md mb-1">
+            {isShipping ? <Truck size={28} /> : <MessageCircle size={28} />}
+            {isShipping ? '前往賣貨便' : '訂金結帳'}
           </h3>
-          <p className="text-white/80 text-xs font-black uppercase tracking-widest mt-2 relative z-10">
-            {isShipping ? 'SHIPPING CONFIRMATION' : 'PAYMENT CONFIRMATION'}
+          <p className="font-bold opacity-90 text-xs tracking-widest uppercase">
+            {isShipping ? 'Shipment Order' : 'PAYMENT CONFIRMATION'}
           </p>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 bg-[#0a0a0a]">
           
-          <div className="bg-black rounded-2xl p-5 border border-gray-800 relative">
-            <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
-              <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">確認項目</span>
-              <span className={`font-black text-black ${themeBg} px-2 py-0.5 rounded text-xs shadow-[0_0_10px_rgba(255,255,255,0.3)]`}>
-                {orders.length} 筆
-              </span>
+          {/* 訂單明細列表 (恢復原本樣式) */}
+          <div className="bg-gray-900/40 rounded-2xl p-4 border border-gray-800 mb-6 max-h-60 overflow-y-auto custom-scrollbar">
+            <div className="flex justify-between items-end mb-4 border-b border-gray-700 pb-2">
+                <span className="text-gray-400 font-bold text-xs uppercase">確認項目</span>
+                <span className="bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded-full border border-gray-700">{orders.length} 筆</span>
             </div>
             
-            <div className="space-y-3 max-h-40 overflow-y-auto text-sm text-gray-300 mb-4 pr-1 custom-scrollbar">
-               {orders.map(order => (
-                 <div key={order.id} className="flex justify-between items-start">
-                   <span className="font-bold w-2/3 leading-snug text-white">
-                     {order.groupName}
-                   </span>
-                   <span className={`font-mono ${isShipping ? 'text-[#06C755]' : 'text-pink-400'} font-bold text-xs pt-0.5`}>
-                        ${isShipping ? order.balanceDue : order.depositAmount}
-                   </span>
-                 </div>
-               ))}
+            <div className="space-y-3">
+                {orders.map((order, index) => (
+                    <div key={index} className="flex justify-between items-center group">
+                        <span className="text-white font-bold text-sm truncate pr-4 group-hover:text-pink-300 transition-colors">{order.groupName}</span>
+                        <span className={`font-mono font-bold ${themeColor}`}>
+                            ${(isShipping ? order.balanceDue : order.depositAmount).toLocaleString()}
+                        </span>
+                    </div>
+                ))}
             </div>
 
-            <div className="flex justify-between items-center pt-3 border-t border-gray-800">
-              <span className="text-white font-bold text-sm">應付總額</span>
-              <span className={`text-3xl font-black ${themeColor} tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]`}>
-                <span className="text-lg mr-1 text-gray-500">$</span>
-                {totalAmount.toLocaleString()}
-              </span>
+            <div className="border-t border-gray-700 my-4"></div>
+
+            <div className="flex justify-between items-center">
+                <span className="text-gray-400 font-bold text-sm uppercase">應付總額</span>
+                <span className={`text-3xl font-black ${themeColor} drop-shadow-[0_0_10px_rgba(236,72,153,0.5)]`}>
+                    ${totalAmount.toLocaleString()}
+                </span>
             </div>
           </div>
 
           <button
-            onClick={handleCopyAndRedirect}
-            className={`w-full py-4 px-6 rounded-2xl font-black text-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 shadow-lg border-2 relative overflow-hidden group ${
-              isCopied 
-                ? 'bg-white text-black border-white' 
-                : `${themeBg} text-white ${themeBorder} hover:brightness-110`
+            onClick={handleAction}
+            className={`w-full py-4 rounded-xl font-black text-base md:text-lg transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 border-2 ${
+                isShipping
+                ? 'bg-[#06C755] text-white border-[#06C755] hover:bg-[#05b54b]'
+                : 'bg-pink-500 text-white border-pink-500 hover:bg-pink-400'
             }`}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none"></div>
-            
-            <span className="relative z-10 flex items-center gap-2">
-                {isCopied ? (
-                <>
-                    <CheckCircle className="w-6 h-6" /> 已複製！前往 {isShipping ? '賣貨便' : 'LINE'}...
-                </>
-                ) : (
-                <>
-                    {isShipping ? <Truck className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
-                    複製明細 & 前往 {isShipping ? '賣貨便' : 'LINE'}
-                </>
-                )}
-            </span>
+            {isCopied ? <CheckCircle className="w-6 h-6" /> : (isShipping ? <Copy className="w-6 h-6" /> : <Copy className="w-6 h-6" />)}
+            {isCopied ? '已複製！正在跳轉...' : (isShipping ? '複製內容＆前往賣場' : '複製明細＆前往LINE付款')}
+            {!isCopied && <ArrowRight className="w-5 h-5" />}
           </button>
           
-          {isShipping && (
-              <p className="text-center text-xs text-gray-500 font-bold">
-                  * 請將複製的明細貼在賣貨便的「備註欄」
-              </p>
+          {!isShipping && (
+            <p className="text-center text-gray-500 text-xs font-bold mt-3 animate-pulse">
+                [ 轉帳完成後請複製明細並填入末五碼貼給我們 ]
+            </p>
           )}
 
         </div>
