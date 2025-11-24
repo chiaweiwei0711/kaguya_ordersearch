@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { X, Copy, ExternalLink, CheckCircle, Package, DollarSign, Calendar, CreditCard, User } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
@@ -15,15 +16,17 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
   if (!isOpen || !order) return null;
 
   const handleCopy = () => {
-    const text = `
-社群暱稱: ${order.customerPhone}
-團名: ${order.groupName}
-商品: ${order.items.map(i => i.name).join(', ')}
-總額: ${order.productTotal}
-應付訂金: ${order.depositAmount}
-餘款: ${order.balanceDue}
-付款方式: ${order.paymentMethod}
-    `.trim();
+    const text = `Kaguya訂購付款確認
+--------------------
+♦️社群暱稱：${order.customerPhone}
+♦️訂購商品系列：
+${order.groupName}
+♦️付款金額：$${order.depositAmount.toLocaleString()}
+♦️您匯款到哪個銀行：
+♦️您的匯款帳號末五碼：
+*（無卡請拍明細回傳）*
+---------------------
+已確認訂購商品與付款金額無誤`;
     
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
