@@ -131,15 +131,16 @@ ${uniqueGroups}
             }`}
           >
             {isCopied ? <CheckCircle className="w-6 h-6" /> : (isShipping ? <Copy className="w-6 h-6" /> : <Copy className="w-6 h-6" />)}
-            {isCopied ? '已複製！正在跳轉...' : (isShipping ? '複製內容＆前往賣場' : '複製明細＆前往LINE付款')}
+            {isCopied ? '已複製！正在跳轉...' : (isShipping ? '複製內容＆前往賣場' : '前往複製明細＆前往LINE付款')}
             {!isCopied && <ArrowRight className="w-5 h-5" />}
           </button>
           
-          {!isShipping && (
-            <p className="text-center text-gray-500 text-xs font-bold mt-3 animate-pulse">
-                [ 轉帳完成後請複製明細並填入末五碼貼給我們 ]
-            </p>
-          )}
+          <p className="text-center text-gray-500 text-xs font-bold mt-3 animate-pulse">
+            {isShipping 
+              ? '請將訂單明細 複製到「您購買的商品與數量」的輸入欄呦'
+              : '[ 轉帳完成後請複製明細並填入末五碼貼給我們 ]'
+            }
+          </p>
 
         </div>
       </div>
