@@ -48,6 +48,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
 ♦️訂購商品系列：
 ${uniqueGroups}
 ♦️付款金額：$${totalDeposit.toLocaleString()}
+♦️您匯款到哪個銀行：
 ♦️您的匯款帳號末五碼：
 *（無卡請拍明細回傳）*
 ---------------------
