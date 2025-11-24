@@ -84,7 +84,7 @@ ${uniqueGroups}
           
           <h3 className="font-black text-2xl flex items-center justify-center gap-2 drop-shadow-md mb-1">
             {isShipping ? <Truck size={28} /> : <MessageCircle size={28} />}
-            {isShipping ? '前往賣貨便' : '訂金結帳'}
+            {isShipping ? '抵台商品下單' : '訂金結帳'}
           </h3>
           <p className="font-bold opacity-90 text-xs tracking-widest uppercase">
             {isShipping ? 'Shipment Order' : 'PAYMENT CONFIRMATION'}
@@ -131,11 +131,11 @@ ${uniqueGroups}
             }`}
           >
             {isCopied ? <CheckCircle className="w-6 h-6" /> : (isShipping ? <Copy className="w-6 h-6" /> : <Copy className="w-6 h-6" />)}
-            {isCopied ? '已複製！正在跳轉...' : (isShipping ? '複製內容＆前往賣場' : '前往複製明細＆前往LINE付款')}
+            {isCopied ? '已複製！正在跳轉...' : (isShipping ? '複製明細＆前往賣貨便' : '複製明細＆前往LINE付款')}
             {!isCopied && <ArrowRight className="w-5 h-5" />}
           </button>
           
-          <p className="text-center text-gray-500 text-xs font-bold mt-3 animate-pulse">
+          <p className="text-center text-gray-500 text-xs font-bold mt-3 ">
             {isShipping 
               ? '請將訂單明細 複製到「您購買的商品與數量」的輸入欄呦'
               : '[ 轉帳完成後請複製明細並填入末五碼貼給我們 ]'
