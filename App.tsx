@@ -108,10 +108,10 @@ const InfoHub = ({ news, onSelectNews, onOpenAllNews }: { news: Announcement[], 
       <div className="relative overflow-hidden bg-black border-2 border-pink-500/50 rounded-2xl py-3 px-4 shadow-[0_0_20px_rgba(236,72,153,0.2)]">
         <div className="whitespace-nowrap flex animate-marquee">
           <span className="text-pink-500 font-bold text-sm md:text-base px-4">
-            ⚠️ 年末年初日本廠商/集運公司多在放假,商品有可能會發生延誤抵台情形,請大家預留收貨時間。
+            ⚠️ 年末年初日本廠商/集運公司多在放假,商品有可能會發生延誤抵台情形,請大家多多包涵。
           </span>
           <span className="text-pink-500 font-bold text-sm md:text-base px-4">
-            ⚠️ 年末年初日本廠商/集運公司多在放假,商品有可能會發生延誤抵台情形,請大家預留收貨時間。
+            ⚠️ 年末年初日本廠商/集運公司多在放假,商品有可能會發生延誤抵台情形,請大家多多包涵。
           </span>
         </div>
       </div>
@@ -447,7 +447,7 @@ const App: React.FC = () => {
                 >
                   自助查詢訂單系統
                 </h1>
-                <p className="text-pink-500 text-xs font-bold tracking-[0.2em] italic uppercase mb-12">KAGUYA日本動漫周邊專業代購</p>
+                <p className="text-pink-500 text-sm font-bold tracking-[0.2em] italic uppercase mb-12">KAGUYA日本動漫周邊專業代購</p>
                 <div className="w-full max-w-xl bg-black/40 rounded-[2.5rem] border-2 border-pink-500/50 p-8 md:p-10 relative mb-8 shadow-inner">
                   <p className="text-gray-300 text-sm text-center font-bold mb-10 leading-relaxed">
                    本查詢系統提供 Kaguyaさま 的顧客們更輕鬆便利的一站式訂單查詢體驗，從付款、貨況查詢到抵台下單出貨，所有流程都可以簡單完成！希望大家可以開心購物！
