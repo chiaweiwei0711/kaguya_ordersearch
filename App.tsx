@@ -99,7 +99,133 @@ const AllNewsModal = ({ news, isOpen, onClose, onSelectNews }: { news: Announcem
         </div>
     );
 };
+// --- 新增：購物流程輪播組件 ---
+const ShoppingGuide = () => {
+  // ⚠️ 請在這裡更換您的 5 張圖片網址
+  const images = [
+    "https://imgur.com/239DJw6", // 流程圖 1
+    "https://imgur.com/j76KqeA", // 流程圖 2
+    "https://imgur.com/megTTli", // 流程圖 3
+    "https://imgur.com/Hr88EIy", // 流程圖 4
+    "https://imgur.com/bXInaiN",  // 流程圖 5 
+    "https://imgur.com/HlR5PEQ",  // 流程圖 6
+   "https://imgur.com/7DycaFf",  // 流程圖 7
+  ];
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  // 自動輪播邏輯
+  useEffect(() => {
+    if (isModalOpen) return; // 打開大圖時暫停輪播
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4000); // 4秒換一張
+    return () => clearInterval(timer);
+  }, [isModalOpen, images.length]);
+
+  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % images.length);
+  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+
+  // 手機滑動偵測
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
+  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    if (isLeftSwipe) nextSlide();
+    if (isRightSwipe) prevSlide();
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  return (
+    <>
+      <div className="space-y-4 px-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+             <div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div>
+             <h3 className="text-white font-black text-2xl tracking-tight">購物流程</h3>
+          </div>
+          <span className="text-pink-500 font-black text-xs uppercase tracking-[0.2em]">SHOPPING GUIDE</span>
+        </div>
+
+        {/* 輪播卡片 */}
+        <div 
+          className="relative group rounded-2xl overflow-hidden border-2 border-pink-500/30 shadow-[0_0_30px_rgba(236,72,153,0.1)] bg-black aspect-video cursor-pointer"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={() => setIsModalOpen(true)}
+        >
+          {/* 圖片層 */}
+          <div className="w-full h-full relative">
+             <img 
+               src={images[currentIndex]} 
+               alt={`Step ${currentIndex + 1}`}
+               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+             />
+             {/* 黑色漸層遮罩 (讓字清楚一點) */}
+             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+             
+             {/* 提示文字 */}
+             <div className="absolute bottom-10 left-0 right-0 text-center">
+                <p className="text-white text-xs md:text-sm font-bold tracking-widest uppercase opacity-80">
+                   點擊圖片放大檢視
+                </p>
+             </div>
+          </div>
+
+          {/* 左右箭頭 (電腦版 hover 顯示) */}
+          <button onClick={(e) => { e.stopPropagation(); prevSlide(); }} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-pink-500"><ChevronRight className="rotate-180 w-6 h-6" /></button>
+          <button onClick={(e) => { e.stopPropagation(); nextSlide(); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-pink-500"><ChevronRight className="w-6 h-6" /></button>
+
+          {/* 下方點點導航 */}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+            {images.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  idx === currentIndex ? 'w-6 bg-pink-500 shadow-[0_0_10px_#ec4899]' : 'bg-gray-600 hover:bg-gray-400'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 放大檢視 Modal (Lightbox) */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center animate-fade-in" onClick={() => setIsModalOpen(false)}>
+          <button className="absolute top-6 right-6 p-3 bg-gray-900 rounded-full text-white hover:bg-pink-500 transition-colors border border-gray-700">
+            <X size={24} />
+          </button>
+          
+          <div className="relative w-full max-w-5xl px-4 flex items-center justify-center h-full" onClick={e => e.stopPropagation()}>
+             <img 
+               src={images[currentIndex]} 
+               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-gray-800"
+               alt="Full size"
+             />
+             
+             {/* 大圖左右切換 */}
+             <button onClick={prevSlide} className="absolute left-4 p-4 bg-black/50 rounded-full text-white hover:bg-pink-500 transition-all backdrop-blur-sm border border-white/10">
+                <ChevronRight className="rotate-180 w-8 h-8" />
+             </button>
+             <button onClick={nextSlide} className="absolute right-4 p-4 bg-black/50 rounded-full text-white hover:bg-pink-500 transition-all backdrop-blur-sm border border-white/10">
+                <ChevronRight className="w-8 h-8" />
+             </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 const InfoHub = ({ news, onSelectNews, onOpenAllNews }: { news: Announcement[], onSelectNews: (n: Announcement) => void, onOpenAllNews: () => void }) => {
   
   // 1. 👇 新增邏輯：從公告中過濾掉跑馬燈，只顯示一般公告
@@ -260,6 +386,9 @@ const InfoHub = ({ news, onSelectNews, onOpenAllNews }: { news: Announcement[], 
 
         </div>
       </div>
+      {/* 5. 新增：購物流程輪播 (放在最下面) */}
+      <ShoppingGuide />
+
     </div>
   );
 };
