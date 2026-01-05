@@ -684,7 +684,7 @@ const App: React.FC = () => {
               className={`flex-1 md:flex-none md:min-w-[200px] py-4 rounded-2xl font-black text-lg border-2 shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 ${activeTab === 'deposit' ? 'bg-[#06C755] text-white border-[#06C755] shadow-[0_0_20px_rgba(6,199,85,0.4)]' : 'bg-pink-500 text-black border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.4)]'}`}
             >
               {activeTab === 'deposit' ? (
-                <><MessageCircle size={20}/> 官LINE付款</>
+                <><MessageCircle size={20}/> 官方LINE付款</>
               ) : (
                 <><Truck size={20}/> 賣貨便下單</>
               )}
