@@ -99,17 +99,17 @@ const AllNewsModal = ({ news, isOpen, onClose, onSelectNews }: { news: Announcem
         </div>
     );
 };
-// --- 新增：購物流程輪播組件 ---
+// --- 購物流程輪播組件 (已填入您的 7 張圖片) ---
 const ShoppingGuide = () => {
-  // ⚠️ 請在這裡更換您的 5 張圖片網址
+  // ✅ 已幫您轉換成正確的直連網址
   const images = [
-    "https://imgur.com/239DJw6", // 流程圖 1
-    "https://imgur.com/j76KqeA", // 流程圖 2
-    "https://imgur.com/megTTli", // 流程圖 3
-    "https://imgur.com/Hr88EIy", // 流程圖 4
-    "https://imgur.com/bXInaiN",  // 流程圖 5 
-    "https://imgur.com/HlR5PEQ",  // 流程圖 6
-   "https://imgur.com/7DycaFf",  // 流程圖 7
+    "https://i.imgur.com/239DJw6.jpg", 
+    "https://i.imgur.com/j76KqeA.jpg",
+    "https://i.imgur.com/megTTli.jpg",
+    "https://i.imgur.com/Hr88EIy.jpg",
+    "https://i.imgur.com/bXInaiN.jpg",
+    "https://i.imgur.com/HlR5PEQ.jpg",
+    "https://i.imgur.com/7DycaFf.jpg"
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -119,10 +119,10 @@ const ShoppingGuide = () => {
 
   // 自動輪播邏輯
   useEffect(() => {
-    if (isModalOpen) return; // 打開大圖時暫停輪播
+    if (isModalOpen) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 4000); // 4秒換一張
+    }, 4000); 
     return () => clearInterval(timer);
   }, [isModalOpen, images.length]);
 
@@ -167,12 +167,12 @@ const ShoppingGuide = () => {
              <img 
                src={images[currentIndex]} 
                alt={`Step ${currentIndex + 1}`}
+               // 👇 防擋圖機制：加上這個就能顯示 Imgur 圖片
+               referrerPolicy="no-referrer"
                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
              />
-             {/* 黑色漸層遮罩 (讓字清楚一點) */}
              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
              
-             {/* 提示文字 */}
              <div className="absolute bottom-10 left-0 right-0 text-center">
                 <p className="text-white text-xs md:text-sm font-bold tracking-widest uppercase opacity-80">
                    點擊圖片放大檢視
@@ -180,12 +180,11 @@ const ShoppingGuide = () => {
              </div>
           </div>
 
-          {/* 左右箭頭 (電腦版 hover 顯示) */}
           <button onClick={(e) => { e.stopPropagation(); prevSlide(); }} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-pink-500"><ChevronRight className="rotate-180 w-6 h-6" /></button>
           <button onClick={(e) => { e.stopPropagation(); nextSlide(); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-pink-500"><ChevronRight className="w-6 h-6" /></button>
 
           {/* 下方點點導航 */}
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10 px-4 flex-wrap">
             {images.map((_, idx) => (
               <button
                 key={idx}
@@ -199,21 +198,21 @@ const ShoppingGuide = () => {
         </div>
       </div>
 
-      {/* 放大檢視 Modal (Lightbox) */}
+      {/* 放大檢視 Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center animate-fade-in" onClick={() => setIsModalOpen(false)}>
-          <button className="absolute top-6 right-6 p-3 bg-gray-900 rounded-full text-white hover:bg-pink-500 transition-colors border border-gray-700">
+          <button className="absolute top-6 right-6 p-3 bg-gray-900 rounded-full text-white hover:bg-pink-500 transition-colors border border-gray-700 z-[110]">
             <X size={24} />
           </button>
           
           <div className="relative w-full max-w-5xl px-4 flex items-center justify-center h-full" onClick={e => e.stopPropagation()}>
              <img 
                src={images[currentIndex]} 
+               referrerPolicy="no-referrer"
                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-gray-800"
                alt="Full size"
              />
              
-             {/* 大圖左右切換 */}
              <button onClick={prevSlide} className="absolute left-4 p-4 bg-black/50 rounded-full text-white hover:bg-pink-500 transition-all backdrop-blur-sm border border-white/10">
                 <ChevronRight className="rotate-180 w-8 h-8" />
              </button>
