@@ -101,21 +101,37 @@ const AllNewsModal = ({ news, isOpen, onClose, onSelectNews }: { news: Announcem
 };
 
 const InfoHub = ({ news, onSelectNews, onOpenAllNews }: { news: Announcement[], onSelectNews: (n: Announcement) => void, onOpenAllNews: () => void }) => {
-  const displayNews = useMemo(() => news.slice(0, 4), [news]);
+  
+  // 1. 👇 新增邏輯：從公告中過濾掉跑馬燈，只顯示一般公告
+  const displayNews = useMemo(() => {
+    return news
+      .filter(n => !n.title.includes("跑馬燈")) 
+      .slice(0, 4);
+  }, [news]);
+
+  // 2. 👇 新增邏輯：自動抓取標題有「跑馬燈」的內容
+  const marqueeText = useMemo(() => {
+    const marqueeItem = news.find(n => n.title.includes("跑馬燈"));
+    // 有找到就顯示內容，沒找到就顯示預設文字
+    return marqueeItem ? marqueeItem.content : "⚠️ 年末年初日本廠商/集運公司多在放假,商品有可能會發生延誤抵台情形,請大家預留收貨時間。";
+  }, [news]);
 
   return (
     <div className="space-y-12 animate-fade-in-up mt-8 pb-32">
+      
+      {/* 👇 跑馬燈區塊 (已修改為讀取變數 {marqueeText}) */}
       <div className="relative overflow-hidden bg-black border-2 border-pink-500/50 rounded-2xl py-3 px-4 shadow-[0_0_20px_rgba(236,72,153,0.2)]">
         <div className="whitespace-nowrap flex animate-marquee">
           <span className="text-pink-500 font-bold text-sm md:text-base px-4">
-            ⚠️ 年末年初日本廠商/集運公司多在放假,商品有可能會發生延誤抵台情形,請大家多多包涵。
+            {marqueeText}
           </span>
           <span className="text-pink-500 font-bold text-sm md:text-base px-4">
-            ⚠️ 年末年初日本廠商/集運公司多在放假,商品有可能會發生延誤抵台情形,請大家多多包涵。
+            {marqueeText}
           </span>
         </div>
       </div>
 
+      {/* 👇 最新公告區塊 (已修改為讀取過濾後的 displayNews) */}
       <div className="space-y-4 px-2">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
