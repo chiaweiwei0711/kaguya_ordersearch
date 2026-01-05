@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X, Copy, ExternalLink, CheckCircle, Package, DollarSign, Calendar, CreditCard, User } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
@@ -23,7 +22,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
 ${order.groupName}
 ♦️付款金額：$${order.depositAmount.toLocaleString()}
 ♦️您匯款到哪個銀行：
-♦️您的匯款帳號末五碼：
+♦️您的匯款帳號末五碼：【 請點此輸入後回傳 】
 *（無卡請拍明細回傳）*
 ---------------------
 已確認訂購商品與付款金額無誤`;

@@ -1,17 +1,15 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { Order } from "../types";
 
-// FIX: Use import.meta.env for Vite (Frontend) instead of process.env
-// process.env causes "ReferenceError: process is not defined" (White Screen) in browsers.
-// In Netlify, set the environment variable as "VITE_API_KEY"
-const apiKey = import.meta.env.VITE_API_KEY || "";
-
-const ai = new GoogleGenAI({ apiKey: apiKey });
+// API key is obtained from process.env.API_KEY as per guidelines.
+// Ensure your build configuration (e.g., vite.config.ts) defines this variable to avoid runtime errors.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generatePaymentSuccessMessage = async (order: Order): Promise<string> => {
   try {
     // Safety check to prevent crashing if API key is missing
-    if (!apiKey) return "付款確認成功！我們會盡快安排出貨。";
+    if (!process.env.API_KEY) return "付款確認成功！我們會盡快安排出貨。";
 
     const itemsList = order.items.map(item => `${item.name} x${item.quantity}`).join(', ');
     
@@ -26,8 +24,9 @@ export const generatePaymentSuccessMessage = async (order: Order): Promise<strin
       Add a cute emoji.
     `;
 
+    // Fix: Updated to use 'gemini-3-flash-preview' as per latest guidelines for basic text tasks.
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
     });
 
@@ -40,10 +39,11 @@ export const generatePaymentSuccessMessage = async (order: Order): Promise<strin
 
 export const analyzeCustomerSentiment = async (query: string): Promise<string> => {
     try {
-        if (!apiKey) return "Inquiry";
+        if (!process.env.API_KEY) return "Inquiry";
         
+        // Fix: Updated to use 'gemini-3-flash-preview' as per latest guidelines for basic reasoning tasks.
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
             contents: `Analyze the sentiment/intent of this customer query: "${query}". Return one word: Urgent, Inquiry, or Complaint.`
         });
         return response.text || "Inquiry";

@@ -1,48 +1,17 @@
 
 import { APP_CONFIG } from "../config";
-import { Order, OrderStatus, OrderItem } from "../types";
+import { Order, OrderStatus, OrderItem, Announcement } from "../types";
 
-// 模擬資料 (當 API 沒連上時顯示)
-const MOCK_ORDERS: Order[] = [
-  {
-    id: "MOCK-1",
-    source: "一般預購",
-    customerName: "MOCK USER",
-    customerPhone: "範例小美",
-    groupName: "進巨三麗鷗1-3彈",
-    items: [{ name: "里維大隻娃+1", price: 830, quantity: 1 }],
-    totalQuantity: 1,
-    productTotal: 830,
-    depositAmount: 730,
-    balanceDue: 100,
-    status: OrderStatus.PENDING,
-    shippingStatus: "已抵台",
-    isShipped: false,
-    shippingDate: "10月下旬",
-    paymentMethod: "匯款",
-    createdAt: "2023-10-27"
-  }
-];
+// 重要公告判定關鍵字 - 只要標題包含以下字眼就會顯示「重要」紅標籤
+const IMPORTANT_KEYWORDS = ["重要", "通知", "延遲", "公告", "提醒", "緊急", "注意"];
 
 export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
-  if (!APP_CONFIG.API_URL) return MOCK_ORDERS.filter(o => o.customerPhone === query);
-
   try {
     const response = await fetch(`${APP_CONFIG.API_URL}?phone=${encodeURIComponent(query)}`);
-    
-    if (!response.ok) {
-      throw new Error(`連線失敗 (${response.status})。請確認 Apps Script 部署為「任何人 (Anyone)」可讀取。`);
-    }
-
+    if (!response.ok) throw new Error(`連線失敗 (${response.status})`);
     const data = await response.json();
-
-    if (data.status === "error") {
-      throw new Error(data.message || "Google Sheet 發生錯誤");
-    }
-
-    if (data.status !== "success") {
-      return [];
-    }
+    if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
+    if (data.status !== "success") return [];
 
     const rawRows = data.data;
     const map = APP_CONFIG.COLUMN_MAPPING;
@@ -50,42 +19,18 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
 
     rawRows.forEach((row: any) => {
       const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
-      
-      // 強制讀取社群名稱：優先讀 Config 設定，如果沒有，嘗試直接讀 "社群名稱"
-      let customerPhoneRaw = row[map.customerPhone];
-      if (!customerPhoneRaw && row["社群名稱"]) {
-          customerPhoneRaw = row["社群名稱"];
-      }
+      let customerPhoneRaw = row[map.customerPhone] || row["社群名稱"];
       const customerPhone = String(customerPhoneRaw || "");
+      const isReconciled = String(row[map.isReconciled] || "").toUpperCase() === "TRUE";
+      const status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
+      const isShipped = String(row[map.isShipped] || "").toUpperCase() === "TRUE";
 
-      const isReconciledRaw = String(row[map.isReconciled] || "").toUpperCase();
-      const isReconciled = isReconciledRaw === "TRUE";
-      let status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
-      const isShippedRaw = String(row[map.isShipped] || "").toUpperCase();
-      const isShipped = isShippedRaw === "TRUE";
-
-      const parseMoney = (val: any) => {
-        if (typeof val === 'number') return val;
-        if (!val) return 0;
-        return Number(String(val).replace(/[$,]/g, '')) || 0;
-      };
-
+      const parseMoney = (val: any) => Number(String(val || 0).replace(/[$,]/g, '')) || 0;
       const productTotal = parseMoney(row[map.productTotal]);
       const balanceDue = parseMoney(row[map.balanceDue]);
-      let depositAmount = parseMoney(row[map.depositAmount]);
-
-      if (depositAmount === 0 && productTotal > 0) {
-        depositAmount = productTotal - balanceDue;
-      }
-
+      const depositAmount = parseMoney(row[map.depositAmount]) || (productTotal - balanceDue);
       const totalQuantity = Number(row[map.quantity]) || 1;
-
-      // 強制讀取付款方式：優先讀 Config 設定，如果沒有，嘗試讀 "付款方式"
-      let paymentMethodRaw = row[map.paymentMethod];
-      if (!paymentMethodRaw && row["付款方式"]) {
-          paymentMethodRaw = row["付款方式"];
-      }
-      const paymentMethod = String(paymentMethodRaw || "匯款/無卡");
+      const paymentMethod = String(row[map.paymentMethod] || row["付款方式"] || "匯款");
 
       const item: OrderItem = {
         name: String(row[map.itemName] || "代購商品"),
@@ -94,8 +39,7 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
       };
 
       if (ordersMap.has(orderId)) {
-        const existing = ordersMap.get(orderId)!;
-        existing.items.push(item);
+        ordersMap.get(orderId)!.items.push(item);
       } else {
         ordersMap.set(orderId, {
           id: orderId,
@@ -118,24 +62,57 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
       }
     });
 
-    // --- 嚴格搜尋邏輯 (Strict Search) ---
-    // 1. 清理搜尋關鍵字 (去空白、轉小寫)
     const normalizedQuery = query.trim().toLowerCase();
-
-    return Array.from(ordersMap.values()).filter(o => {
-        // 2. 只有當 Excel 裡的暱稱 (去空白、轉小寫後) 跟搜尋關鍵字 **完全一樣** 時才回傳
-        const target = String(o.customerPhone).trim().toLowerCase();
-        
-        // 使用 === 進行嚴格比對
-        // "黎黎" !== "黎黎:)"
-        return target === normalizedQuery;
-    });
-
-  } catch (error: any) {
+    return Array.from(ordersMap.values()).filter(o => String(o.customerPhone).trim().toLowerCase() === normalizedQuery);
+  } catch (error) {
     console.error("Fetch Error:", error);
-    if (error.message === "Failed to fetch") {
-      throw new Error("無法連線到資料庫。請確認 Google Apps Script URL 正確且權限為「任何人」。");
-    }
     throw error;
+  }
+};
+
+export const fetchAnnouncements = async (): Promise<Announcement[]> => {
+  try {
+    const response = await fetch(`${APP_CONFIG.API_URL}?type=announcements`);
+    if (!response.ok) return [];
+    const data = await response.json();
+    if (data.status !== "success") return [];
+
+    return data.data.map((item: any, index: number) => {
+      const dateObj = new Date(item.date);
+      const formattedDate = isNaN(dateObj.getTime()) 
+        ? item.date.replace(/-/g, '/') 
+        : `${dateObj.getFullYear()}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+      
+      const isImportant = IMPORTANT_KEYWORDS.some(kw => item.title.includes(kw));
+
+      return {
+        id: item.id || `news-${index}`, // 優先使用試算表的 ID，若無則生成
+        date: formattedDate,
+        title: item.title,
+        content: item.content,
+        likes: Number(item.likes || 0),
+        isImportant: isImportant
+      };
+    });
+  } catch (error) {
+    console.error("News Fetch Error:", error);
+    return [];
+  }
+};
+
+/**
+ * 增加公告按讚數
+ * @param newsId 公告 ID
+ */
+export const incrementAnnouncementLike = async (newsId: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`${APP_CONFIG.API_URL}?type=like&id=${encodeURIComponent(newsId)}`, {
+      method: 'POST'
+    });
+    const result = await response.json();
+    return result.status === 'success';
+  } catch (e) {
+    console.error("Like API Error:", e);
+    return false;
   }
 };
