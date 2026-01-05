@@ -154,14 +154,15 @@ const ShoppingGuide = () => {
           <span className="text-pink-500 font-black text-xs uppercase tracking-[0.2em]">SHOPPING GUIDE</span>
         </div>
 
-        {/* 輪播卡片 */}
-        <div 
-          className="relative group rounded-2xl overflow-hidden border-2 border-pink-500/30 shadow-[0_0_30px_rgba(236,72,153,0.1)] bg-black aspect-video cursor-pointer"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onClick={() => setIsModalOpen(true)}
-        >
+      <div 
+  // 1. aspect-video 改成 aspect-[4/5] (符合您的圖片比例)
+  // 2. 加上 max-w-md mx-auto (限制寬度並置中，避免在電腦版變太巨大)
+  className="relative group rounded-2xl overflow-hidden border-2 border-pink-500/30 shadow-[0_0_30px_rgba(236,72,153,0.1)] bg-black aspect-[4/5] max-w-md mx-auto cursor-pointer"
+  onTouchStart={handleTouchStart}
+  onTouchMove={handleTouchMove}
+  onTouchEnd={handleTouchEnd}
+  onClick={() => setIsModalOpen(true)}
+>
           {/* 圖片層 */}
           <div className="w-full h-full relative">
              <img 
