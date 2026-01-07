@@ -471,43 +471,37 @@ const App: React.FC = () => {
     return 0;
   }, [selectedOrdersData, activeTab]);
 
-const handleSearch = async (e?: React.FormEvent) => {
+// --- 正式版搜尋功能 (後端真實搜尋) ---
+  const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery) return;
     
-    // 1. 開始演戲：顯示 Loading 動畫
+    // 1. 顯示 Loading (真的開始去網路抓了)
     setIsLoading(true);
 
-    // 重置所有狀態 (清空舊結果)
+    // 清空畫面
     setFoundOrders([]);
     setSelectedOrderIds(new Set());
     setCargoFilters([]);
     setDeliveryFilter(null);
     
     try {
-      // 2. 先去抓資料 (雖然很快，但我們先抓好放著)
+      // 2. 呼叫 API (這行會等待 1.5 ~ 3 秒，視 Google 狀況而定)
       const results = await fetchOrdersFromSheet(searchQuery);
       
-      // 3. 設定人造延遲 (這裡設定 800 毫秒，你可以自己改數字)
-      setTimeout(() => {
-          // --- 延遲時間到，才執行以下動作 ---
-
-          setFoundOrders(results);
-          setHasSearched(true);
-          
-          // 智慧切換 Tab 邏輯
-          const hasPending = results.some(o => o.status === OrderStatus.PENDING);
-          if (hasPending) setActiveTab('deposit');
-          else setActiveTab('all');
-
-          // 4. 演戲結束：關閉 Loading 動畫
-          setIsLoading(false);
-
-      }, 800); // <--- 這裡控制時間，800 = 0.8秒
+      setFoundOrders(results);
+      setHasSearched(true);
+      
+      // 智慧切換 Tab
+      const hasPending = results.some(o => o.status === OrderStatus.PENDING);
+      if (hasPending) setActiveTab('deposit');
+      else setActiveTab('all');
 
     } catch (error: any) {
       console.error(error);
-      setIsLoading(false); // 如果真的出錯，就直接關掉，不用演
+    } finally {
+      // 3. 抓完資料 (或失敗)，關閉 Loading
+      setIsLoading(false);
     }
   };
 
