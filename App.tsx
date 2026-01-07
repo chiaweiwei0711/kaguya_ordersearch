@@ -675,6 +675,7 @@ const handleSearch = async (e?: React.FormEvent) => {
                          }
                        }} 
                        />
+                    </div>
                     <button onClick={() => handleSearch()} className="bg-pink-500 text-black p-2 rounded-xl min-w-[50px] flex items-center justify-center"><ArrowRight size={20}/></button>
                 </div>
 
