@@ -620,14 +620,19 @@ const App: React.FC = () => {
                    <div className="bg-black rounded-3xl p-2 flex items-center gap-2 border-2 border-pink-500 ring-4 ring-pink-500/20">
                     <div className="relative flex-1">
                       <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-pink-500" />
-                      <input 
-                        type="text" 
-                        value={searchQuery} 
-                        onChange={e => setSearchQuery(e.target.value)} 
-                        placeholder="請輸入您的完整社群暱稱" 
-                        className="w-full pl-14 pr-4 py-4 bg-transparent outline-none text-lg font-bold text-white placeholder-gray-400" 
-                        onKeyDown={e => e.key === 'Enter' && handleSearch()} 
-                      />
+                     <input 
+                       type="text" 
+                       value={searchQuery} 
+                       onChange={e => setSearchQuery(e.target.value)} 
+                       placeholder="請輸入您的完整社群暱稱" 
+                       className="w-full pl-14 pr-4 py-4 bg-transparent outline-none text-lg font-bold text-white placeholder-gray-800" 
+                       // 👇 修改這裡：加上 !(e.nativeEvent as any).isComposing
+                       onKeyDown={(e) => {
+                         if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing) {
+                           handleSearch();
+                         }
+                       }} 
+                       />
                     </div>
                     <button onClick={() => handleSearch()} className="bg-pink-500 text-black p-3 rounded-2xl font-black min-w-[60px] flex items-center justify-center"><ArrowRight /></button>
                   </div>
