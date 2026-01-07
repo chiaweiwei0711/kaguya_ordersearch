@@ -19,7 +19,6 @@ const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 
 // --- 新版：更厲害的核子反應爐讀取動畫 ---
 import React, { useState, useEffect } from 'react';
-
 const LoadingOverlay = () => {
   const [status, setStatus] = useState("Kaguya系統努力讀取中...");
 
