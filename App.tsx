@@ -19,22 +19,23 @@ const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 
 // --- 新版：更厲害的核子反應爐讀取動畫 ---
 import React, { useState, useEffect } from 'react';
-const LoadingOverlay = () => {
-  const [status, setStatus] = useState("Kaguya系統努力讀取中...");
+
+// 確保這裡是 React.FC
+const LoadingOverlay: React.FC = () => {
+  const [status, setStatus] = useState<string>("Kaguya系統努力讀取中...");
 
   useEffect(() => {
-    // 根據你計時的 13 秒體感，設定分段話術
     const timer1 = setTimeout(() => {
       setStatus("正在連線至雲端資料庫...");
-    }, 3500); // 3.5秒後切換
+    }, 3500);
 
     const timer2 = setTimeout(() => {
       setStatus("正在查找您的訂單...");
-    }, 8000); // 8秒後切換（最難熬的時期換這句）
+    }, 8000);
 
     const timer3 = setTimeout(() => {
       setStatus("即將完成，正在準備結果...");
-    }, 12000); // 12秒後最後衝刺
+    }, 12000);
 
     return () => {
       clearTimeout(timer1);
@@ -44,17 +45,11 @@ const LoadingOverlay = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505]/90 backdrop-blur-xl animate-fade-in">
-      {/* 主要動畫區塊 - 完全保留 */}
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505]/90 backdrop-blur-xl">
+      {/* 1. 主要動畫區塊 (完全保留你原本的 CSS) */}
       <div className="relative w-40 h-40 flex items-center justify-center">
-        
-        {/* 1. 最外層：紫色逆時針光環 */}
         <div className="absolute inset-[-20px] rounded-full border-[6px] border-transparent border-t-purple-600/60 border-r-purple-500/40 animate-[spin_3s_linear_infinite_reverse] shadow-[0_0_30px_#9333ea]"></div>
-        
-        {/* 2. 中間層：粉色順時針光環 */}
         <div className="absolute inset-0 rounded-full border-[8px] border-transparent border-t-pink-500 border-l-pink-600/50 animate-[spin_1.5s_linear_infinite] shadow-[0_0_20px_#ec4899] ring-4 ring-pink-500/20"></div>
-        
-        {/* 3. 核心層：脈衝發光體 + 向外擴散波紋 */}
         <div className="relative z-10 flex items-center justify-center">
           <div className="absolute w-24 h-24 bg-pink-500 rounded-full animate-ping opacity-30"></div>
           <div className="w-16 h-16 bg-gradient-to-br from-pink-600 to-purple-700 rounded-full animate-pulse shadow-[0_0_40px_#ec4899] border-2 border-pink-300/50 flex items-center justify-center">
@@ -63,7 +58,7 @@ const LoadingOverlay = () => {
         </div>
       </div>
 
-      {/* 文字區塊 */}
+      {/* 2. 文字區塊 */}
       <div className="mt-12 text-center space-y-3 relative z-20">
         <h3 
           className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-pink-500 font-[900] tracking-[0.3em] text-2xl uppercase animate-pulse filter drop-shadow-[0_0_10px_#ec4899]"
@@ -71,13 +66,12 @@ const LoadingOverlay = () => {
         >
           SYSTEM LOADING
         </h3>
-        {/* 動態改變這裡的文字，並保留原本的跳動特效 */}
         <p className="text-pink-400 font-bold text-sm tracking-widest animate-bounce min-h-[1.5em]">
           {status}
         </p>
       </div>
       
-      {/* 背景裝飾網格 - 完全保留 */}
+      {/* 3. 背景裝飾網格 */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGZSIHN0cm9rZT0icmdiYSgyMzYsIDcyLCAxNTMsIDAuMSkiIHN0cm9rZS13aWR0aD0iMSI+PHBhdGggZD0iTTAgNDBoNDBNNDAgMGg0ME0wIDBoNDBNNDAgNDBoNDAiLz48L2c+PC9zdmc+')] opacity-20 z-0 pointer-events-none"></div>
     </div>
   );
