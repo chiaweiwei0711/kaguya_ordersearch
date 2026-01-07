@@ -77,7 +77,6 @@ const LoadingOverlay: React.FC = () => {
   );
 };
 
-export default LoadingOverlay;
 
 const AllNewsModal = ({ news, isOpen, onClose, onSelectNews }: { news: Announcement[], isOpen: boolean, onClose: () => void, onSelectNews: (n: Announcement) => void }) => {
     if (!isOpen) return null;
