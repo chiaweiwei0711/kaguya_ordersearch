@@ -4,16 +4,15 @@ import { Order, OrderStatus, OrderItem, Announcement } from "../types";
 // 重要公告判定關鍵字
 const IMPORTANT_KEYWORDS = ["重要", "通知", "延遲", "公告", "提醒", "緊急", "注意"];
 
-// 🚀 核心修改：移除所有 Cache 變數，改為直接請求
+// --- 1. 訂單搜尋 (後端真實搜尋版) ---
 export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
   try {
-    // 1. 如果沒有輸入，直接回傳空 (節省流量)
+    // 如果沒有輸入，直接回傳空 (節省流量)
     if (!query.trim()) return [];
 
     console.log(`正在雲端搜尋: ${query} ... ☁️`);
     
-    // 2. 傳送參數給後端 (?search=xxx)
-    // 記得：這裡的參數名稱要跟 GAS 裡的 e.parameter.search 對應
+    // 傳送參數給後端 (?search=xxx)
     const url = `${APP_CONFIG.API_URL}?search=${encodeURIComponent(query.trim())}`;
     
     const response = await fetch(url);
@@ -29,10 +28,9 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     const map = APP_CONFIG.COLUMN_MAPPING;
     const ordersMap = new Map<string, Order>();
 
-    // 3. 資料轉換邏輯 (維持你原本的邏輯不變)
+    // 資料轉換邏輯
     rawRows.forEach((row: any) => {
         const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
-        // 增強抓取邏輯保留
         let customerPhoneRaw = row[map.customerPhone] || row["社群名稱"] || row[1]; 
         const customerPhone = String(customerPhoneRaw || "");
         
@@ -81,11 +79,52 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
 
   } catch (error) {
     console.error("Fetch Error:", error);
-    // 失敗時回傳空陣列，避免畫面炸開
     return [];
   }
 };
 
-// ... (fetchAnnouncements 保持原本的，不需要動，這裡就不重複貼了，請保留原本的)
-// ... (incrementAnnouncementLike 保持原本的，不需要動)
-// 請記得把你檔案下方原本的 fetchAnnouncements 和 incrementAnnouncementLike 留著！
+// --- 2. 抓取公告 (原本的功能，補回來) ---
+export const fetchAnnouncements = async (): Promise<Announcement[]> => {
+  try {
+    const response = await fetch(`${APP_CONFIG.API_URL}?type=announcements`);
+    if (!response.ok) return [];
+    const data = await response.json();
+    if (data.status !== "success") return [];
+
+    return data.data.map((item: any, index: number) => {
+      const dateObj = new Date(item.date);
+      const formattedDate = isNaN(dateObj.getTime()) 
+        ? String(item.date || "").replace(/-/g, '/') 
+        : `${dateObj.getFullYear()}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+      
+      const title = item.title || "";
+      const isImportant = IMPORTANT_KEYWORDS.some(kw => title.includes(kw));
+
+      return {
+        id: item.id || `news-${index}`,
+        date: formattedDate,
+        title: title,
+        content: item.content || "",
+        likes: Number(item.likes || 0),
+        isImportant: isImportant
+      };
+    });
+  } catch (error) {
+    console.error("News Fetch Error:", error);
+    return [];
+  }
+};
+
+// --- 3. 公告按讚 (原本的功能，補回來，這就是報錯的原因！) ---
+export const incrementAnnouncementLike = async (newsId: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`${APP_CONFIG.API_URL}?type=like&id=${encodeURIComponent(newsId)}`, {
+      method: 'POST'
+    });
+    const result = await response.json();
+    return result.status === 'success';
+  } catch (e) {
+    console.error("Like API Error:", e);
+    return false;
+  }
+};
