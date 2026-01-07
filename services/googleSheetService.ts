@@ -4,35 +4,36 @@ import { Order, OrderStatus, OrderItem, Announcement } from "../types";
 // 重要公告判定關鍵字
 const IMPORTANT_KEYWORDS = ["重要", "通知", "延遲", "公告", "提醒", "緊急", "注意"];
 
-// 🚀 1. 新增：用來「記住」訂單資料的變數 (快取)
-let CACHED_ORDERS: Order[] | null = null;
-let LAST_FETCH_TIME = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 快取有效時間：5分鐘 (5分鐘內搜尋都不用重新下載)
-
+// 🚀 核心修改：移除所有 Cache 變數，改為直接請求
 export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
   try {
-    const now = Date.now();
+    // 1. 如果沒有輸入，直接回傳空 (節省流量)
+    if (!query.trim()) return [];
 
-    // 🚀 2. 檢查：如果有快取且還沒過期，就直接用記住的資料 (不用連線！)
-    if (CACHED_ORDERS && (now - LAST_FETCH_TIME < CACHE_DURATION)) {
-      console.log("使用快取資料 (秒搜) ⚡️");
-    } else {
-      // 沒有快取，或是過期了，才真的去連線下載
-      console.log("重新下載資料中... 🐢");
-      const response = await fetch(APP_CONFIG.API_URL);
+    console.log(`正在雲端搜尋: ${query} ... ☁️`);
+    
+    // 2. 傳送參數給後端 (?search=xxx)
+    // 記得：這裡的參數名稱要跟 GAS 裡的 e.parameter.search 對應
+    const url = `${APP_CONFIG.API_URL}?search=${encodeURIComponent(query.trim())}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`連線失敗 (${response.status})`);
+    
+    const data = await response.json();
+    if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
+    
+    // 如果後端沒回傳 data (例如沒搜到)，就回傳空陣列
+    if (!data.data) return [];
 
-      if (!response.ok) throw new Error(`連線失敗 (${response.status})`);
-      const data = await response.json();
-      if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
-      if (data.status !== "success") return [];
+    const rawRows = data.data;
+    const map = APP_CONFIG.COLUMN_MAPPING;
+    const ordersMap = new Map<string, Order>();
 
-      const rawRows = data.data;
-      const map = APP_CONFIG.COLUMN_MAPPING;
-      const ordersMap = new Map<string, Order>();
-
-      rawRows.forEach((row: any) => {
+    // 3. 資料轉換邏輯 (維持你原本的邏輯不變)
+    rawRows.forEach((row: any) => {
         const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
-        let customerPhoneRaw = row[map.customerPhone] || row["社群名稱"] || row[1]; // 增強抓取
+        // 增強抓取邏輯保留
+        let customerPhoneRaw = row[map.customerPhone] || row["社群名稱"] || row[1]; 
         const customerPhone = String(customerPhoneRaw || "");
         
         const isReconciled = String(row[map.isReconciled] || "").toUpperCase() === "TRUE";
@@ -74,71 +75,17 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
             createdAt: new Date().toISOString().split('T')[0]
           });
         }
-      });
+    });
 
-      // 🚀 3. 將整理好的資料存入快取變數
-      CACHED_ORDERS = Array.from(ordersMap.values());
-      LAST_FETCH_TIME = now;
-    }
-
-    // 🚀 4. 前端篩選 (這裡永遠都是用記憶體裡的資料來找，所以超級快)
-    // 如果 query 是空的，就回傳空陣列 (避免一開始顯示全部訂單)
-    if (!query.trim()) return [];
-
-    const normalizedQuery = query.trim().toLowerCase();
-    
-    // 從快取中篩選
-    return (CACHED_ORDERS || []).filter(o => 
-      String(o.customerPhone).trim().toLowerCase() === normalizedQuery
-    );
+    return Array.from(ordersMap.values());
 
   } catch (error) {
     console.error("Fetch Error:", error);
-    throw error;
-  }
-};
-
-// ... (以下 fetchAnnouncements 維持不變)
-export const fetchAnnouncements = async (): Promise<Announcement[]> => {
-  try {
-    const response = await fetch(`${APP_CONFIG.API_URL}?type=announcements`);
-    if (!response.ok) return [];
-    const data = await response.json();
-    if (data.status !== "success") return [];
-
-    return data.data.map((item: any, index: number) => {
-      const dateObj = new Date(item.date);
-      const formattedDate = isNaN(dateObj.getTime()) 
-        ? String(item.date || "").replace(/-/g, '/') 
-        : `${dateObj.getFullYear()}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
-      
-      const title = item.title || "";
-      const isImportant = IMPORTANT_KEYWORDS.some(kw => title.includes(kw));
-
-      return {
-        id: item.id || `news-${index}`,
-        date: formattedDate,
-        title: title,
-        content: item.content || "",
-        likes: Number(item.likes || 0),
-        isImportant: isImportant
-      };
-    });
-  } catch (error) {
-    console.error("News Fetch Error:", error);
+    // 失敗時回傳空陣列，避免畫面炸開
     return [];
   }
 };
 
-export const incrementAnnouncementLike = async (newsId: string): Promise<boolean> => {
-  try {
-    const response = await fetch(`${APP_CONFIG.API_URL}?type=like&id=${encodeURIComponent(newsId)}`, {
-      method: 'POST'
-    });
-    const result = await response.json();
-    return result.status === 'success';
-  } catch (e) {
-    console.error("Like API Error:", e);
-    return false;
-  }
-};
+// ... (fetchAnnouncements 保持原本的，不需要動，這裡就不重複貼了，請保留原本的)
+// ... (incrementAnnouncementLike 保持原本的，不需要動)
+// 請記得把你檔案下方原本的 fetchAnnouncements 和 incrementAnnouncementLike 留著！
