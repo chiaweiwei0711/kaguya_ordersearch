@@ -26,6 +26,7 @@ export const APP_CONFIG = {
     isShipped: "出貨",
     shippingStatus: "狀態",
     shippingDate: "出貨日期",
-    paymentMethod: "付款方式"
+    paymentMethod: "付款方式",
+    arrivalDate: "抵台日期"
   } as ColumnMapping
 };
