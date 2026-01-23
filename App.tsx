@@ -826,7 +826,9 @@ const App: React.FC = () => {
                 {/* 訂單列表 */}
                 <div className="space-y-4">
                   {filteredOrders.length === 0 ? <div className="text-center py-20 text-gray-500 font-bold italic">沒有找到符合的訂單</div> : (
-                    filteredOrders.map(order => (
+                    filteredOrders.map(order => {
+                    const storageInfo = getStorageStatus(order.arrivalDate);
+                    return (
                       <div 
                         key={order.id} 
                         onClick={() => { setSelectedDetailOrder(order); setIsDetailModalOpen(true); }} 
@@ -855,6 +857,11 @@ const App: React.FC = () => {
                                         {order.shippingStatus}
                                     </span>
                                 )}
+                              {storageInfo && (
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border flex items-center gap-1 ${storageInfo.bg} ${storageInfo.color} ${storageInfo.urgent ? 'animate-pulse' : ''}`}>
+                                  {storageInfo.urgent ? '⚠️' : '📦'} {storageInfo.label}
+                                  </span>
+                                )}
                             </div>
 
                             <h3 className="text-lg font-bold text-white truncate">{order.groupName}</h3>
@@ -868,9 +875,10 @@ const App: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+                    );
+                  })
+                )}
+            </div>
                 {footerContent}
               </div>
             )}
