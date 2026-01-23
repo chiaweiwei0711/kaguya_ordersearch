@@ -28,6 +28,7 @@ export interface Order {
   shippingDate: string;
   paymentMethod: string;
   createdAt: string;
+  arrivalDate?: string;
 }
 
 export interface Announcement {
@@ -38,6 +39,7 @@ export interface Announcement {
   likes: number; // 按讚數
   isImportant?: boolean;
 }
+
 
 export interface ColumnMapping {
   id: string;
@@ -54,6 +56,7 @@ export interface ColumnMapping {
   groupName: string;
   shippingDate: string;
   paymentMethod: string;
+   arrivalDate: string;
 }
 
 export interface VirtualAccountResponse {
