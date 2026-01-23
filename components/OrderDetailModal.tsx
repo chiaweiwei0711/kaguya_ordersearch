@@ -92,7 +92,7 @@ ${order.groupName}
               return (
                 <div className={`mb-6 p-4 rounded-xl border-2 flex items-center justify-between ${status.bg}`}>
                   <div>
-                    <p className="text-gray-400 text-xs font-bold uppercase mb-1">抵台日期：{order.arrivalDate}</p>
+                    <p className="text-gray-400 text-xs font-bold uppercase mb-1">抵台日期：{order.arrivalDate?.split('T')[0]}</p>
                     <p className={`text-lg font-black ${status.color}`}>
                        {status.label}
                     </p>
