@@ -11,6 +11,44 @@ import { APP_CONFIG } from './config';
 type MainView = 'query' | 'info';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
+// --- 📅 倉儲倒數計算核心邏輯 ---
+const getStorageStatus = (dateStr?: string) => {
+  if (!dateStr) return null; // 沒日期 = 還沒到貨
+
+  const arrival = new Date(dateStr);
+  const today = new Date();
+  
+  // 算出差異天數 (無條件捨去，確保天數準確)
+  const diffTime = today.getTime() - arrival.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  const LIMIT_DAYS = 25; // 期限 25 天
+  const daysLeft = LIMIT_DAYS - diffDays;
+
+  if (daysLeft < 0) {
+    return { 
+      label: `已逾期 ${Math.abs(daysLeft)} 天`, 
+      color: 'text-red-500', 
+      bg: 'bg-red-500/10 border-red-500',
+      urgent: true 
+    };
+  } else if (daysLeft <= 5) {
+    return { 
+      label: `剩 ${daysLeft} 天過期`, 
+      color: 'text-yellow-500', 
+      bg: 'bg-yellow-500/10 border-yellow-500',
+      urgent: true 
+    };
+  } else {
+    return { 
+      label: `剩 ${daysLeft} 天可併單`, 
+      color: 'text-[#06C755]', 
+      bg: 'bg-[#06C755]/10 border-[#06C755]',
+      urgent: false 
+    };
+  }
+};
+
 // --- 補回：篩選選項常數 ---
 // Row 1: Cargo Status (Multi-select)
 const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '商品轉送中', '已抵台'];
