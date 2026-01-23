@@ -56,7 +56,7 @@ export interface ColumnMapping {
   groupName: string;
   shippingDate: string;
   paymentMethod: string;
-   arrivalDate: string;
+  arrivalDate: string;
 }
 
 export interface VirtualAccountResponse {
