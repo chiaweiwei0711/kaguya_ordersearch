@@ -8,7 +8,24 @@ interface OrderDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+// --- 📅 1. 計算剩餘天數的核心公式 ---
+const getStorageStatus = (dateStr?: string) => {
+  if (!dateStr) return null;
+  const arrival = new Date(dateStr);
+  const today = new Date();
+  const diffTime = today.getTime() - arrival.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const LIMIT_DAYS = 25; 
+  const daysLeft = LIMIT_DAYS - diffDays;
 
+  if (daysLeft < 0) {
+    return { label: `已逾期 ${Math.abs(daysLeft)} 天`, color: 'text-red-500', bg: 'bg-red-900/20 border-red-500', urgent: true };
+  } else if (daysLeft <= 5) {
+    return { label: `剩 ${daysLeft} 天過期`, color: 'text-yellow-500', bg: 'bg-yellow-900/20 border-yellow-500', urgent: true };
+  } else {
+    return { label: `剩 ${daysLeft} 天可併單`, color: 'text-[#06C755]', bg: 'bg-gray-800 border-gray-700', urgent: false };
+  }
+};
 const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onClose }) => {
   const [isCopied, setIsCopied] = React.useState(false);
 
@@ -68,7 +85,29 @@ ${order.groupName}
 
         {/* Scrollable Content */}
         <div className="p-6 overflow-y-auto custom-scrollbar bg-[#0a0a0a]">
-          
+        {/* --- 📅 2. 顯示抵台日期的警告框 --- */}
+          {(() => {
+            const status = getStorageStatus(order.arrivalDate);
+            if (status && order.arrivalDate) {
+              return (
+                <div className={`mb-6 p-4 rounded-xl border-2 flex items-center justify-between ${status.bg}`}>
+                  <div>
+                    <p className="text-gray-400 text-xs font-bold uppercase mb-1">抵台日期：{order.arrivalDate}</p>
+                    <p className={`text-lg font-black ${status.color}`}>
+                       {status.label}
+                    </p>
+                  </div>
+                  {status.urgent && (
+                     <div className="text-right">
+                       <span className="text-red-500 font-black text-xs block animate-bounce">請盡快</span>
+                       <span className="text-white font-bold text-xs">下單出貨</span>
+                     </div>
+                  )}
+                </div>
+              );
+            }
+            return null;
+          })()}  
           {/* Status Badges */}
           <div className="flex flex-wrap gap-2 mb-6">
               {order.isShipped ? (
