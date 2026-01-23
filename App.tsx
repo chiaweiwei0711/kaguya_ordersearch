@@ -549,9 +549,23 @@ const App: React.FC = () => {
       setHasSearched(true);
       
       // 智慧切換 Tab
+      // 智慧切換 Tab
       const hasPending = results.some(o => o.status === OrderStatus.PENDING);
-      if (hasPending) setActiveTab('deposit');
-      else setActiveTab('all');
+      
+      // 🆕 新增：檢查是否有「可出貨」訂單 (已付款 + 已抵台 + 未出貨)
+      const hasReadyToShip = results.some(o => 
+        o.status === OrderStatus.PAID && 
+        o.shippingStatus.includes("已抵台") && 
+        !o.isShipped
+      );
+
+      if (hasPending) {
+        setActiveTab('deposit'); // 優先 1: 有欠款，跳待付款
+      } else if (hasReadyToShip) {
+        setActiveTab('balance'); // 優先 2: 沒欠款但有貨到了，跳可出貨
+      } else {
+        setActiveTab('all');     // 優先 3: 都沒有，跳全部
+      }
 
     } catch (error: any) {
       console.error(error);
