@@ -51,7 +51,7 @@ const getStorageStatus = (dateStr?: string) => {
 
 // --- 補回：篩選選項常數 ---
 // Row 1: Cargo Status (Multi-select)
-const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '商品轉送中', '已抵台'];
+const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '轉送中', '已抵台'];
 // Row 2: Delivery Status (Single-select)
 const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 
