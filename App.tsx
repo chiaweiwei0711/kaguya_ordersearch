@@ -712,7 +712,6 @@ const App: React.FC = () => {
                        onChange={e => setSearchQuery(e.target.value)} 
                        placeholder="請輸入您的完整社群暱稱" 
                        className="w-full pl-14 pr-4 py-4 bg-transparent outline-none text-lg font-bold text-white placeholder-gray-400" 
-                       // 👇 修改這裡：加上 !(e.nativeEvent as any).isComposing
                        onKeyDown={(e) => {
                          if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing) {
                            handleSearch();
@@ -722,7 +721,6 @@ const App: React.FC = () => {
                     </div>
                     <button onClick={() => handleSearch()} className="bg-pink-500 text-black p-3 rounded-2xl font-black min-w-[60px] flex items-center justify-center"><ArrowRight /></button>
                   </div>
-                  {/* 新增小提醒 */}
                   <p className="text-pink-500 text-sm md:text-base font-bold mt-3 text-center drop-shadow-[0_0_8px_rgba(236,72,153,0.6)]">
                      若有更改社群暱稱，請務必私訊官賴協助修改，否則查不到訂單喔！
                   </p>
@@ -731,7 +729,6 @@ const App: React.FC = () => {
               </div>
             ) : (
               <div className="animate-fade-in space-y-6 pt-4">
-                {/* 搜尋列還原 */}
                 <div className="bg-black rounded-3xl p-2 flex items-center gap-2 border-2 border-pink-500 ring-4 ring-pink-500/20 mb-2">
                     <div className="relative flex-1">
                       <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-pink-500 w-5 h-5" />
@@ -740,7 +737,6 @@ const App: React.FC = () => {
                        value={searchQuery} 
                        onChange={e => setSearchQuery(e.target.value)} 
                        className="w-full pl-12 pr-4 py-3 bg-transparent outline-none text-base font-bold text-white" 
-                       // 👇 修改這裡：加上 !(e.nativeEvent as any).isComposing
                        onKeyDown={(e) => {
                          if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing) {
                            handleSearch();
@@ -751,7 +747,6 @@ const App: React.FC = () => {
                     <button onClick={() => handleSearch()} className="bg-pink-500 text-black p-2 rounded-xl min-w-[50px] flex items-center justify-center"><ArrowRight size={20}/></button>
                 </div>
 
-                {/* 篩選標籤還原 (Filter Tabs) */}
                 <div className="flex justify-center gap-1 overflow-x-auto pb-4 no-scrollbar">
                   {[
                     { id: 'deposit', label: '待付款訂單' }, 
@@ -764,7 +759,6 @@ const App: React.FC = () => {
                       onClick={() => { 
                         setActiveTab(tab.id as TabType); 
                         setSelectedOrderIds(new Set()); 
-                        // 重置篩選
                         if(tab.id !== 'all') {
                             setCargoFilters([]);
                             setDeliveryFilter(null);
@@ -777,7 +771,6 @@ const App: React.FC = () => {
                   ))}
                 </div>
 
-                {/* --- 補回：全部 (All) 分頁的篩選按鈕介面 --- */}
                 {activeTab === 'all' && (
                     <div className="bg-gray-900/50 border-2 border-gray-700 rounded-3xl p-6 mb-6">
                         <div className="mb-6">
@@ -832,7 +825,6 @@ const App: React.FC = () => {
                     </div>
                 )}
 
-                {/* 全選按鈕 (Select All) */}
                 {(activeTab === 'deposit' || activeTab === 'balance') && filteredOrders.length > 0 && (
                   <div className="flex justify-end px-2 mb-2">
                     <button 
@@ -845,7 +837,6 @@ const App: React.FC = () => {
                   </div>
                 )}
 
-                {/* 訂單列表 */}
                 <div className="space-y-4">
                   {filteredOrders.length === 0 ? <div className="text-center py-20 text-gray-500 font-bold italic">沒有找到符合的訂單</div> : (
                     filteredOrders.map(order => {
@@ -866,7 +857,6 @@ const App: React.FC = () => {
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            {/* 補回：卡片上的狀態標籤 */}
                             <div className="flex flex-wrap gap-2 mb-2">
                                 {order.isShipped ? (
                                     <span className="bg-[#06C755] text-black px-2 py-0.5 rounded text-[10px] font-black uppercase border border-[#06C755]">已出貨</span>
