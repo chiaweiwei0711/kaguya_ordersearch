@@ -6,7 +6,7 @@ import Aurora from './Aurora';
 
 const AboutSection: React.FC = () => {
   const [text, setText] = useState('');
-  const fullText = "其實我們和你一樣，懂那種怕錯過本命的焦慮，也懂收到包裹時那種神聖的開箱儀式感。\n\nKaguya 這個系統不只是冰冷的代碼，而是為了守護這份熱愛而生的。我們存在的意義，就是讓你能安心地把對角色的愛接回家。\n\n每一件你珍視的收藏，我們都會用最高規格對待。\n\nKaguya & 🐰 Fifi 敬上";
+  const fullText = "Hi 這裡是Kaguya代購！\n\nKAGUYA 始於 2024 年，由兩位 20 多歲的女生創立。\n\n起初只是因為太愛二次元、太愛買買買，結果一不小心就踏上了這條一去不復返的代購旅程XDD。\n\n我們和大家一樣，血液裡流著中二的熱血（？）我們懂那種買超喜歡的周邊的喜悅，更懂拆開包裹那一瞬間的喜悅又神聖的儀式感。\n\nKaguya 存在的意義，就是為了守護這份熱愛。每一件你珍視的收藏，我們都會最用心的對待，把喜歡的東西完好無缺地送到你手裡。";
   const [loadBar, setLoadBar] = useState(false);
 
   useEffect(() => {
@@ -23,16 +23,6 @@ const AboutSection: React.FC = () => {
   return (
     // 外層容器：背景設為黑色
     <div className="relative w-full min-h-screen pb-32 animate-fade-in-up bg-black overflow-hidden">
-      
-      {/* 👇 2. 背景層：換成帥氣的 Aurora 極光 */}
-      <div className="absolute inset-0 z-0 opacity-50">
-        <Aurora
-          // 我幫你配了 Kaguya 的專屬色：霓虹紫 -> 螢光粉 -> 深空藍
-          colorStops={["#5227FF", "#ff5cc3", "#3b0764"]} 
-          amplitude={1.2} // 流動速度
-          blend={0.95}    // 夢幻模糊程度
-        />
-      </div>
 
       {/* 前景內容層 (不變) */}
       <div className="relative z-10 container mx-auto px-4">
