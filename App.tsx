@@ -7,7 +7,7 @@ import AdminDashboard from './components/AdminDashboard';
 import NewsModal from './components/NewsModal';
 import { fetchOrdersFromSheet, fetchAnnouncements } from './services/googleSheetService';
 import { APP_CONFIG } from './config';
-// 👇 1. 引入你的極光組件
+// 👇 1. 引入極光
 import Aurora from './components/Aurora';
 import AboutSection from './components/AboutSection';
 
@@ -38,7 +38,7 @@ const getStorageStatus = (dateStr?: string) => {
 const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '轉送中', '已抵台'];
 const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 
-// --- 核子反應爐 Loading 動畫 ---
+// --- Loading 動畫 ---
 const LoadingOverlay: React.FC = () => {
   const [status, setStatus] = useState<string>("Kaguya系統努力讀取中...");
   useEffect(() => {
@@ -313,14 +313,15 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen font-sans pb-40 text-white selection:bg-pink-500 relative flex flex-col">
-      {/* 👇 2. 在最外層插入極光背景，設定 z-[-1] 讓它在最底層 */}
+      {/* 👇 關鍵在這裡！修正後的背景設定 👇 */}
       <div className="fixed inset-0 z-[-1] bg-black">
         <Aurora 
-            colorStops={["#120824", "#e86e96", "#6b2c52"
-            amplitude={1.2} 
+            // 這裡用我們剛剛確認的「高級黑粉色」，避免綠色雜訊
+            colorStops={["#0a0510", "#d65db1", "#592346"]} 
+            amplitude={1.0} 
             speed={0.5} 
         />
-    </div>
+      </div>
 
       {isLoading && <LoadingOverlay />}
       
