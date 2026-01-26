@@ -6,7 +6,7 @@ import Aurora from './Aurora';
 
 const AboutSection: React.FC = () => {
   const [text, setText] = useState('');
-  const fullText = "Hi 這裡是Kaguya代購！\n\nKAGUYA 始於 2024 年，由兩位 20 多歲的女生創立。\n\n起初只是因為太愛二次元、太愛買買買，結果一不小心就踏上了這條一去不復返的代購旅程XDD。\n\n我們和大家一樣，血液裡流著中二的熱血（？）我們懂那種買超喜歡的周邊的喜悅，更懂拆開包裹那一瞬間的喜悅又神聖的儀式感。\n\nKaguya 存在的意義，就是為了守護這份熱愛。每一件你珍視的收藏，我們都會最用心的對待，把喜歡的東西完好無缺地送到你手裡。";
+  const fullText = "Hi，這裡是Kaguya代購！\n\nKAGUYA 始於 2024 年，由兩位 20 多歲的女生創立。\n\n起初只是因為太愛二次元、太愛買買買，結果一不小心就踏上了這條一去不復返的代購旅程XDD。\n\n我們和大家一樣，血液裡流著中二的熱血（？）我們懂那種買超喜歡的周邊的喜悅，更懂拆開包裹那一瞬間的喜悅又神聖的儀式感。\n\nKaguya 存在的意義，就是為了守護這份熱愛。每一件你珍視的收藏，我們都會最用心的對待，把喜歡的東西完好無缺地送到你手裡。";
   const [loadBar, setLoadBar] = useState(false);
 
   useEffect(() => {
@@ -27,17 +27,35 @@ const AboutSection: React.FC = () => {
       {/* 前景內容層 (不變) */}
       <div className="relative z-10 container mx-auto px-4">
         
-        {/* 標題區 */}
+       {/* 標題區：液態玻璃特效版 */}
         <div className="text-center mb-12 relative group cursor-default pt-8">
-          <h1 className="text-4xl md:text-7xl font-[900] tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-pink-500 animate-pulse"
-              style={{ fontFamily: "'Arial Black', sans-serif" }}>
-            SYSTEM : KAGUYA
-          </h1>
-          <div className="text-pink-500 font-mono text-sm md:text-xl tracking-[0.5em] md:tracking-[1em] mt-2 opacity-80">
-            /// ONLINE_
-          </div>
-        </div>
+          
+          {/* 液態玻璃容器 */}
+          <div className="inline-block relative p-8 rounded-[2rem] 
+                          bg-gradient-to-br from-white/10 to-transparent 
+                          backdrop-blur-xl border border-white/20 
+                          shadow-[0_8px_32px_0_rgba(236,72,153,0.3)] 
+                          overflow-hidden">
+            
+            {/* 玻璃上的流動光影動畫 (裝飾用) */}
+            <div className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/10 to-transparent rotate-45 animate-[shimmer_3s_infinite]"></div>
 
+            {/* 主標題：液態金屬質感 */}
+            <h1 className="relative z-10 text-4xl md:text-7xl font-[900] tracking-tighter 
+                           text-transparent bg-clip-text 
+                           bg-gradient-to-b from-white via-pink-300 to-purple-500
+                           drop-shadow-[0_2px_10px_rgba(236,72,153,0.5)]"
+                style={{ fontFamily: "'Arial Black', sans-serif" }}>
+              關於我們
+            </h1>
+            
+            {/* 副標題 */}
+            <div className="relative z-10 text-pink-200 font-mono text-sm md:text-xl tracking-[0.5em] md:tracking-[1em] mt-3 opacity-90 mix-blend-overlay">
+              ABOUT US
+            </div>
+          </div>
+          
+        </div>
         {/* 玻璃卡片區 */}
         {/* 背景透明度調低一點 (/30)，讓極光可以透出來 */}
         <div className="max-w-4xl mx-auto bg-gray-900/30 backdrop-blur-md border border-pink-500/30 rounded-[2rem] p-6 md:p-12 shadow-[0_0_50px_rgba(236,72,153,0.15)] relative overflow-hidden">
