@@ -913,12 +913,14 @@ const App: React.FC = () => {
               onOpenAllNews={() => setIsAllNewsOpen(true)} 
             />
             {footerContent}
-            ) : (  
+            </div>
+             ) : (  
           <div className="flex flex-col pt-8">
              <AboutSection />
              {footerContent}
           </div>
         )}
+            
       </div>
 
       {/* 底部操作列 (Action Bar) */}
