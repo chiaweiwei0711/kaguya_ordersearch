@@ -7,9 +7,10 @@ import AdminDashboard from './components/AdminDashboard';
 import NewsModal from './components/NewsModal';
 import { fetchOrdersFromSheet, fetchAnnouncements } from './services/googleSheetService';
 import { APP_CONFIG } from './config';
-import AboutSection from './components/AboutSection';
+import AboutSection from './components/AboutSection'; // 👈 確保有這行
 
-type MainView = 'query' | 'info'| 'about';
+// --- 類型定義 ---
+type MainView = 'query' | 'info' | 'about';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
 // --- 📅 倉儲倒數計算核心邏輯 ---
@@ -50,42 +51,23 @@ const getStorageStatus = (dateStr?: string) => {
   }
 };
 
-// --- 補回：篩選選項常數 ---
-// Row 1: Cargo Status (Multi-select)
+// --- 篩選選項常數 ---
 const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '轉送中', '已抵台'];
-// Row 2: Delivery Status (Single-select)
 const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 
-// --- 新版：更厲害的核子反應爐讀取動畫 ---
-import React, { useState, useEffect } from 'react';
-
-// 確保這裡是 React.FC
+// --- 核子反應爐讀取動畫 ---
 const LoadingOverlay: React.FC = () => {
   const [status, setStatus] = useState<string>("Kaguya系統努力讀取中...");
 
   useEffect(() => {
-    const timer1 = setTimeout(() => {
-      setStatus("正在連線至雲端資料庫...");
-    }, 3500);
-
-    const timer2 = setTimeout(() => {
-      setStatus("正在查找您的訂單...");
-    }, 8000);
-
-    const timer3 = setTimeout(() => {
-      setStatus("即將完成，正在準備結果...");
-    }, 12000);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-    };
+    const timer1 = setTimeout(() => { setStatus("正在連線至雲端資料庫..."); }, 3500);
+    const timer2 = setTimeout(() => { setStatus("正在查找您的訂單..."); }, 8000);
+    const timer3 = setTimeout(() => { setStatus("即將完成，正在準備結果..."); }, 12000);
+    return () => { clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3); };
   }, []);
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505]/90 backdrop-blur-xl">
-      {/* 1. 主要動畫區塊 (完全保留你原本的 CSS) */}
       <div className="relative w-40 h-40 flex items-center justify-center">
         <div className="absolute inset-[-20px] rounded-full border-[6px] border-transparent border-t-purple-600/60 border-r-purple-500/40 animate-[spin_3s_linear_infinite_reverse] shadow-[0_0_30px_#9333ea]"></div>
         <div className="absolute inset-0 rounded-full border-[8px] border-transparent border-t-pink-500 border-l-pink-600/50 animate-[spin_1.5s_linear_infinite] shadow-[0_0_20px_#ec4899] ring-4 ring-pink-500/20"></div>
@@ -96,27 +78,18 @@ const LoadingOverlay: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* 2. 文字區塊 */}
       <div className="mt-12 text-center space-y-3 relative z-20">
-        <h3 
-          className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-pink-500 font-[900] tracking-[0.3em] text-2xl uppercase animate-pulse filter drop-shadow-[0_0_10px_#ec4899]"
-          style={{ fontFamily: "'Arial Black', sans-serif" }}
-        >
+        <h3 className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-pink-500 font-[900] tracking-[0.3em] text-2xl uppercase animate-pulse filter drop-shadow-[0_0_10px_#ec4899]" style={{ fontFamily: "'Arial Black', sans-serif" }}>
           SYSTEM LOADING
         </h3>
-        <p className="text-pink-400 font-bold text-sm tracking-widest animate-bounce min-h-[1.5em]">
-          {status}
-        </p>
+        <p className="text-pink-400 font-bold text-sm tracking-widest animate-bounce min-h-[1.5em]">{status}</p>
       </div>
-      
-      {/* 3. 背景裝飾網格 */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGZSIHN0cm9rZT0icmdiYSgyMzYsIDcyLCAxNTMsIDAuMSkiIHN0cm9rZS13aWR0aD0iMSI+PHBhdGggZD0iTTAgNDBoNDBNNDAgMGg0ME0wIDBoNDBNNDAgNDBoNDAiLz48L2c+PC9zdmc+')] opacity-20 z-0 pointer-events-none"></div>
     </div>
   );
 };
 
-
+// --- 公告 Modal ---
 const AllNewsModal = ({ news, isOpen, onClose, onSelectNews }: { news: Announcement[], isOpen: boolean, onClose: () => void, onSelectNews: (n: Announcement) => void }) => {
     if (!isOpen) return null;
     return (
@@ -132,22 +105,12 @@ const AllNewsModal = ({ news, isOpen, onClose, onSelectNews }: { news: Announcem
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                     <div className="space-y-1">
                         {news.map((item, idx) => (
-                            <button 
-                                key={idx}
-                                onClick={() => { onSelectNews(item); }}
-                                className="w-full flex items-center justify-between py-4 border-b border-gray-900 group text-left px-4 hover:bg-white/5 rounded-2xl transition-all"
-                            >
+                            <button key={idx} onClick={() => { onSelectNews(item); }} className="w-full flex items-center justify-between py-4 border-b border-gray-900 group text-left px-4 hover:bg-white/5 rounded-2xl transition-all">
                                 <div className="flex items-center gap-4 min-w-0 flex-1">
                                     <span className="text-white font-bold text-sm md:text-base whitespace-nowrap opacity-60 font-mono">{item.date}</span>
-                                    <span className="text-gray-200 font-bold text-sm md:text-base truncate group-hover:text-pink-400 transition-colors">
-                                        {item.title}
-                                    </span>
+                                    <span className="text-gray-200 font-bold text-sm md:text-base truncate group-hover:text-pink-400 transition-colors">{item.title}</span>
                                 </div>
-                                {item.isImportant && (
-                                    <span className="ml-4 bg-[#f43f5e] text-white px-3 py-1 rounded-full text-[10px] font-black shadow-[0_0_10px_rgba(244,63,94,0.3)] whitespace-nowrap">
-                                        重要
-                                    </span>
-                                )}
+                                {item.isImportant && <span className="ml-4 bg-[#f43f5e] text-white px-3 py-1 rounded-full text-[10px] font-black shadow-[0_0_10px_rgba(244,63,94,0.3)] whitespace-nowrap">重要</span>}
                             </button>
                         ))}
                     </div>
@@ -156,299 +119,133 @@ const AllNewsModal = ({ news, isOpen, onClose, onSelectNews }: { news: Announcem
         </div>
     );
 };
-// --- 購物流程輪播組件 (已填入您的 7 張圖片) ---
-const ShoppingGuide = () => {
-  // ✅ 已幫您轉換成正確的直連網址
-  const images = [
-    "https://i.imgur.com/239DJw6.jpg", 
-    "https://i.imgur.com/j76KqeA.jpg",
-    "https://i.imgur.com/megTTli.jpg",
-    "https://i.imgur.com/Hr88EIy.jpg",
-    "https://i.imgur.com/bXInaiN.jpg",
-    "https://i.imgur.com/HlR5PEQ.jpg",
-    "https://i.imgur.com/7DycaFf.jpg"
-  ];
 
+// --- 購物流程輪播 ---
+const ShoppingGuide = () => {
+  const images = ["https://i.imgur.com/239DJw6.jpg", "https://i.imgur.com/j76KqeA.jpg", "https://i.imgur.com/megTTli.jpg", "https://i.imgur.com/Hr88EIy.jpg", "https://i.imgur.com/bXInaiN.jpg", "https://i.imgur.com/HlR5PEQ.jpg", "https://i.imgur.com/7DycaFf.jpg"];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  // 自動輪播邏輯
   useEffect(() => {
     if (isModalOpen) return;
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 4000); 
+    const timer = setInterval(() => { setCurrentIndex((prev) => (prev + 1) % images.length); }, 4000); 
     return () => clearInterval(timer);
   }, [isModalOpen, images.length]);
 
   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % images.length);
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-
-  // 手機滑動偵測
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
   const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-    if (isLeftSwipe) nextSlide();
-    if (isRightSwipe) prevSlide();
-    setTouchStart(0);
-    setTouchEnd(0);
+    if (distance > 50) nextSlide();
+    if (distance < -50) prevSlide();
+    setTouchStart(0); setTouchEnd(0);
   };
 
   return (
     <>
       <div className="space-y-4 px-2">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-             <div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div>
-             <h3 className="text-white font-black text-2xl tracking-tight">購物流程</h3>
-          </div>
+          <div className="flex items-center gap-3"><div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div><h3 className="text-white font-black text-2xl tracking-tight">購物流程</h3></div>
           <span className="text-pink-500 font-black text-xs uppercase tracking-[0.2em]">SHOPPING GUIDE</span>
         </div>
-
-      <div 
-  // 1. aspect-video 改成 aspect-[4/5] (符合您的圖片比例)
-  // 2. 加上 max-w-md mx-auto (限制寬度並置中，避免在電腦版變太巨大)
-  className="relative group rounded-2xl overflow-hidden border-2 border-pink-500/30 shadow-[0_0_30px_rgba(236,72,153,0.1)] bg-black aspect-[4/5] max-w-md mx-auto cursor-pointer"
-  onTouchStart={handleTouchStart}
-  onTouchMove={handleTouchMove}
-  onTouchEnd={handleTouchEnd}
-  onClick={() => setIsModalOpen(true)}
->
-          {/* 圖片層 */}
+        <div className="relative group rounded-2xl overflow-hidden border-2 border-pink-500/30 shadow-[0_0_30px_rgba(236,72,153,0.1)] bg-black aspect-[4/5] max-w-md mx-auto cursor-pointer" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onClick={() => setIsModalOpen(true)}>
           <div className="w-full h-full relative">
-             <img 
-               src={images[currentIndex]} 
-               alt={`Step ${currentIndex + 1}`}
-               // 👇 防擋圖機制：加上這個就能顯示 Imgur 圖片
-               referrerPolicy="no-referrer"
-               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-             />
+             <img src={images[currentIndex]} alt={`Step ${currentIndex + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
-             
-             <div className="absolute bottom-10 left-0 right-0 text-center">
-                <p className="text-white text-xs md:text-sm font-bold tracking-widest uppercase opacity-80">
-                   點擊圖片放大檢視
-                </p>
-             </div>
+             <div className="absolute bottom-10 left-0 right-0 text-center"><p className="text-white text-xs md:text-sm font-bold tracking-widest uppercase opacity-80">點擊圖片放大檢視</p></div>
           </div>
-
           <button onClick={(e) => { e.stopPropagation(); prevSlide(); }} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-pink-500"><ChevronRight className="rotate-180 w-6 h-6" /></button>
           <button onClick={(e) => { e.stopPropagation(); nextSlide(); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-pink-500"><ChevronRight className="w-6 h-6" /></button>
-
-          {/* 下方點點導航 */}
           <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10 px-4 flex-wrap">
-            {images.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  idx === currentIndex ? 'w-6 bg-pink-500 shadow-[0_0_10px_#ec4899]' : 'bg-gray-600 hover:bg-gray-400'
-                }`}
-              />
-            ))}
+            {images.map((_, idx) => (<button key={idx} onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }} className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-6 bg-pink-500 shadow-[0_0_10px_#ec4899]' : 'bg-gray-600 hover:bg-gray-400'}`} />))}
           </div>
         </div>
       </div>
-
-      {/* 放大檢視 Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center animate-fade-in" onClick={() => setIsModalOpen(false)}>
-          <button className="absolute top-6 right-6 p-3 bg-gray-900 rounded-full text-white hover:bg-pink-500 transition-colors border border-gray-700 z-[110]">
-            <X size={24} />
-          </button>
-          
+          <button className="absolute top-6 right-6 p-3 bg-gray-900 rounded-full text-white hover:bg-pink-500 transition-colors border border-gray-700 z-[110]"><X size={24} /></button>
           <div className="relative w-full max-w-5xl px-4 flex items-center justify-center h-full" onClick={e => e.stopPropagation()}>
-             <img 
-               src={images[currentIndex]} 
-               referrerPolicy="no-referrer"
-               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-gray-800"
-               alt="Full size"
-             />
-             
-             <button onClick={prevSlide} className="absolute left-4 p-4 bg-black/50 rounded-full text-white hover:bg-pink-500 transition-all backdrop-blur-sm border border-white/10">
-                <ChevronRight className="rotate-180 w-8 h-8" />
-             </button>
-             <button onClick={nextSlide} className="absolute right-4 p-4 bg-black/50 rounded-full text-white hover:bg-pink-500 transition-all backdrop-blur-sm border border-white/10">
-                <ChevronRight className="w-8 h-8" />
-             </button>
+             <img src={images[currentIndex]} referrerPolicy="no-referrer" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-gray-800" alt="Full size" />
+             <button onClick={prevSlide} className="absolute left-4 p-4 bg-black/50 rounded-full text-white hover:bg-pink-500 transition-all backdrop-blur-sm border border-white/10"><ChevronRight className="rotate-180 w-8 h-8" /></button>
+             <button onClick={nextSlide} className="absolute right-4 p-4 bg-black/50 rounded-full text-white hover:bg-pink-500 transition-all backdrop-blur-sm border border-white/10"><ChevronRight className="w-8 h-8" /></button>
           </div>
         </div>
       )}
     </>
   );
 };
-const InfoHub = ({ news, onSelectNews, onOpenAllNews }: { news: Announcement[], onSelectNews: (n: Announcement) => void, onOpenAllNews: () => void }) => {
-  
-  // 1. 👇 新增邏輯：從公告中過濾掉跑馬燈，只顯示一般公告
-  const displayNews = useMemo(() => {
-    return news
-      .filter(n => !n.title.includes("跑馬燈")) 
-      .slice(0, 4);
-  }, [news]);
 
-  // 2. 👇 新增邏輯：自動抓取標題有「跑馬燈」的內容
+// --- 資訊中心 InfoHub ---
+const InfoHub = ({ news, onSelectNews, onOpenAllNews }: { news: Announcement[], onSelectNews: (n: Announcement) => void, onOpenAllNews: () => void }) => {
+  const displayNews = useMemo(() => news.filter(n => !n.title.includes("跑馬燈")).slice(0, 4), [news]);
   const marqueeText = useMemo(() => {
     const marqueeItem = news.find(n => n.title.includes("跑馬燈"));
-    // 有找到就顯示內容，沒找到就顯示預設文字
     return marqueeItem ? marqueeItem.content : "⚠️ 年末年初日本廠商/集運公司多在放假,商品有可能會發生延誤抵台情形,請大家預留收貨時間。";
   }, [news]);
 
   return (
     <div className="space-y-12 animate-fade-in-up mt-8 pb-32">
-      
-      {/* 👇 跑馬燈區塊 (已修改為讀取變數 {marqueeText}) */}
       <div className="relative overflow-hidden bg-black border-2 border-pink-500/50 rounded-2xl py-3 px-4 shadow-[0_0_20px_rgba(236,72,153,0.2)]">
         <div className="whitespace-nowrap flex animate-marquee">
-          <span className="text-pink-500 font-bold text-sm md:text-base px-4">
-            {marqueeText}
-          </span>
-          <span className="text-pink-500 font-bold text-sm md:text-base px-4">
-            {marqueeText}
-          </span>
+          <span className="text-pink-500 font-bold text-sm md:text-base px-4">{marqueeText}</span>
+          <span className="text-pink-500 font-bold text-sm md:text-base px-4">{marqueeText}</span>
         </div>
       </div>
 
-      {/* 👇 最新公告區塊 (已修改為讀取過濾後的 displayNews) */}
       <div className="space-y-4 px-2">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div>
-            <h3 className="text-white font-black text-2xl tracking-tight">最新公告</h3>
-          </div>
-          <button 
-            onClick={onOpenAllNews}
-            className="text-pink-500 font-black text-xs uppercase tracking-[0.2em] flex items-center gap-1 hover:opacity-70 transition-opacity"
-          >
-            ALL NEWS <ChevronRight size={14} />
-          </button>
+          <div className="flex items-center gap-3"><div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div><h3 className="text-white font-black text-2xl tracking-tight">最新公告</h3></div>
+          <button onClick={onOpenAllNews} className="text-pink-500 font-black text-xs uppercase tracking-[0.2em] flex items-center gap-1 hover:opacity-70 transition-opacity">ALL NEWS <ChevronRight size={14} /></button>
         </div>
-
         <div className="space-y-1">
-          {displayNews.length === 0 ? (
-            <div className="text-center py-10 text-gray-700 font-bold italic tracking-widest border border-dashed border-gray-800 rounded-2xl">NO RECENT NEWS</div>
-          ) : (
+          {displayNews.length === 0 ? (<div className="text-center py-10 text-gray-700 font-bold italic tracking-widest border border-dashed border-gray-800 rounded-2xl">NO RECENT NEWS</div>) : (
             displayNews.map((item, idx) => (
-              <button 
-                key={idx}
-                onClick={() => onSelectNews(item)}
-                className="w-full flex items-center justify-between py-3.5 border-b border-gray-900 group text-left"
-              >
-                <div className="flex items-center gap-4 min-w-0 flex-1">
-                  <span className="text-white font-bold text-base md:text-lg whitespace-nowrap">{item.date}</span>
-                  <span className="text-gray-200 font-bold text-base md:text-lg truncate group-hover:text-pink-400 transition-colors">
-                    {item.title}
-                  </span>
-                </div>
-                {item.isImportant && (
-                  <span className="ml-4 bg-[#f43f5e] text-white px-5 py-1.5 rounded-full text-[12px] font-black shadow-[0_0_15px_rgba(244,63,94,0.4)] whitespace-nowrap">
-                    重要
-                  </span>
-                )}
+              <button key={idx} onClick={() => onSelectNews(item)} className="w-full flex items-center justify-between py-3.5 border-b border-gray-900 group text-left">
+                <div className="flex items-center gap-4 min-w-0 flex-1"><span className="text-white font-bold text-base md:text-lg whitespace-nowrap">{item.date}</span><span className="text-gray-200 font-bold text-base md:text-lg truncate group-hover:text-pink-400 transition-colors">{item.title}</span></div>
+                {item.isImportant && <span className="ml-4 bg-[#f43f5e] text-white px-5 py-1.5 rounded-full text-[12px] font-black shadow-[0_0_15px_rgba(244,63,94,0.4)] whitespace-nowrap">重要</span>}
               </button>
             ))
           )}
         </div>
       </div>
 
-     {/* 官方傳送門 (已更新為 6 個項目) */}
       <div className="space-y-6 px-2">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div>
-            <h3 className="text-white font-black text-2xl tracking-tight">官方傳送門</h3>
-          </div>
+          <div className="flex items-center gap-3"><div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div><h3 className="text-white font-black text-2xl tracking-tight">官方傳送門</h3></div>
           <span className="text-pink-500 font-black text-xs uppercase tracking-[0.2em]">SOCIAL HUB</span>
         </div>
-        
-        {/* 使用 Grid 排版，手機單欄，平板以上雙欄 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          {/* 1. 🟢 官方 LINE */}
           <a href={APP_CONFIG.LINE_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-[#06C755]/30 hover:border-[#06C755] transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4">
-              <div className="bg-[#06C755] p-3 rounded-xl shadow-[0_0_15px_rgba(6,199,85,0.3)]"><MessageCircle className="text-white w-6 h-6" /></div>
-              <div className="flex flex-col">
-                  <span className="text-white font-black text-lg">官方 LINE 帳號</span>
-                  <span className="text-[#06C755] text-[10px] font-bold uppercase tracking-tighter">Official Line</span>
-              </div>
-            </div>
-            <ArrowRight className="text-gray-700 group-hover:text-[#06C755] group-hover:translate-x-1 transition-all" />
+            <div className="flex items-center gap-4"><div className="bg-[#06C755] p-3 rounded-xl shadow-[0_0_15px_rgba(6,199,85,0.3)]"><MessageCircle className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">官方 LINE 帳號</span><span className="text-[#06C755] text-[10px] font-bold uppercase tracking-tighter">Official Line</span></div></div><ArrowRight className="text-gray-700 group-hover:text-[#06C755] group-hover:translate-x-1 transition-all" />
           </a>
-
-          {/* 2. 🔵 LINE 社群 */}
           <a href={APP_CONFIG.LINE_COMMUNITY_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-blue-500/30 hover:border-blue-500 transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4">
-              <div className="bg-blue-600 p-3 rounded-xl shadow-[0_0_15px_rgba(37,99,235,0.3)]"><Star className="text-white w-6 h-6" /></div>
-              <div className="flex flex-col">
-                  <span className="text-white font-black text-lg">LINE 社群 (商品資訊/喊單區)</span>
-                  <span className="text-blue-500 text-[10px] font-bold uppercase tracking-tighter">Open Chat</span>
-              </div>
-            </div>
-            <ArrowRight className="text-gray-700 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+            <div className="flex items-center gap-4"><div className="bg-blue-600 p-3 rounded-xl shadow-[0_0_15px_rgba(37,99,235,0.3)]"><Star className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">LINE 社群 (商品資訊/喊單區)</span><span className="text-blue-500 text-[10px] font-bold uppercase tracking-tighter">Open Chat</span></div></div><ArrowRight className="text-gray-700 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
           </a>
-
-          {/* 3. 🟣 Instagram */}
           <a href={APP_CONFIG.INSTAGRAM_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-[#E1306C]/30 hover:border-[#E1306C] transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4] p-3 rounded-xl shadow-[0_0_15px_rgba(225,48,108,0.3)]"><Instagram className="text-white w-6 h-6" /></div>
-              <div className="flex flex-col">
-                  <span className="text-white font-black text-lg">Instagram</span>
-                  <span className="text-[#E1306C] text-[10px] font-bold uppercase tracking-tighter">Follow Us</span>
-              </div>
-            </div>
-            <ArrowRight className="text-gray-700 group-hover:text-[#E1306C] group-hover:translate-x-1 transition-all" />
+            <div className="flex items-center gap-4"><div className="bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4] p-3 rounded-xl shadow-[0_0_15px_rgba(225,48,108,0.3)]"><Instagram className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">Instagram</span><span className="text-[#E1306C] text-[10px] font-bold uppercase tracking-tighter">Follow Us</span></div></div><ArrowRight className="text-gray-700 group-hover:text-[#E1306C] group-hover:translate-x-1 transition-all" />
           </a>
-
-          {/* 4. ⚫ Threads */}
           <a href={APP_CONFIG.THREADS_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-white/30 hover:border-white transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4">
-              <div className="bg-black border border-gray-700 p-3 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.1)]"><Hash className="text-white w-6 h-6" /></div>
-              <div className="flex flex-col">
-                  <span className="text-white font-black text-lg">Threads</span>
-                  <span className="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">Latest News</span>
-              </div>
-            </div>
-            <ArrowRight className="text-gray-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
+            <div className="flex items-center gap-4"><div className="bg-black border border-gray-700 p-3 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.1)]"><Hash className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">Threads</span><span className="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">Latest News</span></div></div><ArrowRight className="text-gray-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
           </a>
-
-          {/* 5. 🟠 賣貨便下單賣場 */}
           <a href={APP_CONFIG.MAIHUOBIAN_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-orange-500/30 hover:border-orange-500 transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4">
-              <div className="bg-orange-600 p-3 rounded-xl shadow-[0_0_15px_rgba(234,88,12,0.3)]"><ShoppingBag className="text-white w-6 h-6" /></div>
-              <div className="flex flex-col">
-                  <span className="text-white font-black text-lg">賣貨便下單賣場</span>
-                  <span className="text-orange-500 text-[10px] font-bold uppercase tracking-tighter">Pre-Order</span>
-              </div>
-            </div>
-            <ArrowRight className="text-gray-700 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
+            <div className="flex items-center gap-4"><div className="bg-orange-600 p-3 rounded-xl shadow-[0_0_15px_rgba(234,88,12,0.3)]"><ShoppingBag className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">賣貨便下單賣場</span><span className="text-orange-500 text-[10px] font-bold uppercase tracking-tighter">Pre-Order</span></div></div><ArrowRight className="text-gray-700 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
           </a>
-
-           {/* 6. 🔴 賣貨便現貨賣場 */}
            <a href={APP_CONFIG.MAIHUOBIAN_STOCK_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-red-500/30 hover:border-red-500 transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4">
-              <div className="bg-red-600 p-3 rounded-xl shadow-[0_0_15px_rgba(220,38,38,0.3)]"><Box className="text-white w-6 h-6" /></div>
-              <div className="flex flex-col">
-                  <span className="text-white font-black text-lg">賣貨便現貨賣場</span>
-                  <span className="text-red-500 text-[10px] font-bold uppercase tracking-tighter">In Stock</span>
-              </div>
-            </div>
-            <ArrowRight className="text-gray-700 group-hover:text-red-500 group-hover:translate-x-1 transition-all" />
+            <div className="flex items-center gap-4"><div className="bg-red-600 p-3 rounded-xl shadow-[0_0_15px_rgba(220,38,38,0.3)]"><Box className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">賣貨便現貨賣場</span><span className="text-red-500 text-[10px] font-bold uppercase tracking-tighter">In Stock</span></div></div><ArrowRight className="text-gray-700 group-hover:text-red-500 group-hover:translate-x-1 transition-all" />
           </a>
-
         </div>
       </div>
-      {/* 5. 新增：購物流程輪播 (放在最下面) */}
       <ShoppingGuide />
-
     </div>
   );
 };
+
+// --- 主應用程式 ---
 const App: React.FC = () => {
   const [mainView, setMainView] = useState<MainView>('query');
   const [searchQuery, setSearchQuery] = useState('');
@@ -460,25 +257,17 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('deposit');
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
-
-  // --- 補回：篩選器狀態 ---
   const [cargoFilters, setCargoFilters] = useState<string[]>([]);
   const [deliveryFilter, setDeliveryFilter] = useState<string | null>(null);
-  
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [payingOrders, setPayingOrders] = useState<Order[]>([]);
   const [modalType, setModalType] = useState<'deposit' | 'shipping'>('deposit');
-  
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetailOrder, setSelectedDetailOrder] = useState<Order | null>(null);
-  
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
-  useEffect(() => {
-    fetchAnnouncements().then(setNews);
-  }, []);
+  useEffect(() => { fetchAnnouncements().then(setNews); }, []);
 
-  // --- 核心篩選邏輯 (Filter logic) (已修復) ---
   const filteredOrders = useMemo(() => {
     return foundOrders.filter(order => {
       const isPending = order.status === OrderStatus.PENDING;
@@ -489,143 +278,61 @@ const App: React.FC = () => {
       if (activeTab === 'deposit') return isPending;
       if (activeTab === 'balance') return isPaid && isArrived && !isShipped;
       if (activeTab === 'completed') return isPaid && isArrived && isShipped;
-      
-      // --- 修復：全部 (All) 分頁的進階篩選 ---
       if (activeTab === 'all') {
         let matchesCargo = true;
-        if (cargoFilters.length > 0) {
-            matchesCargo = cargoFilters.some(filter => 
-                order.shippingStatus && order.shippingStatus.includes(filter)
-            );
-        }
-
+        if (cargoFilters.length > 0) matchesCargo = cargoFilters.some(f => order.shippingStatus && order.shippingStatus.includes(f));
         let matchesDelivery = true;
-        if (deliveryFilter) {
-            if (deliveryFilter === '已出貨') {
-                matchesDelivery = order.isShipped;
-            } else if (deliveryFilter === '尚未出貨') {
-                matchesDelivery = !order.isShipped;
-            }
-        }
+        if (deliveryFilter) matchesDelivery = deliveryFilter === '已出貨' ? order.isShipped : !order.isShipped;
         return matchesCargo && matchesDelivery;
       }
-      
       return true;
     });
   }, [foundOrders, activeTab, cargoFilters, deliveryFilter]);
 
-  // --- 選取狀態與金額計算邏輯 (Selection & Amount logic) ---
-  const selectedOrdersData = useMemo(() => {
-    return filteredOrders.filter(o => selectedOrderIds.has(o.id));
-  }, [filteredOrders, selectedOrderIds]);
-
+  const selectedOrdersData = useMemo(() => filteredOrders.filter(o => selectedOrderIds.has(o.id)), [filteredOrders, selectedOrderIds]);
   const totalSelectedAmount = useMemo(() => {
-    if (activeTab === 'deposit') {
-      return selectedOrdersData.reduce((sum, o) => sum + o.depositAmount, 0);
-    } else if (activeTab === 'balance') {
-      return selectedOrdersData.reduce((sum, o) => sum + o.balanceDue, 0);
-    }
+    if (activeTab === 'deposit') return selectedOrdersData.reduce((sum, o) => sum + o.depositAmount, 0);
+    if (activeTab === 'balance') return selectedOrdersData.reduce((sum, o) => sum + o.balanceDue, 0);
     return 0;
   }, [selectedOrdersData, activeTab]);
 
-// --- 正式版搜尋功能 (後端真實搜尋) ---
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery) return;
-    
-    // 1. 顯示 Loading (真的開始去網路抓了)
     setIsLoading(true);
-
-    // 清空畫面
-    setFoundOrders([]);
-    setSelectedOrderIds(new Set());
-    setCargoFilters([]);
-    setDeliveryFilter(null);
-    
+    setFoundOrders([]); setSelectedOrderIds(new Set()); setCargoFilters([]); setDeliveryFilter(null);
     try {
-      // 2. 呼叫 API (這行會等待 1.5 ~ 3 秒，視 Google 狀況而定)
       const results = await fetchOrdersFromSheet(searchQuery);
-      
       setFoundOrders(results);
       setHasSearched(true);
-      
-      // 智慧切換 Tab
-      // 智慧切換 Tab
       const hasPending = results.some(o => o.status === OrderStatus.PENDING);
-      
-      // 🆕 新增：檢查是否有「可出貨」訂單 (已付款 + 已抵台 + 未出貨)
-      const hasReadyToShip = results.some(o => 
-        o.status === OrderStatus.PAID && 
-        o.shippingStatus.includes("已抵台") && 
-        !o.isShipped
-      );
-
-      if (hasPending) {
-        setActiveTab('deposit'); // 優先 1: 有欠款，跳待付款
-      } else if (hasReadyToShip) {
-        setActiveTab('balance'); // 優先 2: 沒欠款但有貨到了，跳可出貨
-      } else {
-        setActiveTab('all');     // 優先 3: 都沒有，跳全部
-      }
-
-    } catch (error: any) {
-      console.error(error);
-    } finally {
-      // 3. 抓完資料 (或失敗)，關閉 Loading
-      setIsLoading(false);
-    }
+      const hasReadyToShip = results.some(o => o.status === OrderStatus.PAID && o.shippingStatus.includes("已抵台") && !o.isShipped);
+      if (hasPending) setActiveTab('deposit');
+      else if (hasReadyToShip) setActiveTab('balance');
+      else setActiveTab('all');
+    } catch (error: any) { console.error(error); } finally { setIsLoading(false); }
   };
 
   const toggleOrderSelection = (id: string) => {
     const newSet = new Set(selectedOrderIds);
-    if (newSet.has(id)) newSet.delete(id);
-    else newSet.add(id);
+    if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
     setSelectedOrderIds(newSet);
   };
 
-  // --- 全選本頁邏輯 (Select All logic) ---
   const handleSelectAll = () => {
     const currentIds = filteredOrders.map(o => o.id);
     const areAllSelected = currentIds.every(id => selectedOrderIds.has(id));
-    
-    if (areAllSelected) {
-      const newSet = new Set(selectedOrderIds);
-      currentIds.forEach(id => newSet.delete(id));
-      setSelectedOrderIds(newSet);
-    } else {
-      const newSet = new Set(selectedOrderIds);
-      currentIds.forEach(id => newSet.add(id));
-      setSelectedOrderIds(newSet);
-    }
+    if (areAllSelected) { const newSet = new Set(selectedOrderIds); currentIds.forEach(id => newSet.delete(id)); setSelectedOrderIds(newSet); } 
+    else { const newSet = new Set(selectedOrderIds); currentIds.forEach(id => newSet.add(id)); setSelectedOrderIds(newSet); }
   };
 
-  // --- 補回：篩選切換函式 ---
-  const toggleCargoFilter = (filter: string) => {
-    setCargoFilters(prev => {
-      if (prev.includes(filter)) {
-        return prev.filter(f => f !== filter);
-      } else {
-        return [...prev, filter];
-      }
-    });
-  };
-
-  const toggleDeliveryFilter = (filter: string) => {
-    setDeliveryFilter(prev => prev === filter ? null : filter);
-  };
-
-  const openPaymentModal = () => {
-    if (selectedOrdersData.length === 0) return;
-    setPayingOrders(selectedOrdersData);
-    setModalType(activeTab === 'deposit' ? 'deposit' : 'shipping');
-    setIsPaymentModalOpen(true);
-  };
+  const toggleCargoFilter = (filter: string) => setCargoFilters(prev => prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]);
+  const toggleDeliveryFilter = (filter: string) => setDeliveryFilter(prev => prev === filter ? null : filter);
+  const openPaymentModal = () => { if (selectedOrdersData.length === 0) return; setPayingOrders(selectedOrdersData); setModalType(activeTab === 'deposit' ? 'deposit' : 'shipping'); setIsPaymentModalOpen(true); };
 
   const footerContent = (
     <footer className="pt-12 pb-8 text-center text-gray-600 text-[11px] font-bold space-y-2 opacity-70">
-      <div className="footer text-gray-500 font-black">
-        本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756
-      </div>
+      <div className="footer text-gray-500 font-black">本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
       <p className="mt-2">© {new Date().getFullYear()} All Rights Reserved.</p>
       <button onClick={() => setIsAdminOpen(true)} className="mt-4 opacity-20"><Lock size={12}/></button>
     </footer>
@@ -655,7 +362,6 @@ const App: React.FC = () => {
         >
           關於我們
         </button>
-      </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 w-full flex-1 pt-16">
