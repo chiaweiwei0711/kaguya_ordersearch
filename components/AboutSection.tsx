@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Zap, Box, Heart } from 'lucide-react';
+// 👇 引入剛剛寫好的 Aurora 元件
+import Aurora from './Aurora';
 
 const AboutSection: React.FC = () => {
   const [text, setText] = useState('');
   
-  // 你的文案
+  // 文案
   const fullText = "其實我們和你一樣，懂那種怕錯過本命的焦慮，也懂收到包裹時那種神聖的開箱儀式感。\n\nKaguya 這個系統不只是冰冷的代碼，而是為了守護這份熱愛而生的。我們存在的意義，就是讓你能安心地把對角色的愛接回家。\n\n每一件你珍視的收藏，我們都會用最高規格對待。\n\nKaguya & 🐰 Fifi 敬上";
   
   const [loadBar, setLoadBar] = useState(false);
 
-  // 打字機效果
   useEffect(() => {
     let index = 0;
     const timer = setInterval(() => {
       setText((prev) => prev + fullText.charAt(index));
       index++;
       if (index === fullText.length) clearInterval(timer);
-    }, 50); // 打字速度
+    }, 50);
 
     setTimeout(() => setLoadBar(true), 500);
 
@@ -24,10 +25,23 @@ const AboutSection: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full min-h-screen pb-32 animate-fade-in-up">
+    // 外層容器：全螢幕
+    <div className="relative w-full min-h-screen pb-32 animate-fade-in-up">
       
-      {/* 內容層 */}
-      <div className="container mx-auto px-4">
+      {/* 👇 這裡就是你想要的 Aurora 背景 
+          注意：我把 width/height 改成 100%，這樣才會填滿背景，
+          而不是像原本範例寫死 1080px (那樣手機會跑版)。
+      */}
+      <div className="absolute inset-0 z-0">
+        <Aurora
+          colorStops={["#5227FF", "#ff5cc3", "#3b0764"]} // 霓虹紫粉色系
+          amplitude={1.2} // 流動速度
+          blend={0.95}    // 模糊融合度
+        />
+      </div>
+
+      {/* 前景內容層 */}
+      <div className="relative z-10 container mx-auto px-4">
         
         {/* 頁面標題 */}
         <div className="text-center mb-12 relative group cursor-default pt-8">
@@ -40,23 +54,22 @@ const AboutSection: React.FC = () => {
           </div>
         </div>
 
-        {/* 玻璃卡片主體 */}
-        <div className="max-w-4xl mx-auto bg-gray-900/60 backdrop-blur-xl border border-pink-500/30 rounded-[2rem] p-6 md:p-12 shadow-[0_0_50px_rgba(236,72,153,0.15)] relative overflow-hidden">
+        {/* 玻璃卡片 */}
+        <div className="max-w-4xl mx-auto bg-gray-900/40 backdrop-blur-xl border border-pink-500/30 rounded-[2rem] p-6 md:p-12 shadow-[0_0_50px_rgba(236,72,153,0.15)] relative overflow-hidden">
           
-          {/* 卡片裝飾線條 */}
+          {/* 裝飾線條 */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent opacity-50"></div>
           <div className="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50"></div>
 
           <div className="flex flex-col md:flex-row gap-10 items-center">
             
-            {/* 左側：視覺核心 (雷達) */}
+            {/* 左側雷達 */}
             <div className="w-full md:w-1/3 flex flex-col items-center justify-center relative">
               <div className="relative w-48 h-48 flex items-center justify-center">
                 <div className="absolute inset-0 border-2 border-pink-500/20 rounded-full"></div>
                 <div className="absolute inset-4 border border-pink-500/40 rounded-full border-dashed animate-[spin_10s_linear_infinite]"></div>
                 <div className="absolute inset-0 rounded-full border-t-2 border-pink-500/80 animate-[spin_2s_linear_infinite] shadow-[0_0_15px_#ec4899]"></div>
                 
-                {/* Logo */}
                 <div className="z-10 bg-black p-4 rounded-full border border-gray-700 overflow-hidden w-24 h-24 flex items-center justify-center">
                    <img src="https://duk.tw/ZhYY5L.png" alt="Kaguya Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(236,72,153,0.8)]" />
                 </div>
@@ -67,7 +80,7 @@ const AboutSection: React.FC = () => {
               </div>
             </div>
 
-            {/* 右側：資料與文字 */}
+            {/* 右側資料 */}
             <div className="w-full md:w-2/3 space-y-8">
               
               {/* 戰力表 */}
@@ -115,7 +128,7 @@ const AboutSection: React.FC = () => {
               {/* 分隔線 */}
               <div className="h-px w-full bg-gradient-to-r from-transparent via-pink-500/50 to-transparent"></div>
 
-              {/* 感性文字區 */}
+              {/* 感性文字 */}
               <div className="relative min-h-[160px]">
                   <h3 className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-2">
                       // HIDDEN MESSAGE
