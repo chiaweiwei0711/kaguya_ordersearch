@@ -905,7 +905,7 @@ const App: React.FC = () => {
               </div>
             )}
           </>
-) : mainView === 'info' ? (
+        ) : mainView === 'info' ? (
           <div className="flex flex-col">
             <InfoHub 
               news={news} 
