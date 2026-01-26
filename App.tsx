@@ -319,7 +319,7 @@ const App: React.FC = () => {
             // 這裡用我們剛剛確認的「高級黑粉色」，避免綠色雜訊
             colorStops={["#000000", "#590d2e", "#120226"]} 
             amplitude={1.0} 
-            speed={0.5} 
+            speed={1.0} 
         />
       </div>
 
