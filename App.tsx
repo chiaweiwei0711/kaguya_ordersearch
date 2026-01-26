@@ -316,7 +316,7 @@ const App: React.FC = () => {
       {/* 👇 2. 在最外層插入極光背景，設定 z-[-1] 讓它在最底層 */}
       <div className="fixed inset-0 z-[-1] bg-black">
         <Aurora 
-            colorStops={["#000000", "#fd56d4cd"]} 
+            colorStops={["#120824", "#e86e96", "#6b2c52"
             amplitude={1.2} 
             speed={0.5} 
         />
