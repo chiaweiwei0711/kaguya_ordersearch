@@ -7,8 +7,9 @@ import AdminDashboard from './components/AdminDashboard';
 import NewsModal from './components/NewsModal';
 import { fetchOrdersFromSheet, fetchAnnouncements } from './services/googleSheetService';
 import { APP_CONFIG } from './config';
-// 👇 這裡假設你已經把檔案移到正確的位置 (src/components/AboutSection.tsx)
-import AboutSection from './components/AboutSection'; 
+// 👇 1. 引入你的極光組件
+import Aurora from './components/Aurora';
+import AboutSection from './components/AboutSection';
 
 // --- 類型定義 ---
 type MainView = 'query' | 'info' | 'about';
@@ -312,6 +313,15 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen font-sans pb-40 text-white selection:bg-pink-500 relative flex flex-col">
+      {/* 👇 2. 在最外層插入極光背景，設定 z-[-1] 讓它在最底層 */}
+      <div className="fixed inset-0 z-[-1]">
+        <Aurora 
+            colorStops={["#5227FF", "#ff0ab1", "#0537ff"]} 
+            amplitude={1} 
+            blend={0.5} 
+        />
+      </div>
+
       {isLoading && <LoadingOverlay />}
       
       {/* 導覽列 */}
