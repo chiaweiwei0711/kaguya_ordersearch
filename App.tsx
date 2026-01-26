@@ -317,7 +317,7 @@ const App: React.FC = () => {
       <div className="fixed inset-0 z-[-1] bg-black">
         <Aurora 
             // 這裡用我們剛剛確認的「高級黑粉色」，避免綠色雜訊
-            colorStops={["#0a0510", "#d65db1", "#592346"]} 
+            colorStops={["#000000", "#590d2e", "#120226"]} 
             amplitude={1.0} 
             speed={0.5} 
         />
