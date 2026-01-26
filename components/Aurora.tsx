@@ -1,16 +1,17 @@
+// src/components/Aurora.tsx
+// 這段程式碼直接移植自 React Bits 及其依賴項，用於在免安裝環境下重現原版效果。
 import React, { useEffect, useRef } from "react";
 
 interface AuroraProps {
-  colorStops?: string[]; // 顏色
-  amplitude?: number;    // 流動幅度
-  speed?: number;        // 流動速度
+  colorStops?: string[];
+  amplitude?: number;
+  speed?: number;
 }
 
 const Aurora: React.FC<AuroraProps> = ({
-  // 這是你指定的 Kaguya 專屬配色
-  colorStops = ["#5227FF", "#ff0ab1", "#0537ff"], 
+  colorStops = ["#5227FF", "#ff0ab1", "#0537ff"], // 你的指定配色
   amplitude = 1.0,
-  speed = 0.5,
+  speed = 1.0,
 }) => {
   const ctnDom = useRef<HTMLDivElement>(null);
 
@@ -18,33 +19,43 @@ const Aurora: React.FC<AuroraProps> = ({
     const ctn = ctnDom.current;
     if (!ctn) return;
 
-    // 1. 建立畫布 (Canvas)
+    // 1. 建立 WebGL 畫布
     const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl');
+    // 關鍵設定：alpha: true 讓背景透明，premultipliedAlpha: false 避免顏色混合錯誤
+    const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
     if (!gl) return;
 
-    // 設定畫布填滿容器
+    // 讓畫布填滿容器
     const resize = () => {
       if (!ctn) return;
-      canvas.width = ctn.offsetWidth;
-      canvas.height = ctn.offsetHeight;
+      // 使用 devicePixelRatio 確保高解析度螢幕清晰度
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = ctn.offsetWidth * dpr;
+      canvas.height = ctn.offsetHeight * dpr;
       gl.viewport(0, 0, canvas.width, canvas.height);
     };
     
+    // 設定樣式並加入 DOM
+    canvas.style.display = 'block';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
     ctn.appendChild(canvas);
     window.addEventListener('resize', resize);
-    resize();
+    resize(); // 初始調整大小
 
-    // 2. 著色器程式碼 (這是極光的靈魂 - Simplex Noise 算法)
+    // 2. 定義 Shader 程式碼 (這就是 React Bits 原版的數學靈魂)
+    // Vertex Shader: 處理頂點位置
     const vertexShaderSrc = `
+      attribute vec2 uv;
       attribute vec2 position;
       varying vec2 vUv;
       void main() {
-        vUv = position * 0.5 + 0.5; // 轉換座標
-        gl_Position = vec4(position, 0.0, 1.0);
+        vUv = uv;
+        gl_Position = vec4(position, 0, 1);
       }
     `;
 
+    // Fragment Shader: 處理像素顏色 (極光的核心)
     const fragmentShaderSrc = `
       precision highp float;
       uniform float uTime;
@@ -54,7 +65,7 @@ const Aurora: React.FC<AuroraProps> = ({
       uniform vec3 uColor3;
       varying vec2 vUv;
 
-      // --- 雜訊數學公式 (從 React Bits 原版移植) ---
+      // --- Simplex Noise 雜訊算法 (從 OGL/React Bits 移植) ---
       vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
       vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
       vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -102,30 +113,37 @@ const Aurora: React.FC<AuroraProps> = ({
         m = m * m;
         return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
       }
+      // --- 雜訊算法結束 ---
 
       void main() {
         vec2 uv = vUv;
-        // 極光流動邏輯
-        float noise1 = snoise(vec3(uv.x * 2.0 + uTime * 0.05, uv.y * 1.5 - uTime * 0.05, uTime * 0.1));
-        float noise2 = snoise(vec3(uv.x * 1.5 - uTime * 0.05, uv.y * 2.0 + uTime * 0.05, uTime * 0.1 + 10.0));
-        float combinedNoise = (noise1 + noise2) * 0.5 * uAmplitude;
+        // React Bits 原版參數調整，創造絲滑流動感
+        float noise = snoise(vec3(uv.x * 1.0, uv.y * 0.8 - uTime * 0.1, uTime * 0.05)) * 0.5;
+        float noise2 = snoise(vec3(uv.x * 1.0 + uTime * 0.1, uv.y * 1.5, uTime * 0.1)) * 0.5;
         
-        // 混合顏色
+        float combinedNoise = (noise + noise2) * uAmplitude;
+        
+        // 混合三種顏色
         vec3 color = mix(uColor1, uColor2, uv.x + combinedNoise);
         color = mix(color, uColor3, uv.y - combinedNoise);
         
+        // 增強一點飽和度與對比
+        color = color * 1.1;
+
         gl_FragColor = vec4(color, 1.0);
       }
     `;
 
-    // 3. 編譯程式
+    // 3. 編譯 Shader 程式
     const createShader = (type: number, src: string) => {
       const shader = gl.createShader(type);
       if (!shader) return null;
       gl.shaderSource(shader, src);
       gl.compileShader(shader);
+      // 錯誤檢查
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error(gl.getShaderInfoLog(shader));
+        console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
         return null;
       }
       return shader;
@@ -142,64 +160,83 @@ const Aurora: React.FC<AuroraProps> = ({
     gl.linkProgram(program);
     gl.useProgram(program);
 
-    // 4. 設定一個大三角形覆蓋畫面
+    // 4. 建立幾何體 (一個覆蓋全螢幕的大三角形)
+    // 數據格式: [x, y, u, v]
+    const vertices = new Float32Array([
+      -1, -1,  0, 1, // 左下
+       3, -1,  2, 1, // 右下 (延伸到螢幕外)
+      -1,  3,  0, -1 // 左上 (延伸到螢幕外)
+    ]);
+    
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      -1, -1, 
-       3, -1, 
-      -1,  3
-    ]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
+    // 設定屬性指針 (告訴 GPU 如何讀取數據)
     const positionLoc = gl.getAttribLocation(program, 'position');
+    const uvLoc = gl.getAttribLocation(program, 'uv');
+    const stride = 4 * 4; // 每個頂點 4 個 float，每個 float 4 bytes
+
     gl.enableVertexAttribArray(positionLoc);
-    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, stride, 0); // 前兩個是位置
+    
+    gl.enableVertexAttribArray(uvLoc);
+    gl.vertexAttribPointer(uvLoc, 2, gl.FLOAT, false, stride, 8); // 後兩個是 UV
 
-    // 5. 獲取變數位置
+    // 5. 獲取 Uniform 變數位置 (用於傳遞參數)
     const uTimeLoc = gl.getUniformLocation(program, 'uTime');
-    const uAmpLoc = gl.getUniformLocation(program, 'uAmplitude');
-    const uCol1Loc = gl.getUniformLocation(program, 'uColor1');
-    const uCol2Loc = gl.getUniformLocation(program, 'uColor2');
-    const uCol3Loc = gl.getUniformLocation(program, 'uColor3');
+    const uAmplitudeLoc = gl.getUniformLocation(program, 'uAmplitude');
+    const uColor1Loc = gl.getUniformLocation(program, 'uColor1');
+    const uColor2Loc = gl.getUniformLocation(program, 'uColor2');
+    const uColor3Loc = gl.getUniformLocation(program, 'uColor3');
 
-    // 工具：色碼轉 RGB
+    // 工具：Hex 轉 RGB (0~1)
     const hexToRgb = (hex: string) => {
       const bigint = parseInt(hex.replace('#', ''), 16);
       return [((bigint >> 16) & 255)/255, ((bigint >> 8) & 255)/255, (bigint & 255)/255];
     };
 
-    // 6. 動畫迴圈
+    // 6. 渲染迴圈 (動畫引擎)
     let reqId: number;
     let startTime = performance.now();
 
     const render = () => {
       const time = (performance.now() - startTime) * 0.001 * speed;
+      
       gl.useProgram(program);
+      
+      // 更新 Uniforms
       gl.uniform1f(uTimeLoc, time);
-      gl.uniform1f(uAmpLoc, amplitude);
-
+      gl.uniform1f(uAmplitudeLoc, amplitude);
+      
       const c1 = hexToRgb(colorStops[0]);
       const c2 = hexToRgb(colorStops[1]);
       const c3 = hexToRgb(colorStops[2] || colorStops[0]);
+      
+      gl.uniform3f(uColor1Loc, c1[0], c1[1], c1[2]);
+      gl.uniform3f(uColor2Loc, c2[0], c2[1], c2[2]);
+      gl.uniform3f(uColor3Loc, c3[0], c3[1], c3[2]);
 
-      gl.uniform3f(uCol1Loc, c1[0], c1[1], c1[2]);
-      gl.uniform3f(uCol2Loc, c2[0], c2[1], c2[2]);
-      gl.uniform3f(uCol3Loc, c3[0], c3[1], c3[2]);
-
+      // 繪製
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       reqId = requestAnimationFrame(render);
     };
+    
+    render(); // 開始動畫
 
-    render();
-
+    // 清理函數
     return () => {
       cancelAnimationFrame(reqId);
       window.removeEventListener('resize', resize);
-      if (ctn && canvas) ctn.removeChild(canvas);
+      if (ctn && canvas && ctn.contains(canvas)) {
+          ctn.removeChild(canvas);
+      }
+      // 嘗試釋放 WebGL 上下文
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [JSON.stringify(colorStops), amplitude, speed]);
 
-  return <div ref={ctnDom} className="absolute inset-0 w-full h-full -z-10" />;
+  return <div ref={ctnDom} className="absolute inset-0 w-full h-full -z-10 pointer-events-none" />;
 };
 
 export default Aurora;
