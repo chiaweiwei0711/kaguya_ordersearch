@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, ArrowRight, Check, MessageCircle, Truck, Box, AlertCircle, Sparkles, Star, Instagram, Send, Info, ShoppingBag, Bell, Lock, CheckSquare, Square, ChevronRight, Hash, Calendar, X, Circle, CheckCircle2 } from 'lucide-react';
+import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle } from 'lucide-react';
 import { Order, OrderStatus, Announcement } from './types';
 import PaymentModal from './components/PaymentModal';
 import OrderDetailModal from './components/OrderDetailModal';
@@ -7,7 +7,8 @@ import AdminDashboard from './components/AdminDashboard';
 import NewsModal from './components/NewsModal';
 import { fetchOrdersFromSheet, fetchAnnouncements } from './services/googleSheetService';
 import { APP_CONFIG } from './config';
-import AboutSection from './components/AboutSection'; // 👈 確保有這行
+// 👇 這裡假設你已經把檔案移到正確的位置 (src/components/AboutSection.tsx)
+import AboutSection from './components/AboutSection'; 
 
 // --- 類型定義 ---
 type MainView = 'query' | 'info' | 'about';
@@ -15,57 +16,36 @@ type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
 // --- 📅 倉儲倒數計算核心邏輯 ---
 const getStorageStatus = (dateStr?: string) => {
-  if (!dateStr) return null; // 沒日期 = 還沒到貨
-
+  if (!dateStr) return null;
   const arrival = new Date(dateStr);
   const today = new Date();
-  
-  // 算出差異天數 (無條件捨去，確保天數準確)
   const diffTime = today.getTime() - arrival.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
-  const LIMIT_DAYS = 25; // 期限 25 天
+  const LIMIT_DAYS = 25;
   const daysLeft = LIMIT_DAYS - diffDays;
 
   if (daysLeft < 0) {
-    return { 
-      label: `已逾期 ${Math.abs(daysLeft)} 天`, 
-      color: 'text-red-500', 
-      bg: 'bg-red-500/10 border-red-500',
-      urgent: true 
-    };
+    return { label: `已逾期 ${Math.abs(daysLeft)} 天`, color: 'text-red-500', bg: 'bg-red-500/10 border-red-500', urgent: true };
   } else if (daysLeft <= 5) {
-    return { 
-      label: `剩 ${daysLeft} 天過期`, 
-      color: 'text-yellow-500', 
-      bg: 'bg-yellow-500/10 border-yellow-500',
-      urgent: true 
-    };
+    return { label: `剩 ${daysLeft} 天過期`, color: 'text-yellow-500', bg: 'bg-yellow-500/10 border-yellow-500', urgent: true };
   } else {
-    return { 
-      label: `剩 ${daysLeft} 天可併單`, 
-      color: 'text-[#06C755]', 
-      bg: 'bg-[#06C755]/10 border-[#06C755]',
-      urgent: false 
-    };
+    return { label: `剩 ${daysLeft} 天可併單`, color: 'text-[#06C755]', bg: 'bg-[#06C755]/10 border-[#06C755]', urgent: false };
   }
 };
 
-// --- 篩選選項常數 ---
+// --- 篩選選項 ---
 const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '轉送中', '已抵台'];
 const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 
-// --- 核子反應爐讀取動畫 ---
+// --- 核子反應爐 Loading 動畫 ---
 const LoadingOverlay: React.FC = () => {
   const [status, setStatus] = useState<string>("Kaguya系統努力讀取中...");
-
   useEffect(() => {
-    const timer1 = setTimeout(() => { setStatus("正在連線至雲端資料庫..."); }, 3500);
-    const timer2 = setTimeout(() => { setStatus("正在查找您的訂單..."); }, 8000);
-    const timer3 = setTimeout(() => { setStatus("即將完成，正在準備結果..."); }, 12000);
-    return () => { clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3); };
+    const t1 = setTimeout(() => setStatus("正在連線至雲端資料庫..."), 3500);
+    const t2 = setTimeout(() => setStatus("正在查找您的訂單..."), 8000);
+    const t3 = setTimeout(() => setStatus("即將完成，正在準備結果..."), 12000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
-
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505]/90 backdrop-blur-xl">
       <div className="relative w-40 h-40 flex items-center justify-center">
@@ -79,9 +59,7 @@ const LoadingOverlay: React.FC = () => {
         </div>
       </div>
       <div className="mt-12 text-center space-y-3 relative z-20">
-        <h3 className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-pink-500 font-[900] tracking-[0.3em] text-2xl uppercase animate-pulse filter drop-shadow-[0_0_10px_#ec4899]" style={{ fontFamily: "'Arial Black', sans-serif" }}>
-          SYSTEM LOADING
-        </h3>
+        <h3 className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-pink-500 font-[900] tracking-[0.3em] text-2xl uppercase animate-pulse filter drop-shadow-[0_0_10px_#ec4899]" style={{ fontFamily: "'Arial Black', sans-serif" }}>SYSTEM LOADING</h3>
         <p className="text-pink-400 font-bold text-sm tracking-widest animate-bounce min-h-[1.5em]">{status}</p>
       </div>
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGZSIHN0cm9rZT0icmdiYSgyMzYsIDcyLCAxNTMsIDAuMSkiIHN0cm9rZS13aWR0aD0iMSI+PHBhdGggZD0iTTAgNDBoNDBNNDAgMGg0ME0wIDBoNDBNNDAgNDBoNDAiLz48L2c+PC9zdmc+')] opacity-20 z-0 pointer-events-none"></div>
@@ -130,7 +108,7 @@ const ShoppingGuide = () => {
 
   useEffect(() => {
     if (isModalOpen) return;
-    const timer = setInterval(() => { setCurrentIndex((prev) => (prev + 1) % images.length); }, 4000); 
+    const timer = setInterval(() => setCurrentIndex((prev) => (prev + 1) % images.length), 4000);
     return () => clearInterval(timer);
   }, [isModalOpen, images.length]);
 
@@ -138,13 +116,7 @@ const ShoppingGuide = () => {
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
   const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    if (distance > 50) nextSlide();
-    if (distance < -50) prevSlide();
-    setTouchStart(0); setTouchEnd(0);
-  };
+  const handleTouchEnd = () => { if (!touchStart || !touchEnd) return; const distance = touchStart - touchEnd; if (distance > 50) nextSlide(); if (distance < -50) prevSlide(); setTouchStart(0); setTouchEnd(0); };
 
   return (
     <>
