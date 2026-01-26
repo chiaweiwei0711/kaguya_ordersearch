@@ -314,13 +314,13 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen font-sans pb-40 text-white selection:bg-pink-500 relative flex flex-col">
       {/* 👇 2. 在最外層插入極光背景，設定 z-[-1] 讓它在最底層 */}
-      <div className="fixed inset-0 z-[-1]">
+      <div className="fixed inset-0 z-[-1] bg-black">
         <Aurora 
             colorStops={["#5227FF", "#ff0ab1", "#0537ff"]} 
-            amplitude={1} 
-            blend={0.5} 
+            amplitude={1.2} 
+            speed={0.5} 
         />
-      </div>
+    </div>
 
       {isLoading && <LoadingOverlay />}
       
