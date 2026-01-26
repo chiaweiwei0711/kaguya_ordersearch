@@ -656,7 +656,7 @@ const App: React.FC = () => {
           關於我們
         </button>
       </div>
-      </div>
+      
 
       <div className="max-w-3xl mx-auto px-4 w-full flex-1 pt-16">
         {mainView === 'query' ? (
@@ -905,7 +905,7 @@ const App: React.FC = () => {
               </div>
             )}
           </>
-        ) : mainView === 'info' ? (
+       ) : mainView === 'info' ? (  
           <div className="flex flex-col">
             <InfoHub 
               news={news} 
@@ -913,14 +913,15 @@ const App: React.FC = () => {
               onOpenAllNews={() => setIsAllNewsOpen(true)} 
             />
             {footerContent}
-            ) : (  
+          </div>
+        ) : (
+          // 👇 新增這裡：如果是 'about' 就顯示 AboutSection
           <div className="flex flex-col pt-8">
              <AboutSection />
              {footerContent}
           </div>
         )}
       </div>
-
       {/* 底部操作列 (Action Bar) */}
       {selectedOrdersData.length > 0 && (activeTab === 'deposit' || activeTab === 'balance') && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-black/90 backdrop-blur-2xl border-t-2 border-pink-500 z-40 animate-fade-in-up shadow-[0_-10px_50px_rgba(236,72,153,0.2)]">
