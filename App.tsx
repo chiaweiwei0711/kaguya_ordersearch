@@ -905,7 +905,7 @@ const App: React.FC = () => {
               </div>
             )}
           </>
-        ) : mainView === 'info' ? (
+) : mainView === 'info' ? (
           <div className="flex flex-col">
             <InfoHub 
               news={news} 
@@ -913,14 +913,13 @@ const App: React.FC = () => {
               onOpenAllNews={() => setIsAllNewsOpen(true)} 
             />
             {footerContent}
-            </div>
-             ) : (  
+          </div>
+        ) : (
           <div className="flex flex-col pt-8">
              <AboutSection />
              {footerContent}
           </div>
         )}
-            
       </div>
 
       {/* 底部操作列 (Action Bar) */}
