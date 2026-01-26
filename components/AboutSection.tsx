@@ -1,14 +1,11 @@
-// src/components/AboutSection.tsx
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Zap, Box, Heart } from 'lucide-react';
-// 👇 引入我們剛剛做的特效 (確保檔案在同一層 components 資料夾內)
-import GridScan from './GridScan'; 
 
 const AboutSection: React.FC = () => {
   const [text, setText] = useState('');
   
-  // 👇 你的感性文案 (已更新簽名)
-  const fullText = "其實我們和你一樣，懂那種怕錯過本命的焦慮，也懂收到包裹時那種神聖的開箱儀式感。\n\nKaguya 這個系統不只是冰冷的代碼，而是為了守護這份熱愛而生的。我們存在的意義，就是讓你能安心地把對角色的愛接回家。\n\n每一件你珍視的收藏，我們都會用最高規格對待。\n\n";
+  // 你的文案
+  const fullText = "其實我們和你一樣，懂那種怕錯過本命的焦慮，也懂收到包裹時那種神聖的開箱儀式感。\n\nKaguya 這個系統不只是冰冷的代碼，而是為了守護這份熱愛而生的。我們存在的意義，就是讓你能安心地把對角色的愛接回家。\n\n每一件你珍視的收藏，我們都會用最高規格對待。\n\nKaguya & 🐰 Fifi 敬上";
   
   const [loadBar, setLoadBar] = useState(false);
 
@@ -21,31 +18,16 @@ const AboutSection: React.FC = () => {
       if (index === fullText.length) clearInterval(timer);
     }, 50); // 打字速度
 
-    setTimeout(() => setLoadBar(true), 500); // 啟動進度條
+    setTimeout(() => setLoadBar(true), 500);
 
     return () => clearInterval(timer);
   }, []);
 
   return (
-    // 外層容器：設定全螢幕與相對定位
-    <div className="relative w-full min-h-screen pb-32 overflow-hidden animate-fade-in-up">
+    <div className="w-full min-h-screen pb-32 animate-fade-in-up">
       
-      {/* --- 🔥 背景特效層 (GridScan) --- */}
-      {/* absolute inset-0 讓它填滿整個背景，z-0 放在最底層 */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <GridScan
-          lineThickness={1}
-          linesColor="#392e4e"  // 深紫色網格
-          scanColor="#FF9FFC"   // 霓虹粉掃描線
-          scanOpacity={0.25}    // 透明度 (建議低一點才不會擋字)
-          gridScale={0.08}      // 網格大小
-          scanDirection="pingpong" // 來回掃描
-          scanDuration={3}      // 速度 (越慢越優雅)
-        />
-      </div>
-
-      {/* --- 📦 前景內容層 (z-10 浮在背景上) --- */}
-      <div className="relative z-10 container mx-auto px-4">
+      {/* 內容層 */}
+      <div className="container mx-auto px-4">
         
         {/* 頁面標題 */}
         <div className="text-center mb-12 relative group cursor-default pt-8">
@@ -67,7 +49,7 @@ const AboutSection: React.FC = () => {
 
           <div className="flex flex-col md:flex-row gap-10 items-center">
             
-            {/* 左側：視覺核心 */}
+            {/* 左側：視覺核心 (雷達) */}
             <div className="w-full md:w-1/3 flex flex-col items-center justify-center relative">
               <div className="relative w-48 h-48 flex items-center justify-center">
                 <div className="absolute inset-0 border-2 border-pink-500/20 rounded-full"></div>
@@ -88,7 +70,7 @@ const AboutSection: React.FC = () => {
             {/* 右側：資料與文字 */}
             <div className="w-full md:w-2/3 space-y-8">
               
-              {/* 戰力表 (已更新文案) */}
+              {/* 戰力表 */}
               <div>
                 <h3 className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
                   <Sparkles size={14}/> SELLER STATS (賣家戰力)
