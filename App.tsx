@@ -7,8 +7,9 @@ import AdminDashboard from './components/AdminDashboard';
 import NewsModal from './components/NewsModal';
 import { fetchOrdersFromSheet, fetchAnnouncements } from './services/googleSheetService';
 import { APP_CONFIG } from './config';
+import AboutSection from './components/AboutSection';
 
-type MainView = 'query' | 'info';
+type MainView = 'query' | 'info'| 'about';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
 // --- 📅 倉儲倒數計算核心邏輯 ---
@@ -648,6 +649,13 @@ const App: React.FC = () => {
         >
           官方資訊
         </button>
+        <button 
+          onClick={() => setMainView('about')} 
+          className={`px-4 md:px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${mainView === 'about' ? 'bg-pink-500 text-black shadow-[0_0_10px_#ec4899]' : 'text-gray-500'}`}
+        >
+          關於我們
+        </button>
+      </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 w-full flex-1 pt-16">
@@ -897,7 +905,7 @@ const App: React.FC = () => {
               </div>
             )}
           </>
-        ) : (
+        ) : mainView === 'info' ? (
           <div className="flex flex-col">
             <InfoHub 
               news={news} 
@@ -905,6 +913,10 @@ const App: React.FC = () => {
               onOpenAllNews={() => setIsAllNewsOpen(true)} 
             />
             {footerContent}
+            ) : (  
+          <div className="flex flex-col pt-8">
+             <AboutSection />
+             {footerContent}
           </div>
         )}
       </div>
