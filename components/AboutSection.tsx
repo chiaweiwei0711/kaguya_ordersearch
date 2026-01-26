@@ -169,11 +169,12 @@ const AboutSection: React.FC = () => {
           注意：我把 width/height 改成 100%，這樣才會填滿背景，
           而不是像原本範例寫死 1080px (那樣手機會跑版)。
       */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 opacity-50">
         <Aurora
-          colorStops={["#5227FF", "#ff5cc3", "#3b0764"]} // 霓虹紫粉色系
+          // 我幫你配了 Kaguya 的專屬色：霓虹紫 -> 螢光粉 -> 深空藍
+          colorStops={["#5227FF", "#ff5cc3", "#3b0764"]} 
           amplitude={1.2} // 流動速度
-          blend={0.95}    // 模糊融合度
+          blend={0.95}    // 夢幻模糊程度
         />
       </div>
 
