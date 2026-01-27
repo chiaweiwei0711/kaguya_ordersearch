@@ -48,7 +48,7 @@ const LoadingOverlay: React.FC = () => {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505]/90 backdrop-blur-xl">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl">
       <div className="relative w-40 h-40 flex items-center justify-center">
         <div className="absolute inset-[-20px] rounded-full border-[6px] border-transparent border-t-purple-600/60 border-r-purple-500/40 animate-[spin_3s_linear_infinite_reverse] shadow-[0_0_30px_#9333ea]"></div>
         <div className="absolute inset-0 rounded-full border-[8px] border-transparent border-t-pink-500 border-l-pink-600/50 animate-[spin_1.5s_linear_infinite] shadow-[0_0_20px_#ec4899] ring-4 ring-pink-500/20"></div>
@@ -63,7 +63,6 @@ const LoadingOverlay: React.FC = () => {
         <h3 className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-pink-500 font-[900] tracking-[0.3em] text-2xl uppercase animate-pulse filter drop-shadow-[0_0_10px_#ec4899]" style={{ fontFamily: "'Arial Black', sans-serif" }}>SYSTEM LOADING</h3>
         <p className="text-pink-400 font-bold text-sm tracking-widest animate-bounce min-h-[1.5em]">{status}</p>
       </div>
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGZSIHN0cm9rZT0icmdiYSgyMzYsIDcyLCAxNTMsIDAuMSkiIHN0cm9rZS13aWR0aD0iMSI+PHBhdGggZD0iTTAgNDBoNDBNNDAgMGg0ME0wIDBoNDBNNDAgNDBoNDAiLz48L2c+PC9zdmc+')] opacity-20 z-0 pointer-events-none"></div>
     </div>
   );
 };
