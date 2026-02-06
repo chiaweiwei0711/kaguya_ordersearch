@@ -88,7 +88,7 @@ ${order.groupName}
         {/* --- 📅 2. 顯示抵台日期的警告框 --- */}
           {(() => {
             const status = getStorageStatus(order.arrivalDate);
-            if (status && order.arrivalDate) {
+            if (status && order.arrivalDate && !order.isShipped) {
               return (
                 <div className={`mb-6 p-4 rounded-xl border-2 flex items-center justify-between ${status.bg}`}>
                   <div>
