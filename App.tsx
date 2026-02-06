@@ -557,7 +557,7 @@ const App: React.FC = () => {
                                         {order.shippingStatus}
                                     </span>
                                 )}
-                              {storageInfo && (
+                              {storageInfo && !order.isShipped &&(
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border flex items-center gap-1 ${storageInfo.bg} ${storageInfo.color} ${storageInfo.urgent ? 'animate-pulse' : ''}`}>
                                   {storageInfo.urgent ? '⚠️' : '📦'} {storageInfo.label}
                                   </span>
