@@ -353,7 +353,7 @@ const App: React.FC = () => {
               <div className="flex flex-col items-center animate-fade-in-up">
                 <div className="mt-8 mb-6 relative">
                   <div className="bg-black p-4 rounded-2xl border-2 border-pink-500/50 shadow-[0_0_30px_rgba(236,72,153,0.3)] relative z-10">
-                     <img src="https://duk.tw/ZhYY5L.png" alt="Logo" className="w-24 h-24 object-contain" />
+                     <img src="https://i.imgur.com/IGPVmXt.png" alt="Logo" className="w-24 h-24 object-contain" />
                   </div>
                 </div>
                 <h1 
