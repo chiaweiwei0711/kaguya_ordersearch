@@ -250,7 +250,7 @@ const App: React.FC = () => {
       fetchAnnouncements().then(setNews);
 
       try {
-        await liff.init({ liffId: '2009367222-xXkXGQ7t' });
+        await liff.init({ liffId: '2009367290-DGz77pHN' });
         
         if (liff.isLoggedIn()) {
           const profile = await liff.getProfile();
