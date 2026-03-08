@@ -34,6 +34,12 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
         let customerPhoneRaw = row[map.customerPhone] || row["社群名稱"] || row[1]; 
         const customerPhone = String(customerPhoneRaw || "");
         
+        // 🌟 【關鍵修復 1】：強制二次過濾！確保客人的「社群暱稱」真的包含搜尋字詞
+        // 這樣搜金額 "537" 就不會把暱稱不是 537 但金額是 537 的訂單抓出來了
+        if (!customerPhone.toLowerCase().includes(query.toLowerCase())) {
+            return; // 暱稱不符，直接跳過這筆資料！
+        }
+
         const isReconciled = String(row[map.isReconciled] || "").toUpperCase() === "TRUE";
         const status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
         const isShipped = String(row[map.isShipped] || "").toUpperCase() === "TRUE";
