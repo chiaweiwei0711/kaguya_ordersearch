@@ -243,34 +243,30 @@ const App: React.FC = () => {
   const [subQuery, setSubQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'price_desc' | 'price_asc' | 'strokes'>('default');
 
-// 🌟 【核武器啟動】：LIFF 自動登入與初始化
+
+  // 🌟 【核武器啟動】：LIFF 自動登入與初始化 (精準抓蟲版)
   useEffect(() => {
     const initApp = async () => {
-      // 1. 先抓公告 (保留妳原本的功能)
       fetchAnnouncements().then(setNews);
 
       try {
-        // 2. 初始化 LIFF (喚醒 LINE 隱藏通道)
         await liff.init({ liffId: '2009367222-xXkXGQ7t' });
         
-        // 3. 判斷客人是不是在 LINE 裡面打開網址的
         if (liff.isLoggedIn()) {
-          // 抓取客人的 LINE 基本資料
           const profile = await liff.getProfile();
-          alert("1. 成功抓到 LINE ID：\n" + profile.userId);
-          // 拿 LINE ID 去後台換「社群暱稱」
           const nickname = await fetchNicknameByLineId(profile.userId);
-          alert("2. 後台回傳的暱稱是：\n" + nickname);
           
           if (nickname) {
             setSearchQuery(nickname); 
             await executeSearch(nickname); 
           } else {
-            alert("❌ 找不到暱稱！可能是 Apps Script 沒更新，或這組 LINE ID 沒登記在會員資料表裡喔！");
+            // 🚨 如果後台沒回傳暱稱，我們直接把手機的 LINE ID 印出來對答案！
+            alert("❌ 系統有抓到您的 LINE，但表單沒查到暱稱！\n請核對會員資料B欄有沒有這串ID：\n" + profile.userId);
           }
         }
-      } catch (err) {
-        alert("LIFF 發生錯誤：" + JSON.stringify(err));
+      } catch (err: any) {
+        // 🚨 把原本笨笨的 JSON.stringify 換掉，逼它吐出真正的英文死因！
+        alert("⚠️ LIFF 錯誤：\n" + (err.message || String(err)));
       }
     };
     initApp();
