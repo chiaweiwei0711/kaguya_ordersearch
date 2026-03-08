@@ -6,10 +6,9 @@ import OrderDetailModal from './components/OrderDetailModal';
 import AdminDashboard from './components/AdminDashboard';
 import NewsModal from './components/NewsModal';
 import { fetchOrdersFromSheet, fetchAnnouncements } from './services/googleSheetService';
+import liff from '@line/liff';
 import { APP_CONFIG } from './config';
-import { fetchOrdersFromSheet, fetchAnnouncements, fetchNicknameByLineId } from './services/googleSheetService'; // 👈 補上 fetchNicknameByLineId
-import liff from '@line/liff'; // 👈 加上這行引入 LIFF
-import { APP_CONFIG } from './config';
+
 // 👇 1. 引入極光
 import Aurora from './components/Aurora';
 import AboutSection from './components/AboutSection';
