@@ -108,12 +108,16 @@ export const fetchNicknameByLineId = async (lineId: string): Promise<string | nu
   try {
     const response = await fetch(`${APP_CONFIG.API_URL}?type=getNickname&lineId=${encodeURIComponent(lineId)}`);
     const data = await response.json();
+    
     if (data.status === 'success' && data.nickname) {
       return data.nickname;
+    } else {
+      // 🚨 照妖鏡 3 號：逼供出 Google 後台拒絕的原因
+      alert("⚠️ 後台拒絕連線，原因：\n" + data.message);
+      return null;
     }
-    return null;
   } catch (e) {
-    console.error("LIFF Fetch Nickname Error:", e);
+    alert("⚠️ API 網路連線錯誤：\n" + String(e));
     return null;
   }
 };
