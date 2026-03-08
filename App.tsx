@@ -257,17 +257,20 @@ const App: React.FC = () => {
         if (liff.isLoggedIn()) {
           // 抓取客人的 LINE 基本資料
           const profile = await liff.getProfile();
+          alert("1. 成功抓到 LINE ID：\n" + profile.userId);
           // 拿 LINE ID 去後台換「社群暱稱」
           const nickname = await fetchNicknameByLineId(profile.userId);
+          alert("2. 後台回傳的暱稱是：\n" + nickname);
           
           if (nickname) {
-            // 如果有找到暱稱，直接填入搜尋框，並自動啟動搜尋！
-            setSearchQuery(nickname);
+            setSearchQuery(nickname); 
             await executeSearch(nickname); 
+          } else {
+            alert("❌ 找不到暱稱！可能是 Apps Script 沒更新，或這組 LINE ID 沒登記在會員資料表裡喔！");
           }
         }
       } catch (err) {
-        console.error("LIFF 初始化失敗", err);
+        alert("LIFF 發生錯誤：" + JSON.stringify(err));
       }
     };
     initApp();
