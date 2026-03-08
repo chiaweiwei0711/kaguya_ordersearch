@@ -5,7 +5,7 @@ import PaymentModal from './components/PaymentModal';
 import OrderDetailModal from './components/OrderDetailModal';
 import AdminDashboard from './components/AdminDashboard';
 import NewsModal from './components/NewsModal';
-import { fetchOrdersFromSheet, fetchAnnouncements } from './services/googleSheetService';
+import { fetchOrdersFromSheet, fetchAnnouncements, fetchNicknameByLineId } from './services/googleSheetService';
 import liff from '@line/liff';
 import { APP_CONFIG } from './config';
 
