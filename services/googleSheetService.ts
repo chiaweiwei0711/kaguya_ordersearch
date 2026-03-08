@@ -102,3 +102,18 @@ export const incrementAnnouncementLike = async (newsId: string): Promise<boolean
     return result.status === 'success';
   } catch (e) { return false; }
 };
+
+// --- 4. 透過 LINE ID 取得會員暱稱 (自動登入用) ---
+export const fetchNicknameByLineId = async (lineId: string): Promise<string | null> => {
+  try {
+    const response = await fetch(`${APP_CONFIG.API_URL}?type=getNickname&lineId=${encodeURIComponent(lineId)}`);
+    const data = await response.json();
+    if (data.status === 'success' && data.nickname) {
+      return data.nickname;
+    }
+    return null;
+  } catch (e) {
+    console.error("LIFF Fetch Nickname Error:", e);
+    return null;
+  }
+};
