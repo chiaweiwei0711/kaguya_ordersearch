@@ -243,8 +243,35 @@ const App: React.FC = () => {
   const [subQuery, setSubQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'price_desc' | 'price_asc' | 'strokes'>('default');
 
-  useEffect(() => { fetchAnnouncements().then(setNews); }, []);
+// 🌟 【核武器啟動】：LIFF 自動登入與初始化
+  useEffect(() => {
+    const initApp = async () => {
+      // 1. 先抓公告 (保留妳原本的功能)
+      fetchAnnouncements().then(setNews);
 
+      try {
+        // 2. 初始化 LIFF (喚醒 LINE 隱藏通道)
+        await liff.init({ liffId: '2009367222-xXkXGQ7t' });
+        
+        // 3. 判斷客人是不是在 LINE 裡面打開網址的
+        if (liff.isLoggedIn()) {
+          // 抓取客人的 LINE 基本資料
+          const profile = await liff.getProfile();
+          // 拿 LINE ID 去後台換「社群暱稱」
+          const nickname = await fetchNicknameByLineId(profile.userId);
+          
+          if (nickname) {
+            // 如果有找到暱稱，直接填入搜尋框，並自動啟動搜尋！
+            setSearchQuery(nickname);
+            await executeSearch(nickname); 
+          }
+        }
+      } catch (err) {
+        console.error("LIFF 初始化失敗", err);
+      }
+    };
+    initApp();
+  }, []);
   const filteredOrders = useMemo(() => {
     let result = foundOrders.filter(order => {
       const isPending = order.status === OrderStatus.PENDING;
@@ -299,14 +326,14 @@ const App: React.FC = () => {
     return 0;
   }, [selectedOrdersData, activeTab]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!searchQuery) return;
+  // 🌟 1. 自動搜尋的大腦：讓程式可以自己呼叫並帶入暱稱
+  const executeSearch = async (queryToSearch: string) => {
+    if (!queryToSearch) return;
     setIsLoading(true);
     setFoundOrders([]); setSelectedOrderIds(new Set()); setCargoFilters([]); setDeliveryFilter(null);
-    setSubQuery(''); setSortBy('default'); // 🌟 清空進階搜尋狀態
+    setSubQuery(''); setSortBy('default');
     try {
-      const results = await fetchOrdersFromSheet(searchQuery);
+      const results = await fetchOrdersFromSheet(queryToSearch);
       setFoundOrders(results);
       setHasSearched(true);
       const hasPending = results.some(o => o.status === OrderStatus.PENDING);
@@ -315,6 +342,12 @@ const App: React.FC = () => {
       else if (hasReadyToShip) setActiveTab('balance');
       else setActiveTab('all');
     } catch (error: any) { console.error(error); } finally { setIsLoading(false); }
+  };
+
+  // 🌟 2. 手動搜尋的按鈕：給客人手動按 Enter 或點擊箭頭用的
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    executeSearch(searchQuery);
   };
 
   const toggleOrderSelection = (id: string) => {
