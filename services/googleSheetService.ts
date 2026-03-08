@@ -1,41 +1,31 @@
 import { APP_CONFIG } from "../config";
 import { Order, OrderStatus, OrderItem, Announcement } from "../types";
 
-// 重要公告判定關鍵字
 const IMPORTANT_KEYWORDS = ["重要", "通知", "延遲", "公告", "提醒", "緊急", "注意"];
 
-// --- 1. 訂單搜尋 (後端真實搜尋版) ---
+// --- 1. 訂單搜尋 (超級防呆嚴格過濾版) ---
 export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
   try {
-    // 如果沒有輸入，直接回傳空 (節省流量)
     if (!query.trim()) return [];
 
     console.log(`正在雲端搜尋: ${query} ... ☁️`);
-    
-    // 傳送參數給後端 (?search=xxx)
     const url = `${APP_CONFIG.API_URL}?search=${encodeURIComponent(query.trim())}`;
-    
     const response = await fetch(url);
     if (!response.ok) throw new Error(`連線失敗 (${response.status})`);
     
     const data = await response.json();
     if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
-    
-    // 如果後端沒回傳 data (例如沒搜到)，就回傳空陣列
     if (!data.data) return [];
 
     const rawRows = data.data;
     const map = APP_CONFIG.COLUMN_MAPPING;
     const ordersMap = new Map<string, Order>();
-
     const queryLower = query.toLowerCase().trim();
 
-    // 資料轉換邏輯
     rawRows.forEach((row: any) => {
         const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
         
-        // 🌟 【超級防呆版過濾】：把可能裝著「暱稱」的欄位全部掃一次
-        // 這樣就不怕欄位跑掉導致訂單被誤殺隱藏了！
+        // 🌟 【防呆機制】：只掃描所有可能裝著「社群暱稱」的欄位
         const possibleNames = [
           String(row[map.customerPhone] || ""),
           String(row["社群名稱"] || ""),
@@ -45,17 +35,12 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
           String(row[1] || "")
         ].map(s => s.toLowerCase());
 
-        // 如果這些欄位「全部」都沒有客人的搜尋字詞，代表這真的是一筆搜錯的訂單 (例如只是金額剛好537)
+        // 如果連暱稱欄位都對不上，代表是無關的訂單(例如金額剛好537)，直接丟棄！
         const isNameMatch = possibleNames.some(nameVal => nameVal.includes(queryLower));
+        if (!isNameMatch) return;
 
-        if (!isNameMatch) {
-            return; // 真的是無效訂單，安全剔除！
-        }
-
-        // 決定最終要顯示在系統裡的暱稱
         let customerPhoneRaw = row[map.customerPhone] || row["社群名稱"] || row.name || row[2] || row[1]; 
         const customerPhone = String(customerPhoneRaw || "");
-
         const isReconciled = String(row[map.isReconciled] || "").toUpperCase() === "TRUE";
         const status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
         const isShipped = String(row[map.isShipped] || "").toUpperCase() === "TRUE";
@@ -78,77 +63,42 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
           ordersMap.get(orderId)!.items.push(item);
         } else {
           ordersMap.set(orderId, {
-            id: orderId,
-            source: String(row[map.source] || ""),
-            customerName: customerPhone,
-            customerPhone: customerPhone,
-            groupName: String(row[map.groupName] || ""),
-            items: [item],
-            totalQuantity: totalQuantity,
-            productTotal: productTotal,
-            depositAmount: depositAmount,
-            balanceDue: balanceDue,
-            status: status,
-            shippingStatus: String(row[map.shippingStatus] || ""),
-            isShipped: isShipped,
-            shippingDate: String(row[map.shippingDate] || ""),
-            paymentMethod: paymentMethod,
-            arrivalDate: arrivalDate,
+            id: orderId, source: String(row[map.source] || ""), customerName: customerPhone, customerPhone: customerPhone,
+            groupName: String(row[map.groupName] || ""), items: [item], totalQuantity: totalQuantity, productTotal: productTotal,
+            depositAmount: depositAmount, balanceDue: balanceDue, status: status, shippingStatus: String(row[map.shippingStatus] || ""),
+            isShipped: isShipped, shippingDate: String(row[map.shippingDate] || ""), paymentMethod: paymentMethod, arrivalDate: arrivalDate,
             createdAt: new Date().toISOString().split('T')[0]
           });
         }
     });
-
     return Array.from(ordersMap.values());
-
   } catch (error) {
     console.error("Fetch Error:", error);
     return [];
   }
 };
 
-// --- 2. 抓取公告 (原本的功能，補回來) ---
+// --- 2. 抓取公告 ---
 export const fetchAnnouncements = async (): Promise<Announcement[]> => {
   try {
     const response = await fetch(`${APP_CONFIG.API_URL}?type=announcements`);
     if (!response.ok) return [];
     const data = await response.json();
     if (data.status !== "success") return [];
-
     return data.data.map((item: any, index: number) => {
       const dateObj = new Date(item.date);
-      const formattedDate = isNaN(dateObj.getTime()) 
-        ? String(item.date || "").replace(/-/g, '/') 
-        : `${dateObj.getFullYear()}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
-      
+      const formattedDate = isNaN(dateObj.getTime()) ? String(item.date || "").replace(/-/g, '/') : `${dateObj.getFullYear()}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
       const title = item.title || "";
-      const isImportant = IMPORTANT_KEYWORDS.some(kw => title.includes(kw));
-
-      return {
-        id: item.id || `news-${index}`,
-        date: formattedDate,
-        title: title,
-        content: item.content || "",
-        likes: Number(item.likes || 0),
-        isImportant: isImportant
-      };
+      return { id: item.id || `news-${index}`, date: formattedDate, title: title, content: item.content || "", likes: Number(item.likes || 0), isImportant: IMPORTANT_KEYWORDS.some(kw => title.includes(kw)) };
     });
-  } catch (error) {
-    console.error("News Fetch Error:", error);
-    return [];
-  }
+  } catch (error) { return []; }
 };
 
-// --- 3. 公告按讚 (原本的功能，補回來，這就是報錯的原因！) ---
+// --- 3. 公告按讚 ---
 export const incrementAnnouncementLike = async (newsId: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${APP_CONFIG.API_URL}?type=like&id=${encodeURIComponent(newsId)}`, {
-      method: 'POST'
-    });
+    const response = await fetch(`${APP_CONFIG.API_URL}?type=like&id=${encodeURIComponent(newsId)}`, { method: 'POST' });
     const result = await response.json();
     return result.status === 'success';
-  } catch (e) {
-    console.error("Like API Error:", e);
-    return false;
-  }
+  } catch (e) { return false; }
 };
