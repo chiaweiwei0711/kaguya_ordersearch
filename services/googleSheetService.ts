@@ -4,7 +4,108 @@ import { Order, OrderStatus, OrderItem, Announcement } from "../types";
 // 重要公告判定關鍵字
 const IMPORTANT_KEYWORDS = ["重要", "通知", "延遲", "公告", "提醒", "緊急", "注意"];
 
-fetchOrdersFromSheet
+// --- 1. 訂單搜尋 (後端真實搜尋版) ---
+export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
+  try {
+    // 如果沒有輸入，直接回傳空 (節省流量)
+    if (!query.trim()) return [];
+
+    console.log(`正在雲端搜尋: ${query} ... ☁️`);
+    
+    // 傳送參數給後端 (?search=xxx)
+    const url = `${APP_CONFIG.API_URL}?search=${encodeURIComponent(query.trim())}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`連線失敗 (${response.status})`);
+    
+    const data = await response.json();
+    if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
+    
+    // 如果後端沒回傳 data (例如沒搜到)，就回傳空陣列
+    if (!data.data) return [];
+
+    const rawRows = data.data;
+    const map = APP_CONFIG.COLUMN_MAPPING;
+    const ordersMap = new Map<string, Order>();
+
+    const queryLower = query.toLowerCase().trim();
+
+    // 資料轉換邏輯
+    rawRows.forEach((row: any) => {
+        const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
+        
+        // 🌟 【超級防呆版過濾】：把可能裝著「暱稱」的欄位全部掃一次
+        // 這樣就不怕欄位跑掉導致訂單被誤殺隱藏了！
+        const possibleNames = [
+          String(row[map.customerPhone] || ""),
+          String(row["社群名稱"] || ""),
+          String(row["暱稱"] || ""),
+          String(row.name || ""),
+          String(row[2] || ""),
+          String(row[1] || "")
+        ].map(s => s.toLowerCase());
+
+        // 如果這些欄位「全部」都沒有客人的搜尋字詞，代表這真的是一筆搜錯的訂單 (例如只是金額剛好537)
+        const isNameMatch = possibleNames.some(nameVal => nameVal.includes(queryLower));
+
+        if (!isNameMatch) {
+            return; // 真的是無效訂單，安全剔除！
+        }
+
+        // 決定最終要顯示在系統裡的暱稱
+        let customerPhoneRaw = row[map.customerPhone] || row["社群名稱"] || row.name || row[2] || row[1]; 
+        const customerPhone = String(customerPhoneRaw || "");
+
+        const isReconciled = String(row[map.isReconciled] || "").toUpperCase() === "TRUE";
+        const status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
+        const isShipped = String(row[map.isShipped] || "").toUpperCase() === "TRUE";
+
+        const parseMoney = (val: any) => Number(String(val || 0).replace(/[$,]/g, '')) || 0;
+        const productTotal = parseMoney(row[map.productTotal]);
+        const balanceDue = parseMoney(row[map.balanceDue]);
+        const depositAmount = parseMoney(row[map.depositAmount]) || (productTotal - balanceDue);
+        const totalQuantity = Number(row[map.quantity]) || 1;
+        const paymentMethod = String(row[map.paymentMethod] || row["付款方式"] || "匯款");
+        const arrivalDate = String(row[map.arrivalDate] || "");
+
+        const item: OrderItem = {
+          name: String(row[map.itemName] || "代購商品"),
+          price: productTotal,
+          quantity: totalQuantity
+        };
+
+        if (ordersMap.has(orderId)) {
+          ordersMap.get(orderId)!.items.push(item);
+        } else {
+          ordersMap.set(orderId, {
+            id: orderId,
+            source: String(row[map.source] || ""),
+            customerName: customerPhone,
+            customerPhone: customerPhone,
+            groupName: String(row[map.groupName] || ""),
+            items: [item],
+            totalQuantity: totalQuantity,
+            productTotal: productTotal,
+            depositAmount: depositAmount,
+            balanceDue: balanceDue,
+            status: status,
+            shippingStatus: String(row[map.shippingStatus] || ""),
+            isShipped: isShipped,
+            shippingDate: String(row[map.shippingDate] || ""),
+            paymentMethod: paymentMethod,
+            arrivalDate: arrivalDate,
+            createdAt: new Date().toISOString().split('T')[0]
+          });
+        }
+    });
+
+    return Array.from(ordersMap.values());
+
+  } catch (error) {
+    console.error("Fetch Error:", error);
+    return [];
+  }
+};
 
 // --- 2. 抓取公告 (原本的功能，補回來) ---
 export const fetchAnnouncements = async (): Promise<Announcement[]> => {
