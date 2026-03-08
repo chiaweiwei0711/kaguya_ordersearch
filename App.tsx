@@ -236,30 +236,63 @@ const App: React.FC = () => {
   const [modalType, setModalType] = useState<'deposit' | 'shipping'>('deposit');
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetailOrder, setSelectedDetailOrder] = useState<Order | null>(null);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-
+  const [isAdminOpen, setIsAdminOpen] = useState(false)
+  // 🌟 【新增狀態】：二次搜尋關鍵字與排序方式
+  const [subQuery, setSubQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'default' | 'price_desc' | 'price_asc' | 'strokes'>('default');
+  
   useEffect(() => { fetchAnnouncements().then(setNews); }, []);
 
   const filteredOrders = useMemo(() => {
-    return foundOrders.filter(order => {
+    // 1. 先做過濾 (Tab分類、貨況、出貨狀態、二次搜尋)
+    let result = foundOrders.filter(order => {
       const isPending = order.status === OrderStatus.PENDING;
       const isPaid = order.status === OrderStatus.PAID;
       const isArrived = order.shippingStatus.includes("已抵台");
       const isShipped = order.isShipped;
       
-      if (activeTab === 'deposit') return isPending;
-      if (activeTab === 'balance') return isPaid && isArrived && !isShipped;
-      if (activeTab === 'completed') return isPaid && isArrived && isShipped;
-      if (activeTab === 'all') {
+      if (activeTab === 'deposit') { if (!isPending) return false; }
+      else if (activeTab === 'balance') { if (!(isPaid && isArrived && !isShipped)) return false; }
+      else if (activeTab === 'completed') { if (!(isPaid && isArrived && isShipped)) return false; }
+      else if (activeTab === 'all') {
         let matchesCargo = true;
         if (cargoFilters.length > 0) matchesCargo = cargoFilters.some(f => order.shippingStatus && order.shippingStatus.includes(f));
         let matchesDelivery = true;
         if (deliveryFilter) matchesDelivery = deliveryFilter === '已出貨' ? order.isShipped : !order.isShipped;
-        return matchesCargo && matchesDelivery;
+        if (!matchesCargo || !matchesDelivery) return false;
       }
+      
+      // 🌟 【新增】：二次搜尋邏輯 (找團名或商品名)
+      if (subQuery.trim()) {
+        const q = subQuery.toLowerCase();
+        const matchGroup = order.groupName.toLowerCase().includes(q);
+        const matchItems = order.items.some(item => item.name.toLowerCase().includes(q));
+        if (!matchGroup && !matchItems) return false;
+      }
+
       return true;
     });
-  }, [foundOrders, activeTab, cargoFilters, deliveryFilter]);
+
+    // 2. 再做排序
+    if (sortBy === 'price_desc') {
+      result.sort((a, b) => {
+        const priceA = activeTab === 'deposit' ? a.depositAmount : (activeTab === 'balance' ? a.balanceDue : a.productTotal);
+        const priceB = activeTab === 'deposit' ? b.depositAmount : (activeTab === 'balance' ? b.balanceDue : b.productTotal);
+        return priceB - priceA;
+      });
+    } else if (sortBy === 'price_asc') {
+      result.sort((a, b) => {
+        const priceA = activeTab === 'deposit' ? a.depositAmount : (activeTab === 'balance' ? a.balanceDue : a.productTotal);
+        const priceB = activeTab === 'deposit' ? b.depositAmount : (activeTab === 'balance' ? b.balanceDue : b.productTotal);
+        return priceA - priceB;
+      });
+    } else if (sortBy === 'strokes') {
+      // localeCompare 使用 zh-TW 可以很完美地支援中文筆畫/拼音排序
+      result.sort((a, b) => a.groupName.localeCompare(b.groupName, 'zh-TW'));
+    }
+
+    return result;
+  }, [foundOrders, activeTab, cargoFilters, deliveryFilter, subQuery, sortBy]);
 
   const selectedOrdersData = useMemo(() => filteredOrders.filter(o => selectedOrderIds.has(o.id)), [filteredOrders, selectedOrderIds]);
   const totalSelectedAmount = useMemo(() => {
@@ -272,7 +305,7 @@ const App: React.FC = () => {
     if (e) e.preventDefault();
     if (!searchQuery) return;
     setIsLoading(true);
-    setFoundOrders([]); setSelectedOrderIds(new Set()); setCargoFilters([]); setDeliveryFilter(null);
+    etFoundOrders([]); setSelectedOrderIds(new Set()); setCargoFilters([]); setDeliveryFilter(null); setSubQuery(''); setSortBy('default');
     try {
       const results = await fetchOrdersFromSheet(searchQuery);
       setFoundOrders(results);
@@ -458,7 +491,36 @@ const App: React.FC = () => {
                     </button>
                   ))}
                 </div>
-
+                {/* 🌟 【新增】：二次搜尋與排序工具列 */}
+                {foundOrders.length > 0 && (
+                  <div className="flex flex-col md:flex-row gap-3 mb-4 bg-gray-900/40 p-3 rounded-2xl border border-pink-500/20 shadow-inner">
+                    <div className="relative flex-1">
+                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-pink-500 w-4 h-4" />
+                       <input
+                         type="text"
+                         placeholder="在結果中搜尋團名或商品..."
+                         value={subQuery}
+                         onChange={(e) => setSubQuery(e.target.value)}
+                         className="w-full pl-9 pr-4 py-2 bg-black/50 border border-gray-700 rounded-xl text-sm font-bold text-white outline-none focus:border-pink-500 transition-colors"
+                       />
+                    </div>
+                    <div className="shrink-0 relative">
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as any)}
+                        className="w-full md:w-auto pl-4 pr-8 py-2 bg-black/50 border border-gray-700 rounded-xl text-sm font-bold text-white outline-none focus:border-pink-500 appearance-none transition-colors cursor-pointer"
+                      >
+                        <option value="default">預設排序 (依時間)</option>
+                        <option value="price_desc">金額：由高至低</option>
+                        <option value="price_asc">金額：由低至高</option>
+                        <option value="strokes">團名：依筆畫</option>
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                         ▼
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {activeTab === 'all' && (
                     <div className="bg-gray-900/50 border-2 border-gray-700 rounded-3xl p-6 mb-6">
                         <div className="mb-6">
