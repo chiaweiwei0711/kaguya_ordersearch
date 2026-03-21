@@ -571,39 +571,34 @@ const App: React.FC = () => {
                 // --- 🎯 首頁未搜尋狀態 ---
                 <div className="flex flex-col items-center animate-fade-in-up w-full">
 
-                  {/* 第一屏 (Hero Section) */}
-                  <div className="w-full flex flex-col items-center min-h-[85vh] pb-12">
+                  {/* 第一屏 (🎯 解決手機版捲動跳動 Bug，鎖死在螢幕下方) */}
+                  <div className="w-full flex flex-col items-center min-h-[88svh] md:min-h-[85vh] pb-8 pt-4 justify-between">
+
+                    {/* 上半部：Logo 圖片 */}
                     <img
-                      src="https://i.imgur.com/OVkii3R.png"
-                      alt="Kaguya 自助查詢系統表頭"
-                      referrerPolicy="no-referrer"
-                      className="w-[90%] max-w-sm h-auto object-contain mx-auto mt-8"
+                      src="https://i.imgur.com/OVkii3R.png" alt="Kaguya 自助查詢系統" referrerPolicy="no-referrer"
+                      className="w-[95%] max-w-sm h-auto object-contain mx-auto mt-8 filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
                     />
-                    <div className="flex-1"></div>
-                    <div className="w-full flex flex-col items-center">
-                      <div className="text-[#3ac0bf] font-[900] text-5xl mb-6 animate-bounce">↓</div>
-                      <div className="w-full max-w-md">
+
+                    {/* 下半部：搜尋框 (🎯 mt-auto 把它硬推到這一個螢幕的最底端) */}
+                    <div className="w-full flex flex-col items-center mt-auto">
+                      <div className="text-[#3ac0bf] font-[900] text-5xl mb-6 animate-bounce [animation-duration:1.5s]">↓</div>
+                      <div className="w-full max-w-md px-4">
                         <div className="bg-[#ffffff] rounded-full p-2 flex items-center gap-2 shadow-[6px_6px_0px_#000] border-[3px] border-black mb-3 transition-transform focus-within:-translate-y-1">
-                          <div className="relative flex-1 flex items-center">
+                          <div className="relative flex-1 flex items-center pl-1">
                             <Search className="absolute left-4 text-[#f8a3f4] w-6 h-6 stroke-[3px]" />
                             <input
-                              type="text"
-                              value={searchQuery}
-                              onChange={e => setSearchQuery(e.target.value)}
+                              type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                               placeholder="請輸入您的社群暱稱"
                               className="w-full pl-12 pr-4 py-3 bg-transparent outline-none text-base md:text-lg font-[900] text-[#222] placeholder-gray-400"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing) {
-                                  handleSearch();
-                                }
-                              }}
+                              onKeyDown={(e) => { if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing) { handleSearch(); } }}
                             />
                           </div>
                           <button onClick={() => handleSearch()} className="bg-[#f8a3f4] text-white w-12 h-12 rounded-full border-[3px] border-black flex items-center justify-center shrink-0 active:scale-90 transition-transform">
                             <ArrowRight className="stroke-[3px]" />
                           </button>
                         </div>
-                        <p className="text-[#3ac0bf] text-xs font-[900] mt-4 text-center tracking-widest">
+                        <p className="text-[#3ac0bf] text-xs sm:text-sm font-[900] mt-4 text-center tracking-widest [text-shadow:0_2px_0_#fff]">
                           ※若有更改社群暱稱，請務必私訊官賴協助修改！
                         </p>
                       </div>

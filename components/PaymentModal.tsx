@@ -53,17 +53,35 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
     return `Kaguya訂購付款確認\n--------------------\n♦️社群暱稱：${orders[0].customerPhone || '未知'}\n♦️訂購商品系列：\n${groupNamesList}\n♦️付款金額：$${totalDeposit.toLocaleString()}\n♦️您匯款到哪間銀行：${targetBankName}\n♦️您的匯款帳號末五碼：${last5Str}${cardlessNote}\n---------------------\n已確認訂購商品與付款金額無誤！`;
   };
 
+  // 🎯 解決 LINE 瀏覽器阻擋彈出視窗的完美跳轉邏輯
   const handleNext = () => {
+    // 把複製成功後的跳轉動作包裝起來
+    const executeJump = () => {
+      setIsCopied(true);
+      setTimeout(() => {
+        if (targetUrl) {
+          // 💡 魔法在這裡：放棄 window.open('_blank')
+          // 改用 window.location.href 直接跳轉，LINE 絕對不會擋！
+          window.location.href = targetUrl;
+        }
+        setIsCopied(false);
+        onClose();
+      }, 1000); // 維持 1 秒的質感等待
+    };
+
     if (isShipping) {
-      navigator.clipboard.writeText(generateDetailMessage()).then(() => {
-        setIsCopied(true); setTimeout(() => { if (targetUrl) window.open(targetUrl, '_blank'); setIsCopied(false); onClose(); }, 1000);
-      });
+      // 賣貨便出貨
+      navigator.clipboard.writeText(generateDetailMessage())
+        .then(executeJump)
+        .catch(() => executeJump()); // 防呆：萬一客人的手機不給複製，還是要讓他能跳轉
     } else {
-      if (step < 3) setStep((s) => (s + 1) as 1 | 2 | 3);
-      else {
-        navigator.clipboard.writeText(generateDetailMessage()).then(() => {
-          setIsCopied(true); setTimeout(() => { if (targetUrl) window.open(targetUrl, '_blank'); setIsCopied(false); onClose(); }, 1000);
-        });
+      // 付訂金流程
+      if (step < 3) {
+        setStep((s) => (s + 1) as 1 | 2 | 3);
+      } else {
+        navigator.clipboard.writeText(generateDetailMessage())
+          .then(executeJump)
+          .catch(() => executeJump());
       }
     }
   };
