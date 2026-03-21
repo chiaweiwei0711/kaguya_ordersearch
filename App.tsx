@@ -303,23 +303,20 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (selectedNews) {
+      // 點進公告時，只讀取表單傳來的真實數字，絕對不查手機記憶！
       setCurrentLikes(selectedNews.likes || 0);
-      // 確保從 localStorage 讀取時，是用 string 型態的 selectedNews.id 來記
-      setHasLikedNews(localStorage.getItem(`liked_news_${selectedNews.id}`) === 'true');
     }
   }, [selectedNews]);
 
   const handleLikeNews = async () => {
-    if (hasLikedNews || !selectedNews) return;
+    if (!selectedNews) return;
 
-    setHasLikedNews(true);
+    // 1. 畫面數字立刻 +1，並觸發超快彈跳動畫 (讓客人享受狂按的快感)
     setCurrentLikes(prev => prev + 1);
     setIsBouncing(true);
-    setTimeout(() => setIsBouncing(false), 500);
+    setTimeout(() => setIsBouncing(false), 150);
 
-    localStorage.setItem(`liked_news_${selectedNews.id}`, 'true');
-
-    // 🌟 完美呼叫妳原本就寫好的 incrementAnnouncementLike (它吃 string)
+    // 2. 在背景偷偷呼叫 API 寫入表單
     try {
       await incrementAnnouncementLike(selectedNews.id);
     } catch (e) {
@@ -601,7 +598,7 @@ const App: React.FC = () => {
                             <ArrowRight className="stroke-[3px]" />
                           </button>
                         </div>
-                        <p className="text-[#3ac0bf] text-xs sm:text-sm font-[900] mt-4 text-center tracking-widest [text-shadow:0_2px_0_#fff]">
+                        <p className="text-[#3ac0bf] text-xs sm:text-sm font-[900] mt-4 text-center tracking-widest">
                           ※若有更改社群暱稱，請務必私訊官賴協助修改！
                         </p>
                       </div>

@@ -12,7 +12,7 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     const url = `${APP_CONFIG.API_URL}?search=${encodeURIComponent(query.trim())}`;
     const response = await fetch(url);
     if (!response.ok) throw new Error(`連線失敗 (${response.status})`);
-    
+
     const data = await response.json();
     if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
     if (!data.data) return [];
@@ -23,53 +23,53 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     const queryLower = query.toLowerCase().trim();
 
     rawRows.forEach((row: any) => {
-        const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
-        
-        // 🌟 【防呆機制】：只掃描所有可能裝著「社群暱稱」的欄位
-        const possibleNames = [
-          String(row[map.customerPhone] || ""),
-          String(row["社群名稱"] || ""),
-          String(row["暱稱"] || ""),
-          String(row.name || ""),
-          String(row[2] || ""),
-          String(row[1] || "")
-        ].map(s => s.toLowerCase());
+      const orderId = String(row[map.id] || `UNKNOWN-${Math.random()}`);
 
-        // 如果連暱稱欄位都對不上，代表是無關的訂單(例如金額剛好537)，直接丟棄！
-        const isNameMatch = possibleNames.some(nameVal => nameVal.includes(queryLower));
-        if (!isNameMatch) return;
+      // 🌟 【防呆機制】：只掃描所有可能裝著「社群暱稱」的欄位
+      const possibleNames = [
+        String(row[map.customerPhone] || ""),
+        String(row["社群名稱"] || ""),
+        String(row["暱稱"] || ""),
+        String(row.name || ""),
+        String(row[2] || ""),
+        String(row[1] || "")
+      ].map(s => s.toLowerCase());
 
-        let customerPhoneRaw = row[map.customerPhone] || row["社群名稱"] || row.name || row[2] || row[1]; 
-        const customerPhone = String(customerPhoneRaw || "");
-        const isReconciled = String(row[map.isReconciled] || "").toUpperCase() === "TRUE";
-        const status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
-        const isShipped = String(row[map.isShipped] || "").toUpperCase() === "TRUE";
+      // 如果連暱稱欄位都對不上，代表是無關的訂單(例如金額剛好537)，直接丟棄！
+      const isNameMatch = possibleNames.some(nameVal => nameVal.includes(queryLower));
+      if (!isNameMatch) return;
 
-        const parseMoney = (val: any) => Number(String(val || 0).replace(/[$,]/g, '')) || 0;
-        const productTotal = parseMoney(row[map.productTotal]);
-        const balanceDue = parseMoney(row[map.balanceDue]);
-        const depositAmount = parseMoney(row[map.depositAmount]) || (productTotal - balanceDue);
-        const totalQuantity = Number(row[map.quantity]) || 1;
-        const paymentMethod = String(row[map.paymentMethod] || row["付款方式"] || "匯款");
-        const arrivalDate = String(row[map.arrivalDate] || "");
+      let customerPhoneRaw = row[map.customerPhone] || row["社群名稱"] || row.name || row[2] || row[1];
+      const customerPhone = String(customerPhoneRaw || "");
+      const isReconciled = String(row[map.isReconciled] || "").toUpperCase() === "TRUE";
+      const status = isReconciled ? OrderStatus.PAID : OrderStatus.PENDING;
+      const isShipped = String(row[map.isShipped] || "").toUpperCase() === "TRUE";
 
-        const item: OrderItem = {
-          name: String(row[map.itemName] || "代購商品"),
-          price: productTotal,
-          quantity: totalQuantity
-        };
+      const parseMoney = (val: any) => Number(String(val || 0).replace(/[$,]/g, '')) || 0;
+      const productTotal = parseMoney(row[map.productTotal]);
+      const balanceDue = parseMoney(row[map.balanceDue]);
+      const depositAmount = parseMoney(row[map.depositAmount]) || (productTotal - balanceDue);
+      const totalQuantity = Number(row[map.quantity]) || 1;
+      const paymentMethod = String(row[map.paymentMethod] || row["付款方式"] || "匯款");
+      const arrivalDate = String(row[map.arrivalDate] || "");
 
-        if (ordersMap.has(orderId)) {
-          ordersMap.get(orderId)!.items.push(item);
-        } else {
-          ordersMap.set(orderId, {
-            id: orderId, source: String(row[map.source] || ""), customerName: customerPhone, customerPhone: customerPhone,
-            groupName: String(row[map.groupName] || ""), items: [item], totalQuantity: totalQuantity, productTotal: productTotal,
-            depositAmount: depositAmount, balanceDue: balanceDue, status: status, shippingStatus: String(row[map.shippingStatus] || ""),
-            isShipped: isShipped, shippingDate: String(row[map.shippingDate] || ""), paymentMethod: paymentMethod, arrivalDate: arrivalDate,
-            createdAt: new Date().toISOString().split('T')[0]
-          });
-        }
+      const item: OrderItem = {
+        name: String(row[map.itemName] || "代購商品"),
+        price: productTotal,
+        quantity: totalQuantity
+      };
+
+      if (ordersMap.has(orderId)) {
+        ordersMap.get(orderId)!.items.push(item);
+      } else {
+        ordersMap.set(orderId, {
+          id: orderId, source: String(row[map.source] || ""), customerName: customerPhone, customerPhone: customerPhone,
+          groupName: String(row[map.groupName] || ""), items: [item], totalQuantity: totalQuantity, productTotal: productTotal,
+          depositAmount: depositAmount, balanceDue: balanceDue, status: status, shippingStatus: String(row[map.shippingStatus] || ""),
+          isShipped: isShipped, shippingDate: String(row[map.shippingDate] || ""), paymentMethod: paymentMethod, arrivalDate: arrivalDate,
+          createdAt: new Date().toISOString().split('T')[0]
+        });
+      }
     });
     return Array.from(ordersMap.values());
   } catch (error) {
@@ -95,12 +95,28 @@ export const fetchAnnouncements = async (): Promise<Announcement[]> => {
 };
 
 // --- 3. 公告按讚 ---
-export const incrementAnnouncementLike = async (newsId: string): Promise<boolean> => {
+// --- 💖 傳送按讚訊號給 GAS 後台 (完美對接版) ---
+export const incrementAnnouncementLike = async (newsId: string) => {
   try {
-    const response = await fetch(`${APP_CONFIG.API_URL}?type=like&id=${encodeURIComponent(newsId)}`, { method: 'POST' });
+    // 💡 配合 GAS 的 doPost，必須使用 POST 方法
+    // 💡 必須使用 URLSearchParams，這樣 GAS 的 e.parameter 才抓得到資料！
+    const response = await fetch(APP_CONFIG.API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        type: 'like',     // 🎯 對應妳 GAS 裡的 type === "like"
+        id: newsId        // 🎯 傳送 "news-0", "news-1" 給後端解析
+      })
+    });
+
     const result = await response.json();
-    return result.status === 'success';
-  } catch (e) { return false; }
+    return result;
+  } catch (error) {
+    console.error('按讚 API 呼叫失敗:', error);
+    throw error;
+  }
 };
 
 // --- 4. 透過 LINE ID 取得會員暱稱 (自動登入用) ---
@@ -108,7 +124,7 @@ export const fetchNicknameByLineId = async (lineId: string): Promise<string | nu
   try {
     const response = await fetch(`${APP_CONFIG.API_URL}?type=getNickname&lineId=${encodeURIComponent(lineId)}`);
     const data = await response.json();
-    
+
     if (data.status === 'success' && data.nickname) {
       return data.nickname;
     } else {
