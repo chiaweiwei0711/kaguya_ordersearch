@@ -17,7 +17,7 @@ import AboutSection from './components/AboutSection';
 type MainView = 'query' | 'info' | 'about';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
-// --- 📅 倉儲倒數計算核心邏輯 ---
+// --- 📅 倉儲倒數計算核心邏輯 (Soft Pop 無黑框撞色進化版) ---
 const getStorageStatus = (dateStr?: string) => {
   if (!dateStr) return null;
   const arrival = new Date(dateStr);
@@ -28,11 +28,14 @@ const getStorageStatus = (dateStr?: string) => {
   const daysLeft = LIMIT_DAYS - diffDays;
 
   if (daysLeft < 0) {
-    return { label: `已逾期 ${Math.abs(daysLeft)} 天`, color: 'text-red-600 font-[900]', bg: 'bg-white border-black shadow-[2px_2px_0px_#000]', urgent: true };
+    // 逾期：粉紅底 `#f8a3f4` 配白字 (緊急！)
+    return { label: `逾期 ${Math.abs(daysLeft)} 天`, className: 'bg-[#f8a3f4] text-white' };
   } else if (daysLeft <= 5) {
-    return { label: `剩 ${daysLeft} 天過期`, color: 'text-yellow-600 font-[900]', bg: 'bg-white border-black shadow-[2px_2px_0px_#000]', urgent: true };
+    // 警告：亮黃底 `#fff170` 配黑字 (請盡快)
+    return { label: `剩 ${daysLeft} 天過期`, className: 'bg-[#fff170] text-black' };
   } else {
-    return { label: `剩 ${daysLeft} 天可併單`, color: 'text-green-600 font-[900]', bg: 'bg-white border-black shadow-[2px_2px_0px_#000]', urgent: false };
+    // 良好：薄荷綠底 `#3ac0bf` 配白字 (可併單)
+    return { label: `剩 ${daysLeft} 天可併單`, className: 'bg-[#3ac0bf] text-white' };
   }
 };
 
@@ -210,6 +213,66 @@ const InfoHub = ({ news, onSelectNews, onOpenAllNews }: { news: Announcement[], 
     </div>
   );
 };
+// --- 🎨 2.0 進化版：立體浮游糖果點點資料 (網格生成確保均勻，含動畫參數) ---
+const DOT_COLORS = ['#4ceade', '#77dbf1', '#ffaefe', '#eeda22'];
+const COLS = 8; // 橫向 8 列
+const ROWS = 8; // 縱向 8 行
+const TOTAL_DOTS = COLS * ROWS; // 總共 64 顆，絕對夠多！
+const CELL_WIDTH = 100 / COLS;
+const CELL_HEIGHT = 100 / ROWS;
+
+const BACKGROUND_DOTS = Array.from({ length: TOTAL_DOTS }).map((_, i) => {
+  const col = i % COLS;
+  const row = Math.floor(i / COLS);
+
+  // 🎯 網格均勻散落魔法：在每個網格格子里隨機定位，確保整體均勻但看起來不呆板
+  const top = `${row * CELL_HEIGHT + (Math.random() * (CELL_HEIGHT - 2)) + 1}%`;
+  const left = `${col * CELL_WIDTH + (Math.random() * (CELL_WIDTH - 2)) + 1}%`;
+
+  return {
+    id: i,
+    top,
+    left,
+    size: 16, // 🎯 聽老闆的，大小統一 16px
+    color: DOT_COLORS[i % DOT_COLORS.length],
+    opacity: 0.9, // 🎯 聽老闆的，超級清晰飽和
+    // 🌀 為每一顆點點生成隨機的動畫延遲和時間，看起來更自然
+    delay: `${Math.random() * 5}s`,
+    duration: `${15 + Math.random() * 10}s`, // 15s 到 25s 緩慢浮游
+    animType: Math.random() > 0.5 ? 'floatA' : 'floatB' // 兩種不同的浮游路徑
+  };
+});
+
+// 🌀 注入微微移動的 CSS 動畫 (放在元件外面即可)
+const injectAnimationCSS = () => {
+  if (typeof document === 'undefined') return;
+  const styleId = 'kaguya-dots-animation';
+  if (document.getElementById(styleId)) return;
+  const style = document.createElement('style');
+  style.id = styleId;
+  style.innerHTML = `
+    @keyframes floatA {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(-8px, 6px); }
+      50% { transform: translate(6px, -8px); }
+      75% { transform: translate(-4px, -4px); }
+    }
+    @keyframes floatB {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(8px, -6px); }
+      50% { transform: translate(-6px, 8px); }
+      75% { transform: translate(4px, 4px); }
+    }
+    .animate-float {
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+    }
+  `;
+  document.head.appendChild(style);
+};
+injectAnimationCSS(); // 執行注入
+
+
 
 // --- 主應用程式 ---
 const App: React.FC = () => {
@@ -222,6 +285,7 @@ const App: React.FC = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('deposit');
+  const [visibleLimit, setVisibleLimit] = useState(10); // 🎯 控制目前顯示幾筆訂單
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [cargoFilters, setCargoFilters] = useState<string[]>([]);
   const [deliveryFilter, setDeliveryFilter] = useState<string | null>(null);
@@ -429,7 +493,32 @@ const App: React.FC = () => {
 
   return (
     // 🎯 1. 最外層深藍色背景
-    <div className="min-h-screen font-sans pb-40 text-black selection:bg-[#e891d4] relative bg-[#4c59a1] flex justify-center overflow-x-hidden">
+    <div className="min-h-screen font-sans text-black selection:bg-[#e891d4] relative bg-[#4c59a1] flex justify-center overflow-x-hidden">
+      {/* 🎯 全新加入：靜態糖果色背景圓點 (放底層不擋點擊) */}
+      {mainView === 'query' && !hasSearched && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          {BACKGROUND_DOTS.map(dot => (
+            <div
+              key={dot.id}
+              // 🌀 加入 animate-float 類名
+              className={`absolute rounded-full animate-float ${dot.animType === 'floatA' ? 'animate-[floatA]' : 'animate-[floatB]'}`}
+              style={{
+                top: dot.top,
+                left: dot.left,
+                width: `${dot.size}px`,
+                height: `${dot.size}px`,
+                backgroundColor: dot.color,
+                opacity: dot.opacity,
+                // 🌀 注入隨機的動畫時間和延遲，創造層次感
+                animationDuration: dot.duration,
+                animationDelay: dot.delay,
+                // 加上微微的立體陰影，質感更好
+                boxShadow: 'inset -2px -2px 4px rgba(0,0,0,0.2), 2px 2px 5px rgba(0,0,0,0.1)'
+              }}
+            />
+          ))}
+        </div>
+      )}
       {isLoading && <LoadingOverlay />}
       {/* 🎯 2. 左上角 MENU 按鈕 (💡 聽老闆的：只有在「未搜尋」的首頁才顯示，不擋路！) */}
       {!hasSearched && (
@@ -575,7 +664,7 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <footer className="pt-16 pb-8 text-center text-[#3ac0bf] text-[11px] font-[900] space-y-2">
+                  <footer className="pt-16 pb-32 text-center text-[#3ac0bf] text-[11px] font-[900] space-y-2">
                     <div className="flex justify-center items-center gap-3 mb-4 text-xs tracking-widest">
                       <span>今日瀏覽量: {visitors.today.toLocaleString()}</span>
                       <span>|</span>
@@ -614,6 +703,7 @@ const App: React.FC = () => {
                           onClick={() => {
                             setActiveTab(tab.id as TabType);
                             setSelectedOrderIds(new Set());
+                            setVisibleLimit(10);
                             if (tab.id !== 'all') { setCargoFilters([]); setDeliveryFilter(null); }
                           }}
                           className={`px-4 py-2 rounded-full font-[900] whitespace-nowrap transition-all border-2 text-[13px] tracking-widest ${activeTab === tab.id
@@ -641,13 +731,12 @@ const App: React.FC = () => {
                   </div>
 
                   {/* --- 🎯 下半部：米色大圓弧畫布 (#fdfbf0) --- */}
-                  <div className="w-full bg-[#fdfbf0] rounded-t-[40px] flex-1 flex flex-col items-center pt-8 px-4 sm:px-8 pb-40 shadow-[0_-10px_20px_rgba(0,0,0,0.1)]">
-
-                    {/* 🎯 排序與全選 (智商上線版) */}
+                  <div className="w-full bg-[#fdfbf0] rounded-t-[40px] flex-1 flex flex-col items-center pt-8 px-4 sm:px-8 shadow-[0_-10px_20px_rgba(0,0,0,0.1)]">
+                    {/* 🎯 排序、全選與數量統計 */}
                     {filteredOrders.length > 0 && (
                       <div className="w-full max-w-md flex justify-between items-center mb-6 px-1">
 
-                        {/* 排序：每個分頁都有！圓角藥丸造型 */}
+                        {/* 左側：排序 */}
                         <div className="relative">
                           <select
                             value={sortBy}
@@ -662,8 +751,8 @@ const App: React.FC = () => {
                           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#3ac0bf] font-[900] text-xs">▼</div>
                         </div>
 
-                        {/* 全選：只在待付/可出貨顯示，動態數字 {selectedOrderIds.size}，圓角藥丸虛線 */}
-                        {(activeTab === 'deposit' || activeTab === 'balance') && (
+                        {/* 右側：智慧切換全選或數量 */}
+                        {(activeTab === 'deposit' || activeTab === 'balance') ? (
                           <button
                             onClick={handleSelectAll}
                             className="flex items-center gap-2 text-sm font-[900] text-[#3ac0bf] bg-transparent border-[2.5px] border-dashed border-[#3ac0bf] px-4 py-1.5 rounded-full hover:bg-[#3ac0bf]/10 active:scale-95 transition-all"
@@ -671,6 +760,10 @@ const App: React.FC = () => {
                             {filteredOrders.every(o => selectedOrderIds.has(o.id)) ? <CheckSquare size={16} strokeWidth={3} /> : <Square size={16} strokeWidth={3} />}
                             全選本頁 ({selectedOrderIds.size})
                           </button>
+                        ) : (
+                          <span className="text-[#3ac0bf] font-[900] tracking-widest text-sm md:text-base pr-1">
+                            共 {filteredOrders.length} 個訂單
+                          </span>
                         )}
                       </div>
                     )}
@@ -739,7 +832,10 @@ const App: React.FC = () => {
                       {filteredOrders.length === 0 ? (
                         <div className="text-center py-20 text-[#4c59a1] font-[900] text-lg bg-white rounded-3xl border-2 border-dashed">目前沒有相關訂單</div>
                       ) : (
-                        filteredOrders.map(order => {
+                        (activeTab === 'completed' || activeTab === 'all'
+                          ? filteredOrders.slice(0, visibleLimit)
+                          : filteredOrders
+                        ).map(order => {
                           const isSelected = selectedOrderIds.has(order.id);
                           return (
                             <div
@@ -759,20 +855,35 @@ const App: React.FC = () => {
                               )}
 
                               <div className="flex-1 min-w-0">
+                                {/* 🎯 究極進化：無黑框撞色標籤區 */}
                                 <div className="flex flex-wrap gap-2 mb-3">
-                                  {/* 🎯 橘色尚未出貨標籤 #fe8c55 + 黑邊框 */}
+
+                                  {/* 🎯 1 & 2: 已出貨 -> 薄荷綠solid 配白字，無黑框 */}
                                   {order.isShipped ? (
-                                    <span className="bg-[#8fcda8] text-black px-3 py-1 rounded-full text-[11px] font-[900] border-2 border-black">已出貨</span>
+                                    <span className="bg-[#3ac0bf] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">已出貨</span>
                                   ) : (
-                                    <span className="bg-[#fe8c55] text-black px-3 py-1 rounded-full text-[11px] font-[900] border-2 border-black">尚未出貨</span>
+                                    <span className="bg-[#fe8c55] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未出貨</span>
                                   )}
 
-                                  {/* 🎯 已抵台等其他狀態 (白底 + 黑字 + 黑邊框) */}
+                                  {/* 🎯 2: 白底標籤 (已抵台等) -> 亮黃底 `#fff170` 配黑字，無黑框 */}
                                   {order.shippingStatus && (
-                                    <span className="bg-white text-black px-3 py-1 rounded-full text-[11px] font-[900] border-2 border-black">
+                                    <span className="bg-[#fff170] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">
                                       {order.shippingStatus}
                                     </span>
                                   )}
+
+                                  {/* 🎯 3: 完美復活！併單倒數標籤 (顯示在卡片外面、正確！) */}
+                                  {(() => {
+                                    const storageStatus = getStorageStatus(order.arrivalDate);
+                                    if (storageStatus && !order.isShipped) {
+                                      return (
+                                        <span className={`${storageStatus.className} px-3 py-1.5 rounded-full text-[11px] font-[900]`}>
+                                          {storageStatus.label}
+                                        </span>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
                                 </div>
 
                                 <h3 className="text-xl font-[900] text-black leading-snug mb-4">{order.groupName}</h3>
@@ -794,9 +905,32 @@ const App: React.FC = () => {
                           );
                         })
                       )}
+                      {/* 🎯 顯示更多按鈕 (對齊老闆的圖 12.05.33 設計) */}
+                      {(activeTab === 'completed' || activeTab === 'all') && filteredOrders.length > visibleLimit && (
+                        <div className="pt-6 pb-2 text-center animate-fade-in">
+                          <button
+                            onClick={() => setVisibleLimit(prev => prev + 10)}
+                            className="text-[#3ac0bf] font-[900] text-lg sm:text-xl tracking-widest underline decoration-[3px] underline-offset-4 hover:opacity-70 active:scale-95 transition-all"
+                          >
+                            顯示更多訂單...
+                          </button>
+                        </div>
+                      )}
+                      {/* 🎯 專屬米色背景底部 Footer (跟著米色畫布一路延伸到底) */}
+                      <footer className="w-full pt-20 pb-32 text-center text-[#4c59a1] text-[11px] font-[900] space-y-2 mt-auto opacity-80">
+                        <div className="flex justify-center items-center gap-2 mb-4 text-[10px] sm:text-[11px] tracking-widest flex-wrap px-2">
+                          <span>今日瀏覽量: {visitors.today.toLocaleString()}</span>
+                          <span>|</span>
+                          <span>本月瀏覽量: {visitors.month.toLocaleString()}</span>
+                          <span>|</span>
+                          <span>累積瀏覽量: {visitors.total.toLocaleString()}</span>
+                        </div>
+                        <div>本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
+                        <p className="mt-2">© {new Date().getFullYear()} All Rights Reserved.</p>
+                      </footer>
                     </div>
-                  </div>
 
+                  </div>
                 </div>
               )}
             </>
@@ -813,7 +947,7 @@ const App: React.FC = () => {
       </div>
 
       {/* 🎯 完美還原圖 4 的底部結帳條 (帶有滑出動效 animate-fade-in-up) */}
-      {selectedOrdersData.length > 0 && (activeTab === 'deposit' || activeTab === 'balance') && (
+      {hasSearched && selectedOrdersData.length > 0 && (activeTab === 'deposit' || activeTab === 'balance') && (
         <div className="fixed bottom-0 left-0 right-0 z-40 animate-fade-in-up">
           <div className="w-full max-w-2xl mx-auto bg-[#3ac0bf] rounded-t-[40px] px-8 py-6 shadow-[0_-10px_20px_rgba(0,0,0,0.15)] flex items-center justify-between">
             <div className="flex flex-col">
