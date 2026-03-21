@@ -445,7 +445,9 @@ const App: React.FC = () => {
       const results = await fetchOrdersFromSheet(queryToSearch);
       setFoundOrders(results);
       setHasSearched(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
       const hasPending = results.some(o => o.status === OrderStatus.PENDING);
       const hasReadyToShip = results.some(o => o.status === OrderStatus.PAID && o.shippingStatus.includes("已抵台") && !o.isShipped);
       if (hasPending) setActiveTab('deposit');
