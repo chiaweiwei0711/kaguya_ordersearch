@@ -1,7 +1,19 @@
-import React, { useState } from 'react';
-import { X, Sparkles, CheckCircle, Truck, ArrowRight, Copy, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Sparkles, CheckCircle, Truck, ArrowRight, Copy, MessageCircle, CreditCard, Building, ChevronLeft } from 'lucide-react';
 import { Order } from '../types';
 import { APP_CONFIG } from '../config';
+
+const transferBanks = [
+  { name: '中信', code: '822', account: '0000783540394603' },
+  { name: '國泰', code: '013', account: '109500025206' },
+  { name: '台新', code: '812', account: '28881021603333' },
+  { name: '連線商業銀行', code: '824', account: '111013749294' }
+];
+
+const cardlessBanks = [
+  { name: '中信', code: '822', account: '0000901567316912' },
+  { name: '國泰', code: '013', account: '109500025206' }
+];
 
 interface PaymentModalProps {
   orders: Order[];
@@ -12,123 +24,199 @@ interface PaymentModalProps {
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen, onClose, type }) => {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isCopied, setIsCopied] = useState(false);
-
-  if (!isOpen) return null;
+  const [paymentMethod, setPaymentMethod] = useState<'transfer' | 'cardless'>('transfer');
+  const [selectedBankIdx, setSelectedBankIdx] = useState(0);
+  const [last5Digits, setLast5Digits] = useState('');
 
   const isShipping = type === 'shipping';
   const targetUrl = isShipping ? APP_CONFIG.MAIHUOBIAN_URL : APP_CONFIG.LINE_URL;
-  
-  const themeColor = isShipping ? 'text-[#06C755]' : 'text-pink-500';
-  const themeBg = isShipping ? 'bg-[#06C755]' : 'bg-pink-500';
-  const themeBorder = isShipping ? 'border-[#06C755]' : 'border-pink-500';
-  const themeGradient = isShipping ? 'from-green-600 to-emerald-900' : 'from-pink-600 to-purple-900';
-  const themeShadow = isShipping ? 'shadow-[0_0_40px_rgba(6,199,85,0.4)]' : 'shadow-[0_0_40px_rgba(236,72,153,0.4)]';
+
+  useEffect(() => {
+    if (isOpen) {
+      setStep(1); setIsCopied(false); setLast5Digits(''); setSelectedBankIdx(0); setPaymentMethod('transfer');
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const generateDetailMessage = () => {
-    if (isShipping) {
-        return orders.map(o => `${o.items[0].name} x${o.totalQuantity}`).join('\n');
-    }
+    if (isShipping) return orders.map((o, index) => `【${index + 1}】${o.items[0].name} x${o.totalQuantity}`).join(' /');
 
     const totalDeposit = orders.reduce((sum, o) => sum + o.depositAmount, 0);
-    const uniqueGroups = Array.from(new Set(orders.map(o => o.groupName))).join('\n');
+    const groupNamesList = orders.map(o => o.groupName).join('\n');
+    const targetBankName = paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].name : `${cardlessBanks[selectedBankIdx].name} (無卡存款)`;
+    const last5Str = paymentMethod === 'transfer' ? (last5Digits || '【 請輸入後回傳 】') : '【 無卡存款無須填寫 】';
+    const cardlessNote = paymentMethod === 'cardless' ? '\n*（無卡請拍明細回傳）*' : '';
 
-    return `Kaguya訂購付款確認
---------------------
-♦️社群暱稱：${orders[0].customerPhone}
-♦️訂購商品系列：
-${uniqueGroups}
-♦️付款金額：$${totalDeposit.toLocaleString()}
-♦️您匯款到哪間銀行：【 請輸入後回傳 】
-♦️您的匯款帳號末五碼：【 請輸入後回傳 】
-*（無卡請拍明細回傳）*
----------------------
-已確認訂購商品與付款金額無誤！`;
+    return `Kaguya訂購付款確認\n--------------------\n♦️社群暱稱：${orders[0].customerPhone || '未知'}\n♦️訂購商品系列：\n${groupNamesList}\n♦️付款金額：$${totalDeposit.toLocaleString()}\n♦️您匯款到哪間銀行：${targetBankName}\n♦️您的匯款帳號末五碼：${last5Str}${cardlessNote}\n---------------------\n已確認訂購商品與付款金額無誤！`;
   };
 
-  const handleAction = () => {
-    const message = generateDetailMessage();
-    navigator.clipboard.writeText(message).then(() => {
-      setIsCopied(true);
-      setTimeout(() => {
-        if (targetUrl) window.open(targetUrl, '_blank');
-        setIsCopied(false);
-      }, 800);
-    });
+  const handleNext = () => {
+    if (isShipping) {
+      navigator.clipboard.writeText(generateDetailMessage()).then(() => {
+        setIsCopied(true); setTimeout(() => { if (targetUrl) window.open(targetUrl, '_blank'); setIsCopied(false); onClose(); }, 1000);
+      });
+    } else {
+      if (step < 3) setStep((s) => (s + 1) as 1 | 2 | 3);
+      else {
+        navigator.clipboard.writeText(generateDetailMessage()).then(() => {
+          setIsCopied(true); setTimeout(() => { if (targetUrl) window.open(targetUrl, '_blank'); setIsCopied(false); onClose(); }, 1000);
+        });
+      }
+    }
   };
+
+  const currentStepTitle = isShipping ? '確認出貨明細' : (step === 1 ? '確認商品與金額' : step === 2 ? '選擇付款方式與帳號' : '回報付款資訊');
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className={`bg-[#050505] rounded-3xl w-full max-w-md overflow-hidden relative border-2 ${themeBorder} ${themeShadow}`}>
-        
-        <button 
-          onClick={onClose} 
-          className={`absolute top-4 right-4 p-2 bg-black hover:${themeBg} rounded-full transition-colors z-10 border-2 border-gray-700 hover:${themeBorder} text-white hover:text-black`}
-        >
-          <X className="w-5 h-5 stroke-[3]" />
-        </button>
+    <div className="fixed inset-0 bg-[#4c59a1]/40 backdrop-blur-sm z-[100] flex flex-col items-center justify-center animate-fade-in p-4 md:p-8">
 
-        <div className={`bg-gradient-to-br ${themeGradient} p-6 text-white text-center relative overflow-hidden border-b-2 ${themeBorder}`}>
-          <div className="absolute inset-0 opacity-30" style={{backgroundImage: 'radial-gradient(circle, white 1.5px, transparent 1.5px)', backgroundSize: '12px 12px'}}></div>
-          <Sparkles className="absolute top-4 left-4 w-6 h-6 text-white/50 animate-pulse" />
-          
-          <h3 className="font-black text-2xl flex items-center justify-center gap-2 drop-shadow-md mb-1">
-            {isShipping ? <Truck size={28} /> : <MessageCircle size={28} />}
-            {isShipping ? '前往賣貨便' : '訂金結帳'}
-          </h3>
-          <p className="font-bold opacity-90 text-xs tracking-widest uppercase">
-            {isShipping ? 'Shipment Order' : 'PAYMENT CONFIRMATION'}
-          </p>
-        </div>
+      {/* 🎯 模態框主體：白底、無黑框、柔和陰影 */}
+      <div className="w-full max-w-md bg-white rounded-[32px] sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
-        <div className="p-6 bg-[#0a0a0a]">
-          <div className="bg-gray-900/40 rounded-2xl p-4 border border-gray-800 mb-6 max-h-60 overflow-y-auto custom-scrollbar">
-            <div className="flex justify-between items-end mb-4 border-b border-gray-700 pb-2">
-                <span className="text-gray-400 font-bold text-xs uppercase">確認項目</span>
-                <span className="bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded-full border border-gray-700">{orders.length} 筆</span>
-            </div>
-            
-            <div className="space-y-3">
-                {orders.map((order, index) => (
-                    <div key={index} className="flex justify-between items-center group">
-                        <span className="text-white font-bold text-sm truncate pr-4 group-hover:text-pink-300 transition-colors">{order.groupName}</span>
-                        <span className={`font-mono font-bold ${themeColor}`}>
-                            ${(isShipping ? order.balanceDue : order.depositAmount).toLocaleString()}
-                        </span>
-                    </div>
-                ))}
-            </div>
-
-            <div className="border-t border-gray-700 my-4"></div>
-
-            <div className="flex justify-between items-center">
-                <span className="text-gray-400 font-bold text-sm uppercase">應付總額</span>
-                <span className={`text-3xl font-black ${themeColor} drop-shadow-[0_0_10px_rgba(236,72,153,0.5)]`}>
-                    ${totalAmount.toLocaleString()}
-                </span>
-            </div>
-          </div>
-
-          <button
-            onClick={handleAction}
-            className={`w-full py-4 rounded-xl font-black text-base md:text-lg transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 border-2 ${
-                isShipping
-                ? 'bg-[#06C755] text-white border-[#06C755] hover:bg-[#05b54b]'
-                : 'bg-pink-500 text-white border-pink-500 hover:bg-pink-400'
-            }`}
-          >
-            {isCopied ? <CheckCircle className="w-6 h-6" /> : <Copy className="w-6 h-6" />}
-            {isCopied ? '已複製！正在跳轉...' : (isShipping ? '複製內容＆前往賣場' : '複製明細＆前往LINE付款')}
-            {!isCopied && <ArrowRight className="w-5 h-5" />}
+        {/* 🎯 Header (色塊分隔) */}
+        <div className="p-6 flex items-center justify-between relative shrink-0">
+          <button onClick={() => { if (step > 1 && !isShipping) setStep((s) => (s - 1) as 1 | 2 | 3); else onClose(); }} className="relative z-10 w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-full text-gray-500 active:scale-95 transition-all">
+            {step > 1 && !isShipping ? <ChevronLeft strokeWidth={2.5} size={20} /> : <X strokeWidth={2.5} size={20} />}
           </button>
-          
-          <p className="text-center text-gray-500 text-xs font-bold mt-3 animate-pulse">
-            {isShipping 
-              ? '請將訂單明細 複製到「您購買的商品與數量」的輸入欄呦'
-              : '[ 轉帳完成後請複製明細並填入末五碼貼給我們 ]'
-            }
-          </p>
+
+          <div className="text-center absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <h3 className="font-[900] text-lg text-black tracking-widest">
+              {currentStepTitle}
+            </h3>
+            {/* 柔和進度條 */}
+            {!isShipping && (
+              <div className="flex gap-1.5 mt-2">
+                {[1, 2, 3].map((s) => (
+                  <div key={s} className={`h-[4px] rounded-full transition-all duration-300 ${step === s ? 'w-6 bg-[#3ac0bf]' : 'w-4 bg-gray-200'}`} />
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="w-10"></div>
         </div>
+
+        {/* 🎯 滾動內容區 (✨已換成專屬粉紫滾輪) */}
+        <div className="flex-1 overflow-y-auto px-6 py-2 space-y-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#f8a3f4] [&::-webkit-scrollbar-thumb]:rounded-full">
+
+          {/* --- 步驟 1 --- */}
+          {(step === 1 || isShipping) && (
+            <>
+              <div className="bg-gray-50 rounded-[24px] p-6">
+                <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
+                  <span className="text-gray-400 font-[900] text-xs tracking-widest uppercase">訂單項目清單</span>
+                  <span className="bg-[#4c59a1] text-white text-[10px] px-3 py-1 rounded-full font-[900] tracking-widest">{orders.length} 筆</span>
+                </div>
+                <div className="space-y-3">
+                  {orders.map((order, index) => (
+                    // 🎯 色塊膠囊
+                    <div key={index} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm">
+                      <span className="text-black font-[900] text-sm truncate pl-1">{order.groupName}</span>
+                      <span className="font-[900] text-base text-[#f8a3f4] pr-1">
+                        ${(isShipping ? order.balanceDue : order.depositAmount).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-[#3ac0bf]/10 rounded-[24px] p-8 text-center">
+                <span className="text-[#3ac0bf] font-[900] text-sm tracking-widest uppercase block mb-2">應付總額</span>
+                <span className="text-5xl font-[900] text-[#f8a3f4] tracking-tighter">
+                  ${totalAmount.toLocaleString()}
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* --- 步驟 2 --- */}
+          {step === 2 && !isShipping && (
+            <div className="space-y-6">
+              <div className="flex gap-3 bg-gray-50 rounded-full p-1.5">
+                <button onClick={() => setPaymentMethod('transfer')} className={`flex-1 py-3 text-sm font-[900] rounded-full transition-all flex justify-center items-center gap-2 ${paymentMethod === 'transfer' ? 'bg-white text-[#3ac0bf] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
+                  <Building size={18} strokeWidth={2.5} /> 匯款
+                </button>
+                <button onClick={() => setPaymentMethod('cardless')} className={`flex-1 py-3 text-sm font-[900] rounded-full transition-all flex justify-center items-center gap-2 ${paymentMethod === 'cardless' ? 'bg-white text-[#3ac0bf] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
+                  <CreditCard size={18} strokeWidth={2.5} /> 無卡存款
+                </button>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-[24px] space-y-6">
+                <div>
+                  <label className="text-xs text-gray-400 font-[900] tracking-widest block mb-2">選擇匯入銀行</label>
+                  <div className="relative">
+                    <select value={selectedBankIdx} onChange={(e) => setSelectedBankIdx(Number(e.target.value))} className="w-full bg-white rounded-xl p-4 text-sm text-black font-[900] outline-none appearance-none cursor-pointer shadow-sm">
+                      {(paymentMethod === 'transfer' ? transferBanks : cardlessBanks).map((bank, idx) => (
+                        <option key={idx} value={idx}>{bank.name} ({bank.code})</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 font-[900] text-xs">▼</div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-400 font-[900] tracking-widest block mb-2">對應匯款帳號</label>
+                  <div className="bg-white rounded-xl p-5 flex flex-col gap-4 shadow-sm">
+                    <div className="text-xl font-[900] text-[#4c59a1] tracking-[0.1em] text-center">
+                      {paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].account : cardlessBanks[selectedBankIdx].account}
+                    </div>
+                    <button onClick={() => navigator.clipboard.writeText(paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].account : cardlessBanks[selectedBankIdx].account)} className="w-full py-3 bg-gray-100 text-gray-600 hover:bg-gray-200 font-[900] rounded-full active:scale-95 transition-all flex items-center justify-center gap-2">
+                      <Copy strokeWidth={2.5} size={16} /> 複製帳號
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- 步驟 3 --- */}
+          {step === 3 && !isShipping && (
+            <div className="space-y-6 pt-4">
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-[#3ac0bf]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="text-[#3ac0bf] w-8 h-8 stroke-[2.5px]" />
+                </div>
+                <h4 className="text-xl font-[900] text-black tracking-widest">回傳付款資訊</h4>
+                <p className="text-gray-400 font-[900] text-xs">一鍵複製明細，貼上官方 LINE 回傳就完成囉！</p>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-[24px]">
+                {paymentMethod === 'transfer' ? (
+                  <div className="space-y-4">
+                    <label className="text-xs text-gray-400 font-[900] tracking-widest block text-center">您的匯款帳號【末五碼】</label>
+                    <input type="text" maxLength={5} placeholder="例: 12345" value={last5Digits} onChange={(e) => setLast5Digits(e.target.value.replace(/\D/g, ''))} className="w-full bg-white rounded-xl p-4 text-2xl text-[#4c59a1] font-[900] outline-none tracking-[0.5em] text-center placeholder-gray-200 shadow-sm" />
+                  </div>
+                ) : (
+                  <div className="p-6 bg-white rounded-xl text-center space-y-3 shadow-sm">
+                    <Sparkles className="w-8 h-8 text-[#f8a3f4] mx-auto" />
+                    <p className="text-xs font-[900] text-gray-500 tracking-widest leading-loose">
+                      您選擇的是【無卡存款】<br />請拍下存款明細，並點選下方按鈕回傳！
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 🎯 Footer 按鈕區 (滿版大色塊無邊框) */}
+        <div className="p-6 shrink-0 bg-white">
+          <button
+            onClick={handleNext}
+            disabled={!isShipping && step === 3 && paymentMethod === 'transfer' && last5Digits.length < 5}
+            className={`w-full py-4 rounded-full font-[900] text-lg tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95
+              ${(!isShipping && step === 3 && paymentMethod === 'transfer' && last5Digits.length < 5)
+                ? 'opacity-50 bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-[#0090a7] text-white shadow-lg shadow-[#0090a7]/30 hover:bg-[#007b8f]'
+              }`}
+          >
+            {isCopied ? <CheckCircle className="w-5 h-5 animate-bounce" strokeWidth={2.5} /> : <ArrowRight className="w-5 h-5 stroke-[2.5px]" />}
+            {isCopied ? '已複製！跳轉中...' : (isShipping ? '前往賣場' : (step === 1 ? '確認無誤，前往付款' : (step === 2 ? '已完成付款，下一步' : '複製明細並回傳')))}
+          </button>
+        </div>
+
       </div>
     </div>
   );
