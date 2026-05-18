@@ -13,7 +13,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
-  source: string; 
+  source: string;
   customerName: string;
   customerPhone: string;
   groupName: string;
@@ -29,6 +29,9 @@ export interface Order {
   paymentMethod: string;
   createdAt: string;
   arrivalDate?: string;
+  domesticShipping?: number;        // 境內運費（已含在 productTotal 內，但獨立顯示給客人看）
+  internationalShipping?: number;   // 國際運費（加在尾款上）
+  notes?: string;                   // 備註（補充說明）
 }
 
 export interface Announcement {
@@ -47,7 +50,7 @@ export interface ColumnMapping {
   customerPhone: string;
   itemName: string;
   quantity: string;
-  productTotal: string; 
+  productTotal: string;
   depositAmount: string;
   balanceDue: string;
   isReconciled: string;
@@ -57,6 +60,9 @@ export interface ColumnMapping {
   shippingDate: string;
   paymentMethod: string;
   arrivalDate: string;
+  domesticShipping: string;
+  internationalShipping: string;
+  notes: string;
 }
 
 export interface VirtualAccountResponse {

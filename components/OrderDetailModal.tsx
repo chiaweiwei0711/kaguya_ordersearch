@@ -140,16 +140,38 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
             </div>
           </div>
 
+          {/* 備註區 (僅當有 notes 才顯示) */}
+          {order.notes && (
+            <div className="bg-[#fef9c3] border border-[#fde68a] rounded-[20px] p-4">
+              <p className="text-xs font-[900] text-[#92400e] mb-1.5 tracking-widest">📝 備註</p>
+              <p className="text-sm font-[700] text-[#78350f] whitespace-pre-wrap leading-relaxed">{order.notes}</p>
+            </div>
+          )}
+
           {/* 金額結算 (色塊) */}
           <div>
             <h4 className="text-xs font-[900] text-gray-400 mb-3 flex items-center gap-2 tracking-widest">
               <DollarSign className="w-4 h-4 text-[#3ac0bf] stroke-[3px]" /> 金額結算
             </h4>
             <div className="space-y-4 bg-gray-50 p-6 rounded-[24px]">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500 text-sm font-[900] tracking-widest">商品總額</span>
-                <span className="font-[900] text-black">${order.productTotal.toLocaleString()}</span>
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 text-sm font-[900] tracking-widest">商品總額</span>
+                  <span className="font-[900] text-black">${order.productTotal.toLocaleString()}</span>
+                </div>
+                {order.domesticShipping && order.domesticShipping > 0 ? (
+                  <div className="flex justify-between items-center mt-1 pl-2">
+                    <span className="text-gray-400 text-xs font-[700]">└ 含每人平分境內運費</span>
+                    <span className="text-gray-400 text-xs font-[700]">${order.domesticShipping.toLocaleString()}</span>
+                  </div>
+                ) : null}
               </div>
+              {order.internationalShipping && order.internationalShipping > 0 ? (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 text-sm font-[900] tracking-widest">+ 國際運費</span>
+                  <span className="font-[900] text-black">+ ${order.internationalShipping.toLocaleString()}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between items-center">
                 <span className="text-gray-500 text-sm font-[900] tracking-widest">應付訂金</span>
                 <span className="font-[900] text-gray-400">- ${order.depositAmount.toLocaleString()}</span>

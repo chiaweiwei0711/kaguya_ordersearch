@@ -52,6 +52,9 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
       const totalQuantity = Number(row[map.quantity]) || 1;
       const paymentMethod = String(row[map.paymentMethod] || row["付款方式"] || "匯款");
       const arrivalDate = String(row[map.arrivalDate] || "");
+      const domesticShipping = parseMoney(row[map.domesticShipping]);
+      const internationalShipping = parseMoney(row[map.internationalShipping]);
+      const notes = String(row[map.notes] || "").trim();
 
       const item: OrderItem = {
         name: String(row[map.itemName] || "代購商品"),
@@ -67,6 +70,7 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
           groupName: String(row[map.groupName] || ""), items: [item], totalQuantity: totalQuantity, productTotal: productTotal,
           depositAmount: depositAmount, balanceDue: balanceDue, status: status, shippingStatus: String(row[map.shippingStatus] || ""),
           isShipped: isShipped, shippingDate: String(row[map.shippingDate] || ""), paymentMethod: paymentMethod, arrivalDate: arrivalDate,
+          domesticShipping: domesticShipping, internationalShipping: internationalShipping, notes: notes,
           createdAt: new Date().toISOString().split('T')[0]
         });
       }

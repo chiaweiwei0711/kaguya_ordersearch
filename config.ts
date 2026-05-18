@@ -19,14 +19,17 @@ export const APP_CONFIG = {
     itemName: "登記商品",
     quantity: "總數量",
     groupName: "團名",
-    productTotal: "商品金額",   
-    depositAmount: "匯款金額", 
-    balanceDue: "餘款",       
+    productTotal: "商品金額",
+    depositAmount: "匯款金額",
+    balanceDue: "餘款",
     isReconciled: "對賬",
     isShipped: "出貨",
     shippingStatus: "狀態",
     shippingDate: "出貨日期",
     paymentMethod: "付款方式",
-    arrivalDate: "抵台日期"
+    arrivalDate: "抵台日期",
+    domesticShipping: "境內運費",
+    internationalShipping: "國際運費",
+    notes: "備註"
   } as ColumnMapping
 };
