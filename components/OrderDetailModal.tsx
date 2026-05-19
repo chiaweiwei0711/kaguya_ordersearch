@@ -166,22 +166,24 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                   </div>
                 ) : null}
               </div>
-              {order.internationalShipping && order.internationalShipping > 0 ? (
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500 text-sm font-[900] tracking-widest">+ 國際運費</span>
-                  <span className="font-[900] text-black">+ ${order.internationalShipping.toLocaleString()}</span>
-                </div>
-              ) : null}
               <div className="flex justify-between items-center">
                 <span className="text-gray-500 text-sm font-[900] tracking-widest">應付訂金</span>
                 <span className="font-[900] text-gray-400">- ${order.depositAmount.toLocaleString()}</span>
               </div>
               <div className="border-t-2 border-dashed border-gray-200"></div>
-              <div className="flex justify-between items-center pt-2">
-                <span className="font-[900] text-black text-lg tracking-widest">應補尾款</span>
-                <span className={`font-[900] text-4xl tracking-tighter ${order.balanceDue > 0 ? 'text-[#f8a3f4]' : 'text-gray-300'}`}>
-                  ${order.balanceDue.toLocaleString()}
-                </span>
+              <div>
+                <div className="flex justify-between items-center pt-2">
+                  <span className="font-[900] text-black text-lg tracking-widest">應補尾款</span>
+                  <span className={`font-[900] text-4xl tracking-tighter ${order.balanceDue > 0 ? 'text-[#f8a3f4]' : 'text-gray-300'}`}>
+                    ${order.balanceDue.toLocaleString()}
+                  </span>
+                </div>
+                {order.internationalShipping && order.internationalShipping > 0 ? (
+                  <div className="flex justify-between items-center mt-1 pl-2">
+                    <span className="text-gray-400 text-xs font-[700]">└ 已含國際運費</span>
+                    <span className="text-gray-400 text-xs font-[700]">${order.internationalShipping.toLocaleString()}</span>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
