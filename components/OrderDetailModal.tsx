@@ -154,40 +154,44 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
               <DollarSign className="w-4 h-4 text-[#3ac0bf] stroke-[3px]" /> 金額結算
             </h4>
             <div className="space-y-4 bg-gray-50 p-6 rounded-[24px]">
+              {/* 商品金額（純商品） */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-500 text-sm font-[900] tracking-widest">商品金額</span>
                 <span className="font-[900] text-black">${(order.productTotal - (order.domesticShipping || 0)).toLocaleString()}</span>
               </div>
+              {/* 境內運費（若 > 0） */}
               {order.domesticShipping && order.domesticShipping > 0 ? (
-                <>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 text-sm font-[900] tracking-widest">境內運費</span>
-                    <span className="font-[900] text-black">+ ${order.domesticShipping.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center pl-2">
-                    <span className="text-gray-400 text-xs font-[700]">└ 商品合計</span>
-                    <span className="text-gray-400 text-xs font-[700]">${order.productTotal.toLocaleString()}</span>
-                  </div>
-                </>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 text-sm font-[900] tracking-widest">境內運費</span>
+                  <span className="font-[900] text-black">+ ${order.domesticShipping.toLocaleString()}</span>
+                </div>
               ) : null}
+              {/* 合計（有境內運才顯示）— 大、黑體 */}
+              {order.domesticShipping && order.domesticShipping > 0 ? (
+                <div className="flex justify-between items-center">
+                  <span className="text-black text-base font-[900] tracking-widest">合計</span>
+                  <span className="font-[900] text-black text-xl">${order.productTotal.toLocaleString()}</span>
+                </div>
+              ) : null}
+              <div className="border-t-2 border-dashed border-gray-200"></div>
+              {/* 應付訂金 — 跟尾款同格式 */}
               <div className="flex justify-between items-center">
-                <span className="text-gray-500 text-sm font-[900] tracking-widest">應付訂金</span>
-                <span className="font-[900] text-gray-400">- ${order.depositAmount.toLocaleString()}</span>
+                <span className="font-[900] text-black text-lg tracking-widest">應付訂金</span>
+                <span className="font-[900] text-gray-500 text-3xl tracking-tighter">- ${order.depositAmount.toLocaleString()}</span>
               </div>
+              {/* 國際運費（若 > 0）— 加在尾款 */}
               {order.internationalShipping && order.internationalShipping > 0 ? (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500 text-sm font-[900] tracking-widest">國際運費</span>
                   <span className="font-[900] text-black">+ ${order.internationalShipping.toLocaleString()}</span>
                 </div>
               ) : null}
-              <div className="border-t-2 border-dashed border-gray-200"></div>
-              <div>
-                <div className="flex justify-between items-center pt-2">
-                  <span className="font-[900] text-black text-lg tracking-widest">應補尾款</span>
-                  <span className={`font-[900] text-4xl tracking-tighter ${order.balanceDue > 0 ? 'text-[#f8a3f4]' : 'text-gray-300'}`}>
-                    ${order.balanceDue.toLocaleString()}
-                  </span>
-                </div>
+              {/* 應補尾款 */}
+              <div className="flex justify-between items-center">
+                <span className="font-[900] text-black text-lg tracking-widest">應補尾款</span>
+                <span className={`font-[900] text-3xl tracking-tighter ${order.balanceDue > 0 ? 'text-[#f8a3f4]' : 'text-gray-300'}`}>
+                  ${order.balanceDue.toLocaleString()}
+                </span>
               </div>
             </div>
           </div>
