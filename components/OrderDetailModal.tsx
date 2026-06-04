@@ -154,22 +154,32 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
               <DollarSign className="w-4 h-4 text-[#3ac0bf] stroke-[3px]" /> 金額結算
             </h4>
             <div className="space-y-4 bg-gray-50 p-6 rounded-[24px]">
-              <div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500 text-sm font-[900] tracking-widest">商品總額</span>
-                  <span className="font-[900] text-black">${order.productTotal.toLocaleString()}</span>
-                </div>
-                {order.domesticShipping && order.domesticShipping > 0 ? (
-                  <div className="flex justify-between items-center mt-1 pl-2">
-                    <span className="text-gray-400 text-xs font-[700]">└ 含每人平分境內運費</span>
-                    <span className="text-gray-400 text-xs font-[700]">${order.domesticShipping.toLocaleString()}</span>
-                  </div>
-                ) : null}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500 text-sm font-[900] tracking-widest">商品金額</span>
+                <span className="font-[900] text-black">${(order.productTotal - (order.domesticShipping || 0)).toLocaleString()}</span>
               </div>
+              {order.domesticShipping && order.domesticShipping > 0 ? (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 text-sm font-[900] tracking-widest">境內運費</span>
+                    <span className="font-[900] text-black">+ ${order.domesticShipping.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center pl-2">
+                    <span className="text-gray-400 text-xs font-[700]">└ 商品合計</span>
+                    <span className="text-gray-400 text-xs font-[700]">${order.productTotal.toLocaleString()}</span>
+                  </div>
+                </>
+              ) : null}
               <div className="flex justify-between items-center">
                 <span className="text-gray-500 text-sm font-[900] tracking-widest">應付訂金</span>
                 <span className="font-[900] text-gray-400">- ${order.depositAmount.toLocaleString()}</span>
               </div>
+              {order.internationalShipping && order.internationalShipping > 0 ? (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 text-sm font-[900] tracking-widest">國際運費</span>
+                  <span className="font-[900] text-black">+ ${order.internationalShipping.toLocaleString()}</span>
+                </div>
+              ) : null}
               <div className="border-t-2 border-dashed border-gray-200"></div>
               <div>
                 <div className="flex justify-between items-center pt-2">
@@ -178,12 +188,6 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                     ${order.balanceDue.toLocaleString()}
                   </span>
                 </div>
-                {order.internationalShipping && order.internationalShipping > 0 ? (
-                  <div className="flex justify-between items-center mt-1 pl-2">
-                    <span className="text-gray-400 text-xs font-[700]">└ 已含國際運費</span>
-                    <span className="text-gray-400 text-xs font-[700]">${order.internationalShipping.toLocaleString()}</span>
-                  </div>
-                ) : null}
               </div>
             </div>
           </div>
