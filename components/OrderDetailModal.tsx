@@ -174,23 +174,31 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                 </div>
               ) : null}
               <div className="border-t-2 border-dashed border-gray-200"></div>
-              {/* 應付訂金 — 跟尾款同格式 */}
+              {/* 應付訂金 — 青綠、無負號、大字 */}
               <div className="flex justify-between items-center">
                 <span className="font-[900] text-black text-lg tracking-widest">應付訂金</span>
-                <span className="font-[900] text-gray-500 text-3xl tracking-tighter">- ${order.depositAmount.toLocaleString()}</span>
+                <span className="font-[900] text-[#3ac0bf] text-3xl tracking-tighter">$ {order.depositAmount.toLocaleString()}</span>
               </div>
-              {/* 國際運費（若 > 0）— 加在尾款 */}
+              {/* 有國際運費時：原尾款（= 合計 − 應付訂金、前端自算）+ 國際運費 */}
               {order.internationalShipping && order.internationalShipping > 0 ? (
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500 text-sm font-[900] tracking-widest">國際運費</span>
-                  <span className="font-[900] text-black">+ ${order.internationalShipping.toLocaleString()}</span>
-                </div>
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 text-sm font-[900] tracking-widest">原尾款</span>
+                    <span className="font-[900] text-black">${(order.productTotal - order.depositAmount).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 text-sm font-[900] tracking-widest">國際運費</span>
+                    <span className="font-[900] text-black">+ ${order.internationalShipping.toLocaleString()}</span>
+                  </div>
+                </>
               ) : null}
-              {/* 應補尾款 */}
+              {/* 總尾款 / 尾款 — 粉、大字 */}
               <div className="flex justify-between items-center">
-                <span className="font-[900] text-black text-lg tracking-widest">應補尾款</span>
-                <span className={`font-[900] text-3xl tracking-tighter ${order.balanceDue > 0 ? 'text-[#f8a3f4]' : 'text-gray-300'}`}>
-                  ${order.balanceDue.toLocaleString()}
+                <span className="font-[900] text-black text-lg tracking-widest">
+                  {order.internationalShipping && order.internationalShipping > 0 ? '總尾款' : '尾款'}（抵台時賣貨便下單）
+                </span>
+                <span className={`font-[900] text-3xl tracking-tighter whitespace-nowrap ${order.balanceDue > 0 ? 'text-[#f8a3f4]' : 'text-gray-300'}`}>
+                  $ {order.balanceDue.toLocaleString()}
                 </span>
               </div>
             </div>
