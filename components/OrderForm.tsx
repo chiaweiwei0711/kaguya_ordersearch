@@ -69,8 +69,8 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
   // ── 送出成功 ──
   if (done) {
     return (
-      <div className="w-full max-w-lg mx-auto px-4">
-        <div className="bg-[#fff170] rounded-[40px] px-6 py-12 flex flex-col items-center text-center gap-4">
+      <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto flex items-center justify-center">
+        <div className="w-full max-w-lg mx-auto px-6 py-12 flex flex-col items-center text-center gap-4">
           <div className="text-6xl">✅</div>
           <h2 className="text-2xl font-[900] text-[#4c59a1]">訂單已送出！</h2>
           <p className="text-[#4c59a1] font-bold">共 {count} 件，預估 ${total}</p>
@@ -92,8 +92,8 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
   cart.forEach((it) => { (cartByType[it.type] = cartByType[it.type] || []).push(it); });
 
   return (
-    <div className="w-full max-w-lg mx-auto px-4">
-      <div className="bg-[#fff170] rounded-[40px] px-5 sm:px-7 py-7 relative">
+    <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto">
+      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-7 relative">
         {/* 返回 */}
         <button onClick={onBack} aria-label="返回" className="w-11 h-11 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shadow-md active:scale-90 transition mb-4">
           <ChevronLeft className="w-6 h-6 stroke-[3px]" />
