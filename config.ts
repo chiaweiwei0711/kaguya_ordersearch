@@ -2,8 +2,11 @@
 import { ColumnMapping } from "./types";
 
 export const APP_CONFIG = {
-  // 請確保這是您最新部署的 GAS 網址
-  API_URL: "https://script.google.com/macros/s/AKfycbzyWKTJDGviJrR5pBmcKSvn7ar2-FsYYuaElCUKWVOjmj5W-XvNq8G9hZgi6VrowKYx/exec", 
+  // 請確保這是您最新部署的 GAS 網址（查詢/公告/付款主後台）
+  API_URL: "https://script.google.com/macros/s/AKfycbzyWKTJDGviJrR5pBmcKSvn7ar2-FsYYuaElCUKWVOjmj5W-XvNq8G9hZgi6VrowKYx/exec",
+
+  // 開團訂購「收單」GAS — 獨立後台，與上面查詢系統完全分開（listTeams 給資料 / submitGroupOrder 收單）
+  ORDER_API_URL: "https://script.google.com/macros/s/AKfycbyCFFuLLX0KmD9QMhvbAYtcq4iC8HSaRQQSFxnfq6Pofstw8iBHTiTQ7cVwTxgmX_pOsg/exec",
 
   LINE_URL: "https://lin.ee/cfEklUi",
   LINE_COMMUNITY_URL: "https://line.me/ti/g2/RYAbF9YVD2z0vFRkvUjCtPCQFr9d_eyEtFq6qw",

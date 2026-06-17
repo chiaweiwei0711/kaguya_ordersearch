@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft } from 'lucide-react';
-import { Order, OrderStatus, Announcement } from './types';
+import { Order, OrderStatus, Announcement, GroupTeam, GroupProduct } from './types';
 import PaymentModal from './components/PaymentModal';
 import OrderDetailModal from './components/OrderDetailModal';
 import AdminDashboard from './components/AdminDashboard';
@@ -12,9 +12,12 @@ import { APP_CONFIG } from './config';
 // 👇 1. 引入極光
 import Aurora from './components/Aurora';
 import AboutSection from './components/AboutSection';
+import GroupOrderList from './components/GroupOrderList';
+import OrderForm from './components/OrderForm';
+import { fetchTeams } from './services/groupOrderService';
 
 // --- 類型定義 ---
-type MainView = 'query' | 'info' | 'about';
+type MainView = 'query' | 'info' | 'about' | 'order';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
 // --- 📅 倉儲倒數計算核心邏輯 (Soft Pop 無黑框撞色進化版) ---
@@ -301,6 +304,36 @@ const App: React.FC = () => {
   const [hasLikedNews, setHasLikedNews] = useState(false);
   const [isBouncing, setIsBouncing] = useState(false);
 
+  // ── 開團訂購 ──
+  const [teams, setTeams] = useState<GroupTeam[]>([]);
+  const [groupProducts, setGroupProducts] = useState<GroupProduct[]>([]);
+  const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
+  const [teamsLoading, setTeamsLoading] = useState(false);
+
+  // 載入時抓一次開團資料（首頁卡片＋列表共用）
+  useEffect(() => {
+    setTeamsLoading(true);
+    fetchTeams()
+      .then(({ teams, products }) => { setTeams(teams); setGroupProducts(products); })
+      .finally(() => setTeamsLoading(false));
+  }, []);
+
+  // hash 路由：#/order = 列表、#/order/<團代號> = 填單（支援外部直接連結）
+  useEffect(() => {
+    const applyHash = () => {
+      const m = window.location.hash.match(/^#\/order(?:\/([^/?]+))?/);
+      if (m) { setMainView('order'); setSelectedTeamCode(m[1] ? decodeURIComponent(m[1]) : null); }
+      else { setMainView((mv) => (mv === 'order' ? 'query' : mv)); setSelectedTeamCode(null); }
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, []);
+
+  const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); window.location.hash = '#/order'; window.scrollTo(0, 0); };
+  const goOrderTeam = (code: string) => { setSelectedTeamCode(code); window.location.hash = '#/order/' + code; window.scrollTo(0, 0); };
+  const exitOrderToQuery = () => { setSelectedTeamCode(null); setMainView('query'); setHasSearched(false); if (window.location.hash) window.location.hash = ''; window.scrollTo(0, 0); };
+
   useEffect(() => {
     if (selectedNews) {
       // 點進公告時，只讀取表單傳來的真實數字，絕對不查手機記憶！
@@ -521,7 +554,7 @@ const App: React.FC = () => {
       )}
       {isLoading && <LoadingOverlay />}
       {/* 🎯 2. 左上角 MENU 按鈕 (💡 聽老闆的：只有在「未搜尋」的首頁才顯示，不擋路！) */}
-      {!hasSearched && (
+      {!hasSearched && mainView !== 'order' && (
         <button
           onClick={() => setIsMenuOpen(true)}
           className="fixed top-6 left-6 z-40 bg-[#3ac0bf] border-2 border-[#3be4d6] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-transform active:scale-95 hover:bg-[#34adab]"
@@ -541,7 +574,8 @@ const App: React.FC = () => {
           </button>
 
           <div className="flex flex-col items-center gap-10 text-[#4c59a1] font-[900] text-4xl tracking-widest">
-            <button onClick={() => { setMainView('query'); setHasSearched(false); setIsMenuOpen(false); window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">訂單查詢</button>
+            <button onClick={() => { setMainView('query'); setHasSearched(false); setIsMenuOpen(false); if (window.location.hash) window.location.hash = ''; window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">訂單查詢</button>
+            <button onClick={goOrderList} className="hover:scale-110 active:scale-95 transition-transform">開團訂購</button>
             {/* 🎯 錨點：滑動到首頁 NEWS 區塊 */}
             <button onClick={() => {
               setMainView('query');
@@ -607,6 +641,9 @@ const App: React.FC = () => {
 
                   {/* 第二屏：NEWS 與 SNS 區塊 */}
                   <div className="w-full space-y-10 flex flex-col items-center pt-10">
+                    {teams.length > 0 && (
+                      <GroupOrderList teams={teams} preview onSelect={goOrderTeam} onMore={goOrderList} />
+                    )}
                     <div id="news-section" className="w-full max-w-lg bg-[#ffaefe] rounded-[40px] px-6 py-10 flex flex-col items-center">
                       <h2 className="text-[#4c59a1] font-[900] text-4xl mb-6 tracking-widest">NEWS</h2>
                       <div className="w-full space-y-4 text-[#4c59a1] font-[900] text-base md:text-lg">
@@ -933,9 +970,18 @@ const App: React.FC = () => {
             <div className="flex flex-col">
               <InfoHub news={news} onSelectNews={setSelectedNews} onOpenAllNews={() => setIsAllNewsOpen(true)} />
             </div>
-          ) : (
+          ) : mainView === 'about' ? (
             <div className="flex flex-col pt-8">
               <AboutSection />
+            </div>
+          ) : (
+            <div className="flex flex-col w-full">
+              {(() => {
+                const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
+                return t
+                  ? <OrderForm team={t} products={groupProducts.filter(p => p.team === t.code)} onBack={goOrderList} onGoQuery={exitOrderToQuery} />
+                  : <GroupOrderList teams={teams} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} />;
+              })()}
             </div>
           )}
         </div>

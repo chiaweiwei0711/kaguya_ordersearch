@@ -43,6 +43,34 @@ export interface Announcement {
   isImportant?: boolean;
 }
 
+// --- 開團訂購（與查詢系統獨立，資料來自收單 GAS 的 開團表/開團商品 分頁）---
+export interface GroupTeam {
+  code: string;      // 團代號（網址用，如 myha3）
+  name: string;      // 團名
+  status: string;    // 開團中 / 已關閉
+  closeAt: string;   // 結單時間（ISO 字串）
+  openAt?: string;   // 開團日期
+  shipInfo?: string; // 發貨
+  note?: string;     // 備註
+}
+
+export interface GroupProduct {
+  team: string;        // 團代號
+  category: string;    // 類別（立牌/貼紙/吊飾…）
+  no: number | string; // 編號
+  name: string;        // 品名
+  img: string;         // 圖URL
+  price: number;       // 價格
+  star?: boolean;      // ★款
+}
+
+export interface GroupCartItem {
+  type: string;   // 類別
+  label: string;  // 編號＋品名
+  qty: number;
+  price: number;
+}
+
 
 export interface ColumnMapping {
   id: string;
