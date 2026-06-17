@@ -74,7 +74,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
           <div className="text-6xl">✅</div>
           <h2 className="text-2xl font-[900] text-[#4c59a1]">訂單已送出！</h2>
           <p className="text-[#4c59a1] font-[900] text-lg">共 {count} 件　預估 ${total} 元</p>
-          <p className="text-[#4c59a1]/75 text-xs font-bold leading-relaxed max-w-xs">未包涵可能需要二補的國際運費金額，實際以結單後訂單查詢狀態顯示為主！</p>
+          <p className="text-[#4c59a1]/75 text-xs font-bold leading-relaxed max-w-xs">本金額未包含可能需要二補的國際運費，實際金額以結單後訂單狀態查詢顯示為主！</p>
           <div className="bg-white text-[#4c59a1] font-bold rounded-2xl px-5 py-3 max-w-sm text-sm leading-relaxed shadow-sm">
             ⚠️ 結單並按讚留言後才會查詢到訂單！請記得去貼文留言「已填單」！
           </div>
