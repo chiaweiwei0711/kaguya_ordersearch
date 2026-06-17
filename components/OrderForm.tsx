@@ -60,7 +60,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
       setShowConfirm(false);
       setDone(true);
     } catch {
-      alert("送出失敗，請再試一次 🙏");
+      alert("送出失敗，請再試一次");
     } finally {
       setSubmitting(false);
     }

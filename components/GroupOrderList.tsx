@@ -36,8 +36,8 @@ const GroupOrderList: React.FC<Props> = ({ teams, onSelect, loading, preview, on
         {preview ? "開團訂購表" : "訂購填單專區"}
       </h2>
 
-      {loading && <p className="text-center text-[#4c59a1]/60 font-bold py-8">讀取中… ☁️</p>}
-      {!loading && shown.length === 0 && <p className="text-center text-[#4c59a1]/70 font-bold py-8">目前沒有開團 🥲</p>}
+      {loading && <p className="text-center text-[#4c59a1]/60 font-bold py-8">讀取中…</p>}
+      {!loading && shown.length === 0 && <p className="text-center text-[#4c59a1]/70 font-bold py-8">目前沒有開團</p>}
 
       <div className="space-y-3">
         {shown.map((t) => {
