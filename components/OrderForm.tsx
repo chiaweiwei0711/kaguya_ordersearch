@@ -73,16 +73,12 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
         <div className="w-full max-w-lg mx-auto px-6 py-12 flex flex-col items-center text-center gap-4">
           <div className="text-6xl">✅</div>
           <h2 className="text-2xl font-[900] text-[#4c59a1]">訂單已送出！</h2>
-          <p className="text-[#4c59a1] font-bold">共 {count} 件，預估 ${total}</p>
-          <div className="bg-[#fff170] text-[#4c59a1] font-bold rounded-2xl px-5 py-3 max-w-sm text-sm leading-relaxed">
-            ⚠️ 送出完成後，請務必至留言區回覆「已填單」！未回覆已填單者不會計算訂購！！
+          <p className="text-[#4c59a1] font-[900] text-lg">共 {count} 件　預估 ${total} 元</p>
+          <p className="text-[#4c59a1]/75 text-xs font-bold leading-relaxed max-w-xs">未包涵可能需要二補的國際運費金額，實際以結單後訂單查詢狀態顯示為主！</p>
+          <div className="bg-white text-[#4c59a1] font-bold rounded-2xl px-5 py-3 max-w-sm text-sm leading-relaxed shadow-sm">
+            ⚠️ 結單並按讚留言後才會查詢到訂單！請記得去貼文留言「已填單」！
           </div>
-          <div className="flex gap-3 mt-2 flex-wrap justify-center">
-            {onGoQuery && (
-              <button onClick={onGoQuery} className="bg-[#3ac0bf] text-white font-[900] px-6 py-3 rounded-full active:scale-95 transition">查詢我的訂單</button>
-            )}
-            <button onClick={onBack} className="bg-white text-[#4c59a1] border-2 border-[#3ac0bf] font-[900] px-6 py-3 rounded-full active:scale-95 transition">回開團列表</button>
-          </div>
+          <button onClick={onGoQuery ?? onBack} className="bg-[#3ac0bf] text-white font-[900] px-10 py-3 rounded-full active:scale-95 transition mt-2">回到首頁</button>
         </div>
       </div>
     );
