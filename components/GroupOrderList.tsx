@@ -49,7 +49,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, onSelect, loading, preview, on
               onClick={() => open && onSelect(t.code)}
               disabled={!open}
               className={`w-full text-left rounded-2xl px-5 py-4 min-h-[64px] flex items-center justify-between gap-3 transition ${
-                open ? "bg-white shadow-sm border-2 border-[#3ac0bf] active:scale-[0.98]" : "bg-gray-100 border-2 border-transparent opacity-70 cursor-default"
+                open ? "bg-white shadow-sm border-2 border-transparent active:scale-[0.98]" : "bg-gray-100 border-2 border-transparent opacity-70 cursor-default"
               }`}
             >
               <div className="min-w-0">
