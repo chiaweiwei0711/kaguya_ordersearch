@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ZoomIn, X } from "lucide-react";
 import { GroupTeam, GroupProduct, GroupCartItem } from "../types";
 import { submitGroupOrder, daysLeft, fmtYMD } from "../services/groupOrderService";
 
@@ -17,6 +17,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [zoomP, setZoomP] = useState<GroupProduct | null>(null);
 
   const grouped = useMemo(() => {
     const m = new Map<string, { p: GroupProduct; idx: number }[]>();
@@ -146,6 +147,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
                         <div className="relative">
                           <img src={p.img} loading="lazy" onClick={() => setQ(idx, q >= 1 ? 0 : 1)} className="w-full aspect-square object-contain rounded-lg cursor-pointer bg-white" />
                           {p.star && <span className="absolute top-1 left-1 bg-[#f8a3f4] text-white text-[10px] font-black px-2 py-0.5 rounded-full">★款</span>}
+                          <button type="button" aria-label="看大圖" onClick={(e) => { e.stopPropagation(); setZoomP(p); }} className="absolute top-1 right-1 w-9 h-9 rounded-full bg-black/35 text-white flex items-center justify-center backdrop-blur-sm active:scale-90 transition"><ZoomIn size={16} /></button>
                         </div>
                         <div className="text-[13px] text-[#4c59a1] font-bold mt-1 leading-tight truncate">#{p.no} {p.name}</div>
                         {p.spec && <div className="text-[11px] text-[#4c59a1]/60 font-bold leading-tight truncate">{p.spec}</div>}
@@ -199,6 +201,24 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
             <div className="flex gap-3 mt-4">
               <button onClick={() => setShowConfirm(false)} disabled={submitting} className="flex-1 bg-white border-2 border-[#3ac0bf] text-[#4c59a1] font-[900] py-3 rounded-full">修改訂單</button>
               <button onClick={doSend} disabled={submitting} className="flex-1 bg-[#3ac0bf] text-white font-[900] py-3 rounded-full active:scale-95 transition">{submitting ? "送出中…" : "確認送出"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 看大圖 lightbox */}
+      {zoomP && (
+        <div onClick={() => setZoomP(null)} className="fixed inset-0 z-[110] bg-black/70 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-3xl w-full max-w-sm max-h-[90vh] overflow-y-auto">
+            <div className="relative">
+              <img src={zoomP.img} className="w-full max-h-[62vh] object-contain rounded-t-3xl bg-white" />
+              <button type="button" aria-label="關閉" onClick={() => setZoomP(null)} className="absolute top-2 right-2 w-9 h-9 rounded-full bg-black/45 text-white flex items-center justify-center active:scale-90 transition"><X size={18} /></button>
+              {zoomP.star && <span className="absolute top-2 left-2 bg-[#f8a3f4] text-white text-[11px] font-black px-2.5 py-1 rounded-full">★款</span>}
+            </div>
+            <div className="p-4">
+              <div className="font-[900] text-[#4c59a1] text-base leading-snug">#{zoomP.no} {zoomP.name}</div>
+              {zoomP.spec && <div className="text-sm text-[#4c59a1]/70 font-bold mt-1.5 leading-relaxed">{zoomP.spec}</div>}
+              <div className="text-[#4c59a1] font-[900] text-xl mt-2">${zoomP.price}</div>
             </div>
           </div>
         </div>
