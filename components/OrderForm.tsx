@@ -130,11 +130,11 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
           const catCount = list.reduce((s, x) => s + (qty[x.idx] || 0), 0);
           return (
             <div key={cat} className="mb-3 rounded-2xl overflow-hidden">
-              <button onClick={() => toggleCat(cat)} className="w-full flex items-center justify-between px-5 py-3.5 bg-[#3ac0bf] text-white font-[900] rounded-2xl">
-                <span>{cat}<span className="opacity-80 font-bold text-sm">（{list.length}）</span></span>
-                <span className="flex items-center gap-2">
-                  {catCount > 0 && <span className="bg-[#fff170] text-[#4c59a1] text-xs px-2 py-0.5 rounded-full">已選 {catCount}</span>}
-                  <span>{open ? "▼" : "▶"}</span>
+              <button onClick={() => toggleCat(cat)} className="w-full flex items-center justify-between gap-2 px-5 py-3.5 bg-[#3ac0bf] text-white font-[900] rounded-2xl">
+                <span className="shrink-0">{cat}<span className="opacity-80 font-bold text-sm">（{list.length}）</span></span>
+                <span className="flex items-center gap-2 ml-auto min-w-0">
+                  {catCount > 0 && <span className="bg-[#fff170] text-[#4c59a1] text-xs px-2 py-0.5 rounded-full shrink-0">已選 {catCount}</span>}
+                  <span className="shrink-0">{open ? "▼" : "▶"}</span>
                 </span>
               </button>
               {open && (
@@ -147,8 +147,9 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
                           <img src={p.img} loading="lazy" onClick={() => setQ(idx, q >= 1 ? 0 : 1)} className="w-full aspect-square object-contain rounded-lg cursor-pointer bg-white" />
                           {p.star && <span className="absolute top-1 left-1 bg-[#f8a3f4] text-white text-[10px] font-black px-2 py-0.5 rounded-full">★款</span>}
                         </div>
-                        <div className="text-[11px] text-[#4c59a1] font-bold mt-1 leading-tight truncate">#{p.no} {p.name}</div>
-                        <div className="text-[#4c59a1] font-[900] text-sm">${p.price}</div>
+                        <div className="text-[13px] text-[#4c59a1] font-bold mt-1 leading-tight truncate">#{p.no} {p.name}</div>
+                        {p.spec && <div className="text-[11px] text-[#4c59a1]/60 font-bold leading-tight truncate">{p.spec}</div>}
+                        <div className="text-[#4c59a1] font-[900] text-base">${p.price}</div>
                         <div className="flex items-center justify-between mt-1">
                           <button onClick={() => setQ(idx, q - 1)} className="w-7 h-7 rounded-full bg-[#e6e9ff] text-[#4c59a1] font-black">−</button>
                           <input value={q} onChange={(e) => setQ(idx, parseInt(e.target.value) || 0)} inputMode="numeric" className="w-9 text-center font-bold text-[#4c59a1] bg-transparent outline-none" />

@@ -13,11 +13,14 @@ interface Props {
 }
 
 const GroupOrderList: React.FC<Props> = ({ teams, onSelect, loading, preview, onMore, onBack }) => {
-  // 開團中優先，再依開團日期新→舊（最新團置頂）
-  const sorted = [...teams].sort((a, b) =>
-    (Number(isOpen(b)) - Number(isOpen(a))) ||
-    (new Date(b.openAt || 0).getTime() - new Date(a.openAt || 0).getTime())
-  );
+  // 開團中優先，再依上架順序（Sheet 列序，新團 append 在最下）新→舊（最新團置頂，同日也排得出先後）
+  const sorted = teams
+    .map((t, i) => ({ t, i }))
+    .sort((a, b) =>
+      (Number(isOpen(b.t)) - Number(isOpen(a.t))) ||
+      (b.i - a.i)
+    )
+    .map((x) => x.t);
   const shown = preview ? sorted.slice(0, 3) : sorted;
 
   const inner = (

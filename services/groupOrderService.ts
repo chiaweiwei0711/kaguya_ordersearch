@@ -35,6 +35,7 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
         img: String(it["圖URL"] ?? "").trim(),
         price: Number(it["價格"]) || 0,
         star: it["★"] === 1 || it["★"] === true || String(it["★"] ?? "").trim() === "1",
+        spec: String(it["規格"] ?? "").trim(),
       }))
       .filter((p: GroupProduct) => p.team && p.category);
 

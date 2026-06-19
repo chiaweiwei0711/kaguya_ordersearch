@@ -62,6 +62,7 @@ export interface GroupProduct {
   img: string;         // 圖URL
   price: number;       // 價格
   star?: boolean;      // ★款
+  spec?: string;       // 規格/類別備註（顯示在類別名右邊，自由寫）
 }
 
 export interface GroupCartItem {
