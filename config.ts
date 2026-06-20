@@ -6,7 +6,7 @@ export const APP_CONFIG = {
   API_URL: "https://script.google.com/macros/s/AKfycbzyWKTJDGviJrR5pBmcKSvn7ar2-FsYYuaElCUKWVOjmj5W-XvNq8G9hZgi6VrowKYx/exec",
 
   // 開團訂購「收單」GAS — 獨立後台，與上面查詢系統完全分開（listTeams 給資料 / submitGroupOrder 收單）
-  ORDER_API_URL: "https://script.google.com/macros/s/AKfycbyCFFuLLX0KmD9QMhvbAYtcq4iC8HSaRQQSFxnfq6Pofstw8iBHTiTQ7cVwTxgmX_pOsg/exec",
+  ORDER_API_URL: "https://script.google.com/macros/s/AKfycbyHf4PKNb8GHBJKSmBkQUKr-3Oc1lilpg55eNQFmHQJmKhONdGNFj7R0C3GyUfL1Y_u-Q/exec",
 
   LINE_URL: "https://lin.ee/cfEklUi",
   LINE_COMMUNITY_URL: "https://line.me/ti/g2/RYAbF9YVD2z0vFRkvUjCtPCQFr9d_eyEtFq6qw",
