@@ -72,6 +72,15 @@ export interface GroupCartItem {
   price: number;
 }
 
+// --- 已送出填單查詢（收單 GAS 的 ?type=mySubmissions&nick=... 回傳，一筆 = 一次送出）---
+export interface MySubmission {
+  team: string;             // 團代號
+  teamName: string;         // 團名
+  time?: string;            // 填單時間
+  items: GroupCartItem[];   // 該筆填的品項
+  subtotal: number;         // 預估小計
+}
+
 
 export interface ColumnMapping {
   id: string;

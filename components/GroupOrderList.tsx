@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronLeft, ArrowRight } from "lucide-react";
+import { ChevronLeft, ArrowRight, Search, ChevronRight } from "lucide-react";
 import { GroupTeam } from "../types";
 import { daysLeft, isOpen, fmtYMD } from "../services/groupOrderService";
 
@@ -10,9 +10,10 @@ interface Props {
   preview?: boolean;     // 首頁預覽模式（黃色圓角卡）
   onMore?: () => void;   // 預覽的 More 進完整列表
   onBack?: () => void;   // 列表頁返回首頁
+  onLookup?: () => void; // 列表頁開「填單明細查詢」
 }
 
-const GroupOrderList: React.FC<Props> = ({ teams, onSelect, loading, preview, onMore, onBack }) => {
+const GroupOrderList: React.FC<Props> = ({ teams, onSelect, loading, preview, onMore, onBack, onLookup }) => {
   // 開團中優先，再依上架順序（Sheet 列序，新團 append 在最下）新→舊（最新團置頂，同日也排得出先後）
   const sorted = teams
     .map((t, i) => ({ t, i }))
@@ -36,8 +37,22 @@ const GroupOrderList: React.FC<Props> = ({ teams, onSelect, loading, preview, on
       )}
 
       <h2 className={`text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-6 ${!preview && onBack ? "mt-8" : ""}`}>
-        {preview ? "開團訂購表" : "訂購填單專區"}
+        預購填單專區
       </h2>
+
+      {/* 列表頁專屬：填單明細查詢入口 */}
+      {!preview && onLookup && (
+        <button
+          onClick={onLookup}
+          className="w-full bg-white border-[3px] border-black rounded-full shadow-[4px_4px_0px_#000] px-3 py-2 flex items-center gap-3 mb-5 active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition-all"
+        >
+          <span className="w-9 h-9 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shrink-0">
+            <Search className="w-5 h-5 stroke-[3px]" />
+          </span>
+          <span className="flex-1 text-left text-[#4c59a1] font-[900] text-base tracking-widest">填單明細查詢</span>
+          <ChevronRight className="w-5 h-5 text-[#4c59a1] stroke-[3px] shrink-0" />
+        </button>
+      )}
 
       {loading && <p className="text-center text-[#4c59a1]/60 font-bold py-8">讀取中…</p>}
       {!loading && shown.length === 0 && <p className="text-center text-[#4c59a1]/70 font-bold py-8">目前沒有開團</p>}

@@ -1,5 +1,5 @@
 import { APP_CONFIG } from "../config";
-import { GroupTeam, GroupProduct, GroupCartItem } from "../types";
+import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
 
 export interface TeamsPayload {
   teams: GroupTeam[];
@@ -64,6 +64,44 @@ export const submitGroupOrder = async (
     }),
   });
   return res.json();
+};
+
+// 查「我已送出的填單」(收單 GAS 的 ?type=pre-orderform&nick=...)
+// 回傳一筆 = 一次送出；品項可能存成 JSON 字串或陣列，兩種都吃
+export const fetchMySubmissions = async (nick: string): Promise<MySubmission[]> => {
+  const q = nick.trim();
+  if (!q) return [];
+  const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=pre-orderform&nick=${encodeURIComponent(q)}`);
+  if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
+  const data = await res.json();
+  if (data.status !== "success" || !Array.isArray(data.submissions)) return [];
+
+  return (data.submissions || [])
+    .map((s: any): MySubmission => {
+      let items: GroupCartItem[] = [];
+      try {
+        const raw = s["品項"] ?? s.items;
+        const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (Array.isArray(parsed)) {
+          items = parsed.map((it: any) => ({
+            type: String(it.type ?? it["類別"] ?? "").trim(),
+            label: String(it.label ?? it["品名"] ?? "").trim(),
+            qty: Number(it.qty ?? it["數量"]) || 0,
+            price: Number(it.price ?? it["價格"]) || 0,
+          }));
+        }
+      } catch { items = []; }
+
+      const subtotal = items.reduce((sum, it) => sum + it.qty * it.price, 0);
+      return {
+        team: String(s["團代號"] ?? s.team ?? "").trim(),
+        teamName: String(s["團名"] ?? s.teamName ?? "").trim(),
+        time: String(s["時間"] ?? s.time ?? "").trim(),
+        items,
+        subtotal,
+      };
+    })
+    .filter((s: MySubmission) => s.team && s.items.length);
 };
 
 // 從結單時間算剩餘天數（向上取整；過期或無效回 0）

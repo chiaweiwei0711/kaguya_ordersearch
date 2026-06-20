@@ -14,6 +14,7 @@ import Aurora from './components/Aurora';
 import AboutSection from './components/AboutSection';
 import GroupOrderList from './components/GroupOrderList';
 import OrderForm from './components/OrderForm';
+import OrderLookup from './components/OrderLookup';
 import { fetchTeams } from './services/groupOrderService';
 
 // --- 類型定義 ---
@@ -309,6 +310,8 @@ const App: React.FC = () => {
   const [groupProducts, setGroupProducts] = useState<GroupProduct[]>([]);
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
   const [teamsLoading, setTeamsLoading] = useState(false);
+  const [showLookup, setShowLookup] = useState(false); // 填單明細查詢
+  const [lookupInitialNick, setLookupInitialNick] = useState(''); // 從填單成功頁帶入的暱稱
 
   // 載入時抓一次開團資料（首頁卡片＋列表共用）
   useEffect(() => {
@@ -575,7 +578,7 @@ const App: React.FC = () => {
 
           <div className="flex flex-col items-center gap-10 text-[#4c59a1] font-[900] text-4xl tracking-widest">
             <button onClick={() => { setMainView('query'); setHasSearched(false); setIsMenuOpen(false); if (window.location.hash) window.location.hash = ''; window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">訂單查詢</button>
-            <button onClick={goOrderList} className="hover:scale-110 active:scale-95 transition-transform">開團訂購</button>
+            <button onClick={goOrderList} className="hover:scale-110 active:scale-95 transition-transform">預購填單</button>
             {/* 🎯 錨點：滑動到首頁 NEWS 區塊 */}
             <button onClick={() => {
               setMainView('query');
@@ -979,8 +982,8 @@ const App: React.FC = () => {
               {(() => {
                 const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
                 return t
-                  ? <OrderForm team={t} products={groupProducts.filter(p => p.team === t.code)} onBack={goOrderList} onGoQuery={exitOrderToQuery} />
-                  : <GroupOrderList teams={teams} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} />;
+                  ? <OrderForm team={t} products={groupProducts.filter(p => p.team === t.code)} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} />
+                  : <GroupOrderList teams={teams} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} />;
               })()}
             </div>
           )}
@@ -1023,6 +1026,9 @@ const App: React.FC = () => {
       <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} orders={payingOrders} totalAmount={totalSelectedAmount} type={modalType} />
       <OrderDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} order={selectedDetailOrder} />
       <AdminDashboard isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} />
+
+      {/* 填單明細查詢（整頁黃底，覆蓋在預購填單專區上） */}
+      {showLookup && <OrderLookup teams={teams} initialNick={lookupInitialNick} onBack={() => setShowLookup(false)} />}
 
       {/* ========================================= */}
       {/* 🎯 圖 3：全螢幕 NEWS 列表頁 (取代舊的 info) */}

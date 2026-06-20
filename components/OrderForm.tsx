@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { ChevronLeft, ZoomIn, X } from "lucide-react";
+import { ChevronLeft, ZoomIn, X, CheckCircle2, AlertTriangle, Search } from "lucide-react";
 import { GroupTeam, GroupProduct, GroupCartItem } from "../types";
 import { submitGroupOrder, daysLeft, fmtYMD } from "../services/groupOrderService";
 
@@ -8,9 +8,10 @@ interface Props {
   products: GroupProduct[];
   onBack: () => void;
   onGoQuery?: () => void;
+  onPreview?: (nick: string) => void;   // 帶暱稱去「填單明細查詢」自動查
 }
 
-const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
+const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPreview }) => {
   const [nick, setNick] = useState("");
   const [qty, setQty] = useState<Record<number, number>>({});
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
@@ -72,14 +73,22 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
     return (
       <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto flex items-center justify-center">
         <div className="w-full max-w-lg mx-auto px-6 py-12 flex flex-col items-center text-center gap-4">
-          <div className="text-6xl">✅</div>
-          <h2 className="text-2xl font-[900] text-[#4c59a1]">訂單已送出！</h2>
-          <p className="text-[#4c59a1] font-[900] text-lg">共 {count} 件　預估 ${total} 元</p>
-          <p className="text-[#4c59a1]/75 text-xs font-bold leading-relaxed max-w-xs">本金額未包含可能需要二補的國際運費，實際金額以結單後訂單狀態查詢顯示為主！</p>
-          <div className="bg-white text-[#4c59a1] font-bold rounded-2xl px-5 py-3 max-w-sm text-sm leading-relaxed shadow-sm">
-            ⚠️ 結單並按讚留言後才會查詢到訂單！請記得去貼文留言「已填單」！
+          <div className="w-20 h-20 rounded-full bg-white border-[3px] border-black shadow-[4px_4px_0px_#000] flex items-center justify-center text-[#3ac0bf]">
+            <CheckCircle2 className="w-11 h-11 stroke-[2.5px]" />
           </div>
-          <button onClick={onGoQuery ?? onBack} className="bg-[#3ac0bf] text-white font-[900] px-10 py-3 rounded-full active:scale-95 transition mt-2">回到首頁</button>
+          <h2 className="text-2xl font-[900] text-[#4c59a1]">填單已送出！</h2>
+          <p className="text-[#4c59a1] font-[900] text-lg">共 {count} 件　預估 ${total} 元</p>
+          <p className="text-[#4c59a1]/75 text-xs font-bold leading-relaxed max-w-xs">本金額未包含可能需要二補的國際運費或境內運費，實際金額以結單後訂單狀態查詢顯示為主！</p>
+          <div className="bg-white text-[#4c59a1] font-bold rounded-2xl px-5 py-3 max-w-sm text-sm leading-relaxed shadow-sm flex items-start gap-2 text-left">
+            <AlertTriangle className="w-5 h-5 shrink-0 text-[#f43f5e] stroke-[2.5px] mt-0.5" />
+            <span>結單並按讚留言後才會查詢到訂單！請記得去貼文留言「已填單」！</span>
+          </div>
+          <div className="flex gap-3 mt-2">
+            <button onClick={() => onPreview?.(nick.trim())} className="bg-white border-[3px] border-black text-[#4c59a1] font-[900] px-5 py-3 rounded-full shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition flex items-center gap-2">
+              <Search className="w-4 h-4 stroke-[3px]" /> 填單明細查詢
+            </button>
+            <button onClick={onGoQuery ?? onBack} className="bg-[#3ac0bf] text-white font-[900] px-7 py-3 rounded-full active:scale-95 transition">回到首頁</button>
+          </div>
         </div>
       </div>
     );
@@ -171,7 +180,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
           <span className="font-[900] text-[#4c59a1]">已選 {count} 件　約 ${total}</span>
           <div className="flex gap-2">
             <button onClick={clearAll} className="bg-gray-300 text-white font-[900] px-4 py-2.5 rounded-full active:scale-95 transition">清空</button>
-            <button onClick={openConfirm} className="bg-[#3ac0bf] text-white font-[900] px-5 py-2.5 rounded-full active:scale-95 transition">送出訂單</button>
+            <button onClick={openConfirm} className="bg-[#3ac0bf] text-white font-[900] px-5 py-2.5 rounded-full active:scale-95 transition">送出填單</button>
           </div>
         </div>
       </div>
@@ -180,7 +189,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
       {showConfirm && (
         <div className="fixed inset-0 z-[100] bg-black/40 flex items-end sm:items-center justify-center p-3">
           <div className="bg-white rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto p-5">
-            <div className="font-[900] text-[#4c59a1] text-lg mb-1">確認訂單</div>
+            <div className="font-[900] text-[#4c59a1] text-lg mb-1">確認填單</div>
             <div className="text-sm text-gray-500 mb-3">暱稱：{nick}</div>
             {Object.entries(cartByType).map(([t, items]) => (
               <div key={t} className="mb-3">
@@ -197,7 +206,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery }) => {
               <span>總金額</span><span>${total}</span>
             </div>
             <div className="text-[11px] text-gray-400 mt-1">實際金額以訂購完成之查詢表確認為準</div>
-            <div className="bg-white border-2 border-[#f43f5e] text-[#f43f5e] font-bold text-xs rounded-xl px-3 py-2.5 mt-3 leading-relaxed">⚠️ 送出完成後，請務必至留言區回覆「已填單」！未回覆已填單者不會計算訂購！！</div>
+            <div className="bg-white border-2 border-[#f43f5e] text-[#f43f5e] font-bold text-xs rounded-xl px-3 py-2.5 mt-3 leading-relaxed flex items-start gap-2"><AlertTriangle className="w-4 h-4 shrink-0 stroke-[2.5px] mt-0.5" /><span>送出完成後，請務必至留言區回覆「已填單」！未回覆已填單者不會計算訂購！！</span></div>
             <div className="flex gap-3 mt-4">
               <button onClick={() => setShowConfirm(false)} disabled={submitting} className="flex-1 bg-white border-2 border-[#3ac0bf] text-[#4c59a1] font-[900] py-3 rounded-full">修改訂單</button>
               <button onClick={doSend} disabled={submitting} className="flex-1 bg-[#3ac0bf] text-white font-[900] py-3 rounded-full active:scale-95 transition">{submitting ? "送出中…" : "確認送出"}</button>
