@@ -54,7 +54,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, onSelect, loading, preview, on
         </button>
       )}
 
-      {loading && <p className="text-center text-[#4c59a1]/60 font-bold py-8">讀取中…</p>}
+      {loading && <p className="text-center text-[#4c59a1]/60 font-bold py-8">載入中…</p>}
       {!loading && shown.length === 0 && <p className="text-center text-[#4c59a1]/70 font-bold py-8">目前沒有開團</p>}
 
       <div className="space-y-3">
@@ -64,10 +64,9 @@ const GroupOrderList: React.FC<Props> = ({ teams, onSelect, loading, preview, on
           return (
             <button
               key={t.code}
-              onClick={() => open && onSelect(t.code)}
-              disabled={!open}
-              className={`w-full text-left rounded-2xl px-5 py-4 min-h-[64px] flex items-center justify-between gap-3 transition ${
-                open ? "bg-white shadow-sm border-2 border-transparent active:scale-[0.98]" : "bg-gray-100 border-2 border-transparent opacity-70 cursor-default"
+              onClick={() => onSelect(t.code)}
+              className={`w-full text-left rounded-2xl px-5 py-4 min-h-[64px] flex items-center justify-between gap-3 transition-all ${
+                open ? "bg-white shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none border-2 border-transparent" : "bg-gray-100 border-2 border-transparent opacity-80 active:scale-[0.98]"
               }`}
             >
               <div className="min-w-0">

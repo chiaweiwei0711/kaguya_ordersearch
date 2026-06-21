@@ -86,7 +86,7 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
         <label htmlFor="lookup-nick" className="block text-[#4c59a1] font-[900] text-sm mb-2 tracking-widest">
           輸入您的社群暱稱
         </label>
-        <div className="bg-white rounded-full p-1.5 flex items-center gap-2 shadow-[6px_6px_0px_#000] border-[3px] border-black">
+        <div className="bg-white rounded-full p-1.5 flex items-center gap-2 shadow-[4px_4px_0px_#000] border-[3px] border-black">
           <Search className="ml-3 text-[#f8a3f4] w-6 h-6 stroke-[3px] shrink-0" />
           <input
             id="lookup-nick"

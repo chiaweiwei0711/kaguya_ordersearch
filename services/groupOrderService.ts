@@ -113,8 +113,16 @@ export const daysLeft = (closeAt: string): number => {
   return diff <= 0 ? 0 : Math.ceil(diff / 86400000);
 };
 
-export const isOpen = (team: GroupTeam): boolean =>
-  team.status !== "已關閉" && team.status !== "關閉" && team.status !== "結束";
+// 後台只有兩種狀態：開團中 / 已結單，且「已結單」是看結單時間到了沒自動算的。
+// 所以這裡也比照：狀態被標結單，或結單時間已過，都算結單。
+export const isOpen = (team: GroupTeam): boolean => {
+  if (["已關閉", "關閉", "結束", "已結單"].includes(team.status)) return false;
+  if (team.closeAt) {
+    const end = new Date(team.closeAt).getTime();
+    if (!isNaN(end) && end <= Date.now()) return false; // 結單時間到了就自動結單
+  }
+  return true;
+};
 
 // 日期格式化成 M/D（吃 ISO 或一般日期字串；無法解析就原樣回傳）
 export const fmtMD = (s?: string): string => {

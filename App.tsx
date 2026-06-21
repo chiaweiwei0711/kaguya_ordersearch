@@ -13,12 +13,13 @@ import { APP_CONFIG } from './config';
 import Aurora from './components/Aurora';
 import AboutSection from './components/AboutSection';
 import GroupOrderList from './components/GroupOrderList';
+import FaqSection from './components/FaqSection';
 import OrderForm from './components/OrderForm';
 import OrderLookup from './components/OrderLookup';
 import { fetchTeams } from './services/groupOrderService';
 
 // --- 類型定義 ---
-type MainView = 'query' | 'info' | 'about' | 'order';
+type MainView = 'query' | 'info' | 'about' | 'order' | 'faq';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
 // --- 📅 倉儲倒數計算核心邏輯 (Soft Pop 無黑框撞色進化版) ---
@@ -309,7 +310,7 @@ const App: React.FC = () => {
   const [teams, setTeams] = useState<GroupTeam[]>([]);
   const [groupProducts, setGroupProducts] = useState<GroupProduct[]>([]);
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
-  const [teamsLoading, setTeamsLoading] = useState(false);
+  const [teamsLoading, setTeamsLoading] = useState(true);
   const [showLookup, setShowLookup] = useState(false); // 填單明細查詢
   const [lookupInitialNick, setLookupInitialNick] = useState(''); // 從填單成功頁帶入的暱稱
 
@@ -557,7 +558,7 @@ const App: React.FC = () => {
       )}
       {isLoading && <LoadingOverlay />}
       {/* 🎯 2. 左上角 MENU 按鈕 (💡 聽老闆的：只有在「未搜尋」的首頁才顯示，不擋路！) */}
-      {!hasSearched && mainView !== 'order' && (
+      {!hasSearched && mainView !== 'order' && mainView !== 'faq' && mainView !== 'about' && (
         <button
           onClick={() => setIsMenuOpen(true)}
           className="fixed top-6 left-6 z-40 bg-[#3ac0bf] border-2 border-[#3be4d6] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-transform active:scale-95 hover:bg-[#34adab]"
@@ -594,6 +595,7 @@ const App: React.FC = () => {
               setTimeout(() => document.getElementById('sns-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
             }} className="hover:scale-110 active:scale-95 transition-transform">連結專區</button>
             <button onClick={() => { setMainView('about'); setIsMenuOpen(false); }} className="hover:scale-110 active:scale-95 transition-transform">關於我們</button>
+            <button onClick={() => { setMainView('faq'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">常見問題</button>
           </div>
         </div>
       )}
@@ -644,8 +646,8 @@ const App: React.FC = () => {
 
                   {/* 第二屏：NEWS 與 SNS 區塊 */}
                   <div className="w-full space-y-10 flex flex-col items-center pt-10">
-                    {teams.length > 0 && (
-                      <GroupOrderList teams={teams} preview onSelect={goOrderTeam} onMore={goOrderList} />
+                    {(teamsLoading || teams.length > 0) && (
+                      <GroupOrderList teams={teams} preview loading={teamsLoading} onSelect={goOrderTeam} onMore={goOrderList} />
                     )}
                     <div id="news-section" className="w-full max-w-lg bg-[#ffaefe] rounded-[40px] px-6 py-10 flex flex-col items-center">
                       <h2 className="text-[#4c59a1] font-[900] text-4xl mb-6 tracking-widest">NEWS</h2>
@@ -660,7 +662,7 @@ const App: React.FC = () => {
                             <span className="shrink-0">{item.date}</span>
                           </div>
                         ))}
-                        {news.length === 0 && <p className="text-center opacity-70">公告讀取中...</p>}
+                        {news.length === 0 && <p className="text-center opacity-70">載入中…</p>}
                       </div>
                       {/* 🎯 點擊 More 進入全新粉紅列表頁面 */}
                       <button onClick={() => { setMainView('info'); window.scrollTo(0, 0); }} className="mt-8 ml-auto text-[#4c59a1] font-[900] text-lg flex items-center border-b-[3px] border-[#4c59a1] hover:opacity-70 active:translate-x-2 transition-all">
@@ -877,7 +879,7 @@ const App: React.FC = () => {
                               key={order.id}
                               onClick={() => { setSelectedDetailOrder(order); setIsDetailModalOpen(true); }}
                               // 🎯 白色卡片 (#ffffff) + 細黑邊框
-                              className={`bg-[#ffffff] border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all shadow-[4px_4px_0px_#000] relative overflow-hidden flex items-start gap-4 ${isSelected ? '-translate-y-1 shadow-[6px_6px_0px_#3ac0bf] border-[#3ac0bf]' : 'hover:-translate-y-1 hover:shadow-[6px_6px_0px_#000]'}`}
+                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all shadow-[4px_4px_0px_#000] relative overflow-hidden flex items-start gap-4 ${isSelected ? '-translate-y-1 shadow-[6px_6px_0px_#3ac0bf] border-[#3ac0bf]' : 'hover:-translate-y-1 hover:shadow-[6px_6px_0px_#000] active:translate-y-0 active:shadow-[2px_2px_0px_#000]'}`}
                             >
                               {/* 圓形 Checkbox */}
                               {(activeTab === 'deposit' || activeTab === 'balance') && (
@@ -897,7 +899,7 @@ const App: React.FC = () => {
                                   {order.isShipped ? (
                                     <span className="bg-[#3ac0bf] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">已出貨</span>
                                   ) : (
-                                    <span className="bg-[#fe8c55] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未出貨</span>
+                                    <span className="bg-[#4c59a1] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未出貨</span>
                                   )}
 
                                   {/* 🎯 2: 白底標籤 (已抵台等) -> 亮黃底 `#fff170` 配黑字，無黑框 */}
@@ -930,7 +932,7 @@ const App: React.FC = () => {
                                   <div className="text-right flex flex-col items-end">
                                     <span className="text-[10px] text-gray-600 font-[900] mb-0.5">{activeTab === 'deposit' ? '應付訂金' : activeTab === 'balance' ? '應付餘款' : '商品總額'}</span>
                                     {/* 🎯 拔掉黑邊框的粉紫色金額 #f8a3f4 */}
-                                    <span className="text-4xl font-[900] text-[#f8a3f4] tracking-tighter leading-none">
+                                    <span className="text-4xl font-[900] text-[#4c59a1] tracking-tighter leading-none">
                                       ${(activeTab === 'deposit' ? order.depositAmount : activeTab === 'balance' ? order.balanceDue : order.productTotal).toLocaleString()}
                                     </span>
                                   </div>
@@ -974,8 +976,12 @@ const App: React.FC = () => {
               <InfoHub news={news} onSelectNews={setSelectedNews} onOpenAllNews={() => setIsAllNewsOpen(true)} />
             </div>
           ) : mainView === 'about' ? (
-            <div className="flex flex-col pt-8">
-              <AboutSection />
+            <div className="flex flex-col">
+              <AboutSection onBack={() => setMainView('query')} />
+            </div>
+          ) : mainView === 'faq' ? (
+            <div className="flex flex-col pt-4">
+              <FaqSection onBack={() => setMainView('query')} />
             </div>
           ) : (
             <div className="flex flex-col w-full">

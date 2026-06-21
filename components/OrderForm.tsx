@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { ChevronLeft, ZoomIn, X, CheckCircle2, AlertTriangle, Search } from "lucide-react";
+import { ChevronLeft, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info } from "lucide-react";
 import { GroupTeam, GroupProduct, GroupCartItem } from "../types";
-import { submitGroupOrder, daysLeft, fmtYMD } from "../services/groupOrderService";
+import { submitGroupOrder, daysLeft, fmtYMD, isOpen } from "../services/groupOrderService";
 
 interface Props {
   team: GroupTeam;
@@ -44,6 +44,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   const count = cart.reduce((s, i) => s + i.qty, 0);
   const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
   const left = daysLeft(team.closeAt);
+  const teamOpen = isOpen(team); // 結單後仍可點進來瀏覽，但不能填單／加購
 
   const openConfirm = () => {
     if (!nick.trim()) { alert("請先填社群暱稱"); return; }
@@ -113,16 +114,34 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
           </div>
           <div className="text-[#4c59a1] font-[900] text-xl leading-snug mt-0.5">{team.name}</div>
           <div className="flex flex-wrap items-center gap-2 mt-3">
-            {left > 0 && (
+            {teamOpen && left > 0 && (
               <span className="text-[11px] font-[900] text-[#f43f5e] border-2 border-[#f43f5e] bg-white px-2.5 py-0.5 rounded-full">剩餘{left}天結單</span>
             )}
             {team.shipInfo && (
               <span className="text-[11px] font-[900] text-[#f43f5e] border-2 border-[#f43f5e] bg-white px-2.5 py-0.5 rounded-full">預計{team.shipInfo}發貨</span>
             )}
-            <span className="text-sm font-[900] text-white bg-[#3ac0bf] px-4 py-1 rounded-full">開團中</span>
+            {teamOpen
+              ? <span className="text-sm font-[900] text-white bg-[#3ac0bf] px-4 py-1 rounded-full">開團中</span>
+              : <span className="text-sm font-[900] text-white bg-[#2b2b2b] px-4 py-1 rounded-full">已結單</span>}
           </div>
         </div>
 
+        {team.note && (
+          <div className="bg-white rounded-2xl px-5 py-4 mb-4 shadow-[0_4px_0px_rgba(0,0,0,0.10)]">
+            <div className="flex items-center gap-2 text-[#3ac0bf] font-[900] text-sm mb-1.5">
+              <Info className="w-4 h-4 stroke-[3px]" /> 團務備註・二補標準
+            </div>
+            <p className="text-[#4c59a1] font-bold text-sm leading-relaxed whitespace-pre-wrap">{team.note}</p>
+          </div>
+        )}
+
+        {!teamOpen && (
+          <div className="bg-gray-100 text-gray-600 font-[900] text-sm rounded-2xl px-4 py-3 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 shrink-0 stroke-[2.5px] text-[#f43f5e]" /> 本團已結單，以下僅供瀏覽，無法再下單囉
+          </div>
+        )}
+
+        {teamOpen && (<>
         {/* 1. 暱稱 */}
         <div className="font-[900] text-[#4c59a1] text-lg mb-1">1. 填寫您的社群暱稱<span className="text-[#f43f5e]">*</span></div>
         <input
@@ -132,9 +151,10 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
           className="w-full px-4 py-3 rounded-xl bg-white text-[#4c59a1] font-bold outline-none focus:ring-2 focus:ring-[#3ac0bf] placeholder-gray-400"
         />
         <p className="text-[#f43f5e] text-xs font-bold mt-2 mb-5">提醒：請務必確認已至官賴綁定社群暱稱！未綁定恕無法受理訂單！</p>
+        </>)}
 
         {/* 2. 喊單 */}
-        <div className="font-[900] text-[#4c59a1] text-lg mb-2">2. 喊單<span className="text-[#4c59a1]/60 text-sm font-bold">（點類別展開）</span></div>
+        <div className="font-[900] text-[#4c59a1] text-lg mb-2">{teamOpen ? "2. 喊單" : "商品一覽"}<span className="text-[#4c59a1]/60 text-sm font-bold">（點類別展開）</span></div>
         {grouped.map(([cat, list]) => {
           const open = !!openCats[cat];
           const catCount = list.reduce((s, x) => s + (qty[x.idx] || 0), 0);
@@ -147,42 +167,50 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
                   <span className="shrink-0">{open ? "▼" : "▶"}</span>
                 </span>
               </button>
-              {open && (
+              <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open ? "1fr" : "0fr" }}>
+                <div className="overflow-hidden">
                 <div className="grid grid-cols-2 gap-3 p-3 bg-white/70 rounded-b-2xl">
                   {list.map(({ p, idx }) => {
                     const q = qty[idx] || 0;
                     return (
                       <div key={idx} className={`rounded-xl p-2 border-2 transition ${q >= 1 ? "border-[#3ac0bf] bg-[#eafcfb]" : "border-transparent bg-white"}`}>
                         <div className="relative">
-                          <img src={p.img} loading="lazy" onClick={() => setQ(idx, q >= 1 ? 0 : 1)} className="w-full aspect-square object-contain rounded-lg cursor-pointer bg-white" />
+                          <img src={p.img} loading="lazy" onClick={() => teamOpen && setQ(idx, q >= 1 ? 0 : 1)} className={`w-full aspect-square object-contain rounded-lg bg-white ${teamOpen ? "cursor-pointer" : ""}`} />
                           {p.star && <span className="absolute top-1 left-1 bg-[#f8a3f4] text-white text-[10px] font-black px-2 py-0.5 rounded-full">★款</span>}
                           <button type="button" aria-label="看大圖" onClick={(e) => { e.stopPropagation(); setZoomP(p); }} className="absolute top-1 right-1 w-9 h-9 rounded-full bg-black/35 text-white flex items-center justify-center backdrop-blur-sm active:scale-90 transition"><ZoomIn size={16} /></button>
                         </div>
                         <div className="text-[13px] text-[#4c59a1] font-bold mt-1 leading-tight truncate">#{p.no} {p.name}</div>
                         {p.spec && <div className="text-[11px] text-[#4c59a1]/60 font-bold leading-tight truncate">{p.spec}</div>}
                         <div className="text-[#4c59a1] font-[900] text-base">${p.price}</div>
+                        {teamOpen && (
                         <div className="flex items-center justify-between mt-1">
                           <button onClick={() => setQ(idx, q - 1)} className="w-7 h-7 rounded-full bg-[#e6e9ff] text-[#4c59a1] font-black">−</button>
                           <input value={q} onChange={(e) => setQ(idx, parseInt(e.target.value) || 0)} inputMode="numeric" className="w-9 text-center font-bold text-[#4c59a1] bg-transparent outline-none" />
                           <button onClick={() => setQ(idx, q + 1)} className="w-7 h-7 rounded-full bg-[#3ac0bf] text-white font-black">＋</button>
                         </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
-              )}
+                </div>
+                </div>
             </div>
           );
         })}
 
         {/* 底部：已選 / 清空 / 送出 */}
-        <div className="flex items-center justify-between gap-3 mt-6 pt-4 border-t-2 border-[#4c59a1]/15">
-          <span className="font-[900] text-[#4c59a1]">已選 {count} 件　約 ${total}</span>
-          <div className="flex gap-2">
-            <button onClick={clearAll} className="bg-gray-300 text-white font-[900] px-4 py-2.5 rounded-full active:scale-95 transition">清空</button>
-            <button onClick={openConfirm} className="bg-[#3ac0bf] text-white font-[900] px-5 py-2.5 rounded-full active:scale-95 transition">送出填單</button>
+        {teamOpen ? (
+          <div className="flex items-center justify-between gap-3 mt-6 pt-4 border-t-2 border-[#4c59a1]/15">
+            <span className="font-[900] text-[#4c59a1]">已選 {count} 件　約 ${total}</span>
+            <div className="flex gap-2">
+              <button onClick={clearAll} className="bg-gray-300 text-white font-[900] px-4 py-2.5 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all">清空</button>
+              <button onClick={openConfirm} className="bg-[#3ac0bf] text-white font-[900] px-5 py-2.5 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none transition-all">送出填單</button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-6 pt-4 border-t-2 border-[#4c59a1]/15 text-center text-gray-500 font-[900]">本團已結單，無法再下單</div>
+        )}
       </div>
 
       {/* 確認 modal */}
