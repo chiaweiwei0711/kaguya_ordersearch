@@ -52,6 +52,7 @@ export interface GroupTeam {
   openAt?: string;   // 開團日期
   shipInfo?: string; // 發貨
   note?: string;     // 備註
+  purchased?: boolean; // 訂購完成（後台打單結案 → 填單查詢隱藏）
 }
 
 export interface GroupProduct {

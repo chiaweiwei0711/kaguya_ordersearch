@@ -23,6 +23,7 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
         openAt: String(t["開團日期"] ?? "").trim(),
         shipInfo: String(t["發貨"] ?? "").trim(),
         note: String(t["備註"] ?? "").trim(),
+        purchased: t["訂購完成"] === true || ["1", "true", "TRUE", "是", "✓", "v", "V"].includes(String(t["訂購完成"] ?? "").trim()),
       }))
       .filter((t: GroupTeam) => t.code);
 

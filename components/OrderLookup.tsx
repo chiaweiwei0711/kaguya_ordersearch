@@ -16,33 +16,36 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
   const [error, setError] = useState(false);
   const [results, setResults] = useState<MySubmission[]>([]);
 
-  // 只顯示「尚未結單」團的填單（已結單者已變訂單，請走訂單查詢）
-  const openCodes = useMemo(
-    () => new Set(teams.filter(isOpen).map((t) => t.code)),
-    [teams]
-  );
+  // 開團中（可改預覽）/ 已結單（唯讀，待訂購完成）/ 訂購完成（隱藏，請走訂單查詢）
+  const openCodes = useMemo(() => new Set(teams.filter(isOpen).map((t) => t.code)), [teams]);
+  const purchasedCodes = useMemo(() => new Set(teams.filter((t) => t.purchased).map((t) => t.code)), [teams]);
   const teamNameByCode = useMemo(() => {
     const m = new Map<string, string>();
     teams.forEach((t) => m.set(t.code, t.name));
     return m;
   }, [teams]);
 
-  const visible = useMemo(
-    () =>
-      results
-        .filter((s) => openCodes.has(s.team))
-        .map((s) => ({ ...s, teamName: s.teamName || teamNameByCode.get(s.team) || s.team })),
+  const enrich = (s: MySubmission) => ({ ...s, teamName: s.teamName || teamNameByCode.get(s.team) || s.team });
+
+  // 開團中：尚未結單
+  const openSubs = useMemo(
+    () => results.filter((s) => openCodes.has(s.team)).map(enrich),
     [results, openCodes, teamNameByCode]
+  );
+  // 已結單但尚未「訂購完成」：保留顯示（唯讀）
+  const closedSubs = useMemo(
+    () => results.filter((s) => !openCodes.has(s.team) && !purchasedCodes.has(s.team)).map(enrich),
+    [results, openCodes, purchasedCodes, teamNameByCode]
   );
 
   // 同一團填過幾次（提醒重複填單）
   const teamCounts = useMemo(() => {
     const m = new Map<string, number>();
-    visible.forEach((s) => m.set(s.team, (m.get(s.team) || 0) + 1));
+    [...openSubs, ...closedSubs].forEach((s) => m.set(s.team, (m.get(s.team) || 0) + 1));
     return m;
-  }, [visible]);
+  }, [openSubs, closedSubs]);
 
-  const grandTotal = useMemo(() => visible.reduce((sum, s) => sum + s.subtotal, 0), [visible]);
+  const total = openSubs.length + closedSubs.length;
 
   const doSearch = async (override?: string) => {
     const q = (override ?? nick).trim();
@@ -69,6 +72,38 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
   useEffect(() => {
     if (initialNick && initialNick.trim()) { setNick(initialNick); doSearch(initialNick); }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 單張填單卡（badge 依分區不同）
+  const renderSub = (s: ReturnType<typeof enrich>, idx: number, badge: { text: string; className: string }) => (
+    <div key={`${s.team}-${idx}`} className="bg-white rounded-2xl px-5 py-4">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-[#4c59a1] font-[900] text-base leading-snug">{s.teamName}</div>
+          {s.time && <div className="text-[#4c59a1]/55 font-bold text-xs mt-1">填單時間 {fmtYMD(s.time)}</div>}
+        </div>
+        <span className={`shrink-0 font-[900] text-[11px] px-2.5 py-1 rounded-full ${badge.className}`}>{badge.text}</span>
+      </div>
+
+      {(teamCounts.get(s.team) || 0) > 1 && (
+        <div className="mt-2 inline-flex items-center gap-1 bg-[#fff170] border-2 border-black text-black font-[900] text-[11px] px-2.5 py-0.5 rounded-full">
+          <AlertTriangle className="w-3 h-3 stroke-[3px]" /> 此團您填過 {teamCounts.get(s.team)} 次
+        </div>
+      )}
+
+      <div className="border-t-2 border-[#4c59a1]/15 my-3" />
+      {s.items.map((it, i) => (
+        <div key={i} className="flex justify-between text-sm text-[#4c59a1] font-bold py-0.5">
+          <span className="truncate mr-2">{it.label}</span>
+          <span className="shrink-0">×{it.qty}　${(it.qty * it.price).toLocaleString()}</span>
+        </div>
+      ))}
+      <div className="border-t-2 border-[#4c59a1]/15 my-3" />
+      <div className="flex justify-between text-[#4c59a1] font-[900]">
+        <span>預估小計</span>
+        <span>${s.subtotal.toLocaleString()}</span>
+      </div>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 z-50 bg-[#fff170] overflow-y-auto">
@@ -102,7 +137,7 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
           </button>
         </div>
         <p className="text-[#f43f5e] text-xs font-bold mt-3 leading-relaxed px-1">
-          本頁面提供尚未結單之填單預覽功能，需修改請洽詢官賴。結單且訂購完成後訂單才正式成立！
+          本頁可預覽尚未結單與已結單的填單；尚未結單需修改請洽官賴。結單且訂購完成後，訂單才正式成立！
         </p>
 
         {/* 載入中 */}
@@ -114,7 +149,7 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
               <div className="w-2.5 h-5 bg-[#4c59a1] rounded-full animate-bounce" style={{ animationDelay: "200ms" }} />
               <div className="w-2.5 h-8 bg-[#fff170] border border-black/10 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
             </div>
-            <p className="mt-4 text-[#4c59a1] font-[900] tracking-widest text-sm animate-pulse">查詢中…</p>
+            <p className="mt-4 text-[#4c59a1] font-[900] tracking-widest text-sm animate-pulse">載入中…</p>
           </div>
         )}
 
@@ -130,60 +165,50 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
                 <div className="text-[#4c59a1]/70 font-bold text-sm mt-1.5">若持續無法查詢，請私訊官賴協助。</div>
                 <button onClick={resetSearch} className="mt-5 bg-[#3ac0bf] text-white font-[900] px-7 py-2.5 rounded-full active:scale-95 transition tracking-widest">重新查詢</button>
               </div>
-            ) : visible.length === 0 ? (
+            ) : total === 0 ? (
               <div className="flex flex-col items-center text-center py-12">
                 <div className="w-16 h-16 rounded-full bg-white border-[3px] border-black shadow-[4px_4px_0px_#000] flex items-center justify-center text-[#4c59a1] mb-4">
                   <SearchX className="w-8 h-8 stroke-[2.5px]" />
                 </div>
                 <div className="text-[#4c59a1] font-[900] text-lg">查無填單預覽紀錄</div>
-                <div className="text-[#4c59a1]/70 font-bold text-sm mt-1.5 leading-relaxed">可能還沒填，或您填的團已結單。</div>
+                <div className="text-[#4c59a1]/70 font-bold text-sm mt-1.5 leading-relaxed">可能還沒填，或該團已訂購完成（請改至主頁查詢訂單）。</div>
                 <button onClick={onBack} className="mt-5 bg-[#3ac0bf] text-white font-[900] px-7 py-2.5 rounded-full active:scale-95 transition tracking-widest">看看開團中的團</button>
               </div>
             ) : (
-              <>
-                <div className="text-center mb-4">
-                  <span className="inline-block bg-[#3ac0bf] text-white font-[900] text-sm px-5 py-1.5 rounded-full tracking-widest">
-                    共 {visible.length} 筆填單 · 預估 ${grandTotal.toLocaleString()}
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {visible.map((s, idx) => (
-                    <div key={`${s.team}-${idx}`} className="bg-white rounded-2xl px-5 py-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="text-[#4c59a1] font-[900] text-base leading-snug">{s.teamName}</div>
-                          {s.time && <div className="text-[#4c59a1]/55 font-bold text-xs mt-1">填單時間 {fmtYMD(s.time)}</div>}
-                        </div>
-                        <span className="shrink-0 bg-[#4c59a1] text-white font-[900] text-[11px] px-2.5 py-1 rounded-full">尚未結單</span>
-                      </div>
-
-                      {(teamCounts.get(s.team) || 0) > 1 && (
-                        <div className="mt-2 inline-flex items-center gap-1 bg-[#fff170] border-2 border-black text-black font-[900] text-[11px] px-2.5 py-0.5 rounded-full">
-                          <AlertTriangle className="w-3 h-3 stroke-[3px]" /> 此團您填過 {teamCounts.get(s.team)} 次
-                        </div>
-                      )}
-
-                      <div className="border-t-2 border-[#4c59a1]/15 my-3" />
-                      {s.items.map((it, i) => (
-                        <div key={i} className="flex justify-between text-sm text-[#4c59a1] font-bold py-0.5">
-                          <span className="truncate mr-2">{it.label}</span>
-                          <span className="shrink-0">×{it.qty}　${(it.qty * it.price).toLocaleString()}</span>
-                        </div>
-                      ))}
-                      <div className="border-t-2 border-[#4c59a1]/15 my-3" />
-                      <div className="flex justify-between text-[#4c59a1] font-[900]">
-                        <span>預估小計</span>
-                        <span>${s.subtotal.toLocaleString()}</span>
-                      </div>
+              <div className="space-y-7">
+                {/* 區塊 1：開團中（可改） */}
+                {openSubs.length > 0 && (
+                  <section>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-block bg-[#3ac0bf] text-white font-[900] text-sm px-4 py-1.5 rounded-full tracking-widest">開團中 · {openSubs.length} 筆</span>
                     </div>
-                  ))}
-                </div>
+                    <div className="space-y-3">
+                      {openSubs.map((s, idx) => renderSub(s, idx, { text: "尚未結單", className: "bg-[#4c59a1] text-white" }))}
+                    </div>
+                    <p className="text-[#4c59a1]/70 font-bold text-[11px] leading-relaxed mt-3 px-1">
+                      因各團二補規則有些許差異，實際總金額以結單後訂單查詢為準！
+                    </p>
+                  </section>
+                )}
 
-                <p className="text-[#4c59a1]/70 font-bold text-[11px] leading-relaxed mt-4 px-1">
-                  因各團二補規則有些許差異，實際總金額以結單後訂單查詢為準！
-                </p>
-              </>
+                {/* 區塊 2：已結單（唯讀，待訂購完成） */}
+                {closedSubs.length > 0 && (
+                  <section>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-block bg-[#2b2b2b] text-white font-[900] text-sm px-4 py-1.5 rounded-full tracking-widest">已結單 · {closedSubs.length} 筆</span>
+                    </div>
+                    <div className="bg-white border-2 border-[#f8a3f4] rounded-2xl px-4 py-3 mb-3 flex items-start gap-2">
+                      <AlertTriangle className="w-5 h-5 shrink-0 text-[#f8a3f4] stroke-[2.5px] mt-0.5" />
+                      <p className="text-[#4c59a1] font-bold text-xs leading-relaxed">
+                        商品已結單，正在統計商品訂購中，已無法修改填單！訂購完成後我們會通知您至主頁查詢訂單並付款！
+                      </p>
+                    </div>
+                    <div className="space-y-3">
+                      {closedSubs.map((s, idx) => renderSub(s, idx, { text: "已結單", className: "bg-[#2b2b2b] text-white" }))}
+                    </div>
+                  </section>
+                )}
+              </div>
             )}
           </div>
         )}
