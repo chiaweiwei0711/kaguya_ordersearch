@@ -51,7 +51,8 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
 export const submitGroupOrder = async (
   team: GroupTeam,
   nick: string,
-  items: GroupCartItem[]
+  items: GroupCartItem[],
+  pay: string = "匯款"
 ): Promise<{ ok?: boolean; [k: string]: any }> => {
   const res = await fetch(APP_CONFIG.ORDER_API_URL, {
     method: "POST",
@@ -61,6 +62,7 @@ export const submitGroupOrder = async (
       team: team.code,
       teamName: team.name,
       nick: nick,
+      pay: pay,
       items: JSON.stringify(items),
     }),
   });

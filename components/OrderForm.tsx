@@ -13,6 +13,7 @@ interface Props {
 
 const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPreview }) => {
   const [nick, setNick] = useState("");
+  const [pay, setPay] = useState("匯款");
   const [qty, setQty] = useState<Record<number, number>>({});
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
   const [showConfirm, setShowConfirm] = useState(false);
@@ -58,7 +59,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   const doSend = async () => {
     setSubmitting(true);
     try {
-      await submitGroupOrder(team, nick.trim(), cart);
+      await submitGroupOrder(team, nick.trim(), cart, pay);
       localStorage.setItem(`kaguya_order_done_${team.code}`, "1");
       setShowConfirm(false);
       setDone(true);
@@ -199,6 +200,25 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
           );
         })}
 
+        {/* 3. 付款方式 */}
+        {teamOpen && (
+          <div className="mt-6">
+            <div className="font-[900] text-[#4c59a1] text-lg mb-2">3. 付款方式<span className="text-[#f43f5e]">*</span></div>
+            <div className="grid grid-cols-2 gap-3">
+              {["匯款", "無卡"].map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setPay(m)}
+                  className={`py-3.5 rounded-2xl font-[900] border-2 transition active:scale-95 ${pay === m ? "bg-[#3ac0bf] text-white border-[#3ac0bf] shadow-[0_4px_0px_rgba(0,0,0,0.15)]" : "bg-white text-[#4c59a1] border-[#4c59a1]/15"}`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* 底部：已選 / 清空 / 送出 */}
         {teamOpen ? (
           <div className="flex items-center justify-between gap-3 mt-6 pt-4 border-t-2 border-[#4c59a1]/15">
@@ -218,7 +238,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
         <div className="fixed inset-0 z-[100] bg-black/40 flex items-end sm:items-center justify-center p-3">
           <div className="bg-white rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto p-5">
             <div className="font-[900] text-[#4c59a1] text-lg mb-1">確認填單</div>
-            <div className="text-sm text-gray-500 mb-3">暱稱：{nick}</div>
+            <div className="text-sm text-gray-500 mb-3">暱稱：{nick}　·　付款方式：<span className="text-[#3ac0bf] font-[900]">{pay}</span></div>
             {Object.entries(cartByType).map(([t, items]) => (
               <div key={t} className="mb-3">
                 <div className="font-[900] text-[#3ac0bf] text-sm mb-1">{t}（{items.length} 款）</div>
