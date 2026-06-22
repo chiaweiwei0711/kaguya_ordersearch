@@ -80,6 +80,22 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
       if (step < 3) {
         setStep((s) => (s + 1) as 1 | 2 | 3);
       } else {
+        // 訂金付款回報 → 後台「待對帳進帳」分頁（fire-and-forget，就算客人沒貼回 LINE 我們也有資料）
+        const totalDeposit = orders.reduce((sum, o) => sum + o.depositAmount, 0);
+        fetch(APP_CONFIG.API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            type: 'depositReport',
+            nick: orders[0]?.customerPhone || '',
+            pay: paymentMethod === 'transfer' ? '匯款' : '無卡',
+            items: orders.map(o => o.groupName).join('、'),
+            amount: String(totalDeposit),
+            bank: paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].name : cardlessBanks[selectedBankIdx].name,
+            account: paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].account : cardlessBanks[selectedBankIdx].account,
+            last5: paymentMethod === 'transfer' ? last5Digits : '',
+          }),
+        }).catch(() => {});
         navigator.clipboard.writeText(generateDetailMessage())
           .then(executeJump)
           .catch(() => executeJump());
