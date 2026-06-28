@@ -497,7 +497,7 @@ const App: React.FC = () => {
                   {/* 第二屏：NEWS 與 SNS 區塊 */}
                   <div className="w-full space-y-10 flex flex-col items-center pt-10">
                     {(teamsLoading || teams.length > 0) && (
-                      <GroupOrderList teams={teams} preview loading={teamsLoading} onSelect={goOrderTeam} onMore={goOrderList} />
+                      <GroupOrderList teams={teams} products={groupProducts} preview loading={teamsLoading} onSelect={goOrderTeam} onMore={goOrderList} />
                     )}
                     <div id="news-section" className="w-full max-w-lg bg-[#ffaefe] rounded-[40px] px-6 py-10 flex flex-col items-center">
                       <h2 className="text-[#4c59a1] font-[900] text-4xl mb-6 tracking-widest">NEWS</h2>
@@ -838,7 +838,7 @@ const App: React.FC = () => {
                 const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
                 return t
                   ? <OrderForm team={t} products={groupProducts.filter(p => p.team === t.code)} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} />
-                  : <GroupOrderList teams={teams} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} />;
+                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} />;
               })()}
             </div>
           )}
