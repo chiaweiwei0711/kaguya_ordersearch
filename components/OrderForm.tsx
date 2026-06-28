@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from "react";
-import { ChevronLeft, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info } from "lucide-react";
+import React, { useState, useMemo, useRef } from "react";
+import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info } from "lucide-react";
 import { GroupTeam, GroupProduct, GroupCartItem } from "../types";
 import { submitGroupOrder, daysLeft, fmtYMD, isOpen } from "../services/groupOrderService";
+import ProductCarousel from "./ProductCarousel";
 
 interface Props {
   team: GroupTeam;
@@ -20,6 +21,8 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [zoomP, setZoomP] = useState<GroupProduct | null>(null);
+  const [zoomIdx, setZoomIdx] = useState(0);
+  const zStart = useRef({ x: 0, y: 0 });
 
   const grouped = useMemo(() => {
     const m = new Map<string, { p: GroupProduct; idx: number }[]>();
@@ -99,6 +102,12 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   const cartByType: Record<string, GroupCartItem[]> = {};
   cart.forEach((it) => { (cartByType[it.type] = cartByType[it.type] || []).push(it); });
 
+  // 看大圖 gallery：湊齊該商品所有圖（沒 images 就退回單張 img），含上下張與張數
+  const zImgs = zoomP ? (zoomP.images.length ? zoomP.images : [zoomP.img].filter(Boolean)) : [];
+  const zTotal = zImgs.length;
+  const zCur = Math.min(zoomIdx, Math.max(0, zTotal - 1));
+  const zGo = (d: number) => { if (zTotal) setZoomIdx((i) => (i + d + zTotal) % zTotal); };
+
   return (
     <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto">
       <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-7 relative">
@@ -176,9 +185,8 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
                     return (
                       <div key={idx} className={`rounded-xl p-2 border-2 transition ${q >= 1 ? "border-[#3ac0bf] bg-[#eafcfb]" : "border-transparent bg-white"}`}>
                         <div className="relative">
-                          <img src={p.img} loading="lazy" onClick={() => teamOpen && setQ(idx, q >= 1 ? 0 : 1)} className={`w-full aspect-square object-contain rounded-lg bg-white ${teamOpen ? "cursor-pointer" : ""}`} />
-                          {p.star && <span className="absolute top-1 left-1 bg-[#f8a3f4] text-white text-[10px] font-black px-2 py-0.5 rounded-full">★款</span>}
-                          <button type="button" aria-label="看大圖" onClick={(e) => { e.stopPropagation(); setZoomP(p); }} className="absolute top-1 right-1 w-9 h-9 rounded-full bg-black/35 text-white flex items-center justify-center backdrop-blur-sm active:scale-90 transition"><ZoomIn size={16} /></button>
+                          <ProductCarousel images={p.images} onTap={() => teamOpen && setQ(idx, q >= 1 ? 0 : 1)} className={teamOpen ? "cursor-pointer" : ""} />
+                          <button type="button" aria-label="看大圖" onClick={(e) => { e.stopPropagation(); setZoomP(p); setZoomIdx(0); }} className="absolute top-1 right-1 w-9 h-9 rounded-full bg-black/35 text-white flex items-center justify-center backdrop-blur-sm active:scale-90 transition"><ZoomIn size={16} /></button>
                         </div>
                         <div className="text-[13px] text-[#4c59a1] font-bold mt-1 leading-tight truncate">#{p.no} {p.name}</div>
                         {p.spec && <div className="text-[11px] text-[#4c59a1]/60 font-bold leading-tight truncate">{p.spec}</div>}
@@ -263,14 +271,24 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
         </div>
       )}
 
-      {/* 看大圖 lightbox */}
+      {/* 看大圖 lightbox（多圖：左右圓箭頭＋左下張數＋原本的 ✕，可左右滑） */}
       {zoomP && (
         <div onClick={() => setZoomP(null)} className="fixed inset-0 z-[110] bg-black/70 flex items-center justify-center p-4">
           <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-3xl w-full max-w-sm max-h-[90vh] overflow-y-auto">
-            <div className="relative">
-              <img src={zoomP.img} className="w-full max-h-[62vh] object-contain rounded-t-3xl bg-white" />
-              <button type="button" aria-label="關閉" onClick={() => setZoomP(null)} className="absolute top-2 right-2 w-9 h-9 rounded-full bg-black/45 text-white flex items-center justify-center active:scale-90 transition"><X size={18} /></button>
-              {zoomP.star && <span className="absolute top-2 left-2 bg-[#f8a3f4] text-white text-[11px] font-black px-2.5 py-1 rounded-full">★款</span>}
+            <div
+              className="relative"
+              onPointerDown={(e) => { zStart.current = { x: e.clientX, y: e.clientY }; }}
+              onPointerUp={(e) => { const dx = e.clientX - zStart.current.x, dy = e.clientY - zStart.current.y; if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) zGo(dx < 0 ? 1 : -1); }}
+            >
+              <img src={zImgs[zCur]} referrerPolicy="no-referrer" draggable={false} className="w-full max-h-[62vh] object-contain rounded-t-3xl bg-white select-none" />
+              <button type="button" aria-label="關閉" onClick={() => setZoomP(null)} className="absolute top-2 right-2 w-9 h-9 rounded-full bg-black/45 text-white flex items-center justify-center active:scale-90 transition z-10"><X size={18} /></button>
+              {zTotal > 1 && (
+                <>
+                  <button type="button" aria-label="上一張" onClick={() => zGo(-1)} className="absolute top-1/2 -translate-y-1/2 left-2 w-11 h-11 rounded-full bg-black/40 text-white flex items-center justify-center active:bg-black/55 transition z-10"><ChevronLeft size={24} /></button>
+                  <button type="button" aria-label="下一張" onClick={() => zGo(1)} className="absolute top-1/2 -translate-y-1/2 right-2 w-11 h-11 rounded-full bg-black/40 text-white flex items-center justify-center active:bg-black/55 transition z-10"><ChevronRight size={24} /></button>
+                  <span className="absolute left-3 bottom-3 bg-white/85 text-gray-700 text-sm font-bold px-3 py-1 rounded-lg">{zCur + 1}/{zTotal}</span>
+                </>
+              )}
             </div>
             <div className="p-4">
               <div className="font-[900] text-[#4c59a1] text-base leading-snug">#{zoomP.no} {zoomP.name}</div>

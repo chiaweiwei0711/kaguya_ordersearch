@@ -28,16 +28,21 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
       .filter((t: GroupTeam) => t.code);
 
     const products: GroupProduct[] = (data.items || [])
-      .map((it: any) => ({
-        team: String(it["團代號"] ?? "").trim(),
-        category: String(it["類別"] ?? "").trim(),
-        no: it["編號"] ?? "",
-        name: String(it["品名"] ?? "").trim(),
-        img: String(it["圖URL"] ?? "").trim(),
-        price: Number(it["價格"]) || 0,
-        star: it["★"] === 1 || it["★"] === true || String(it["★"] ?? "").trim() === "1",
-        spec: String(it["規格"] ?? "").trim(),
-      }))
+      .map((it: any) => {
+        // 「圖URL」一格可放多張：用空白／換行分隔 → 拆成陣列；只放一張＝跟以前一樣
+        const images = String(it["圖URL"] ?? "").trim().split(/\s+/).filter(Boolean);
+        return {
+          team: String(it["團代號"] ?? "").trim(),
+          category: String(it["類別"] ?? "").trim(),
+          no: it["編號"] ?? "",
+          name: String(it["品名"] ?? "").trim(),
+          img: images[0] ?? "",
+          images,
+          price: Number(it["價格"]) || 0,
+          star: it["★"] === 1 || it["★"] === true || String(it["★"] ?? "").trim() === "1",
+          spec: String(it["規格"] ?? "").trim(),
+        };
+      })
       .filter((p: GroupProduct) => p.team && p.category);
 
     return { teams, products };

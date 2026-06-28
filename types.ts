@@ -60,7 +60,8 @@ export interface GroupProduct {
   category: string;    // 類別（立牌/貼紙/吊飾…）
   no: number | string; // 編號
   name: string;        // 品名
-  img: string;         // 圖URL
+  img: string;         // 圖URL（多張時＝第一張，維持舊用法相容）
+  images: string[];    // 多圖：圖URL 那格用空白／換行分隔出的所有網址
   price: number;       // 價格
   star?: boolean;      // ★款
   spec?: string;       // 規格/類別備註（顯示在類別名右邊，自由寫）

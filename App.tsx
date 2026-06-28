@@ -69,155 +69,6 @@ const LoadingOverlay: React.FC = () => {
   );
 };
 
-// --- 公告 Modal ---
-const AllNewsModal = ({ news, isOpen, onClose, onSelectNews }: { news: Announcement[], isOpen: boolean, onClose: () => void, onSelectNews: (n: Announcement) => void }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-2xl z-[80] p-4 flex items-center justify-center animate-fade-in">
-      <div className="w-full max-w-2xl bg-[#050505] border-2 border-pink-500/30 rounded-3xl overflow-hidden flex flex-col max-h-[85vh] shadow-[0_0_100px_rgba(236,72,153,0.1)]">
-        <div className="p-6 border-b border-gray-900 flex justify-between items-center bg-black">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-6 bg-pink-500 rounded-full shadow-[0_0_10px_#ec4899]"></div>
-            <h3 className="text-white font-black text-xl tracking-tight">所有公告清單</h3>
-          </div>
-          <button onClick={onClose} className="p-2 bg-gray-900 hover:bg-pink-500 rounded-full text-white hover:text-black border border-gray-800 transition-all"><X size={20} /></button>
-        </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-          <div className="space-y-1">
-            {news.map((item, idx) => (
-              <button key={idx} onClick={() => { onSelectNews(item); }} className="w-full flex items-center justify-between py-4 border-b border-gray-900 group text-left px-4 hover:bg-white/5 rounded-2xl transition-all">
-                <div className="flex items-center gap-4 min-w-0 flex-1">
-                  <span className="text-white font-bold text-sm md:text-base whitespace-nowrap opacity-60 font-mono">{item.date}</span>
-                  <span className="text-gray-200 font-bold text-sm md:text-base truncate group-hover:text-pink-400 transition-colors">{item.title}</span>
-                </div>
-                {item.isImportant && <span className="ml-4 bg-[#f43f5e] text-white px-3 py-1 rounded-full text-[10px] font-black shadow-[0_0_10px_rgba(244,63,94,0.3)] whitespace-nowrap">重要</span>}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- 購物流程輪播 ---
-const ShoppingGuide = () => {
-  const images = ["https://i.imgur.com/239DJw6.jpg", "https://i.imgur.com/j76KqeA.jpg", "https://i.imgur.com/megTTli.jpg", "https://i.imgur.com/Hr88EIy.jpg", "https://i.imgur.com/bXInaiN.jpg", "https://i.imgur.com/HlR5PEQ.jpg", "https://i.imgur.com/7DycaFf.jpg"];
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-
-  useEffect(() => {
-    if (isModalOpen) return;
-    const timer = setInterval(() => setCurrentIndex((prev) => (prev + 1) % images.length), 4000);
-    return () => clearInterval(timer);
-  }, [isModalOpen, images.length]);
-
-  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % images.length);
-  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
-  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
-  const handleTouchEnd = () => { if (!touchStart || !touchEnd) return; const distance = touchStart - touchEnd; if (distance > 50) nextSlide(); if (distance < -50) prevSlide(); setTouchStart(0); setTouchEnd(0); };
-
-  return (
-    <>
-      <div className="space-y-4 px-2">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3"><div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div><h3 className="text-white font-black text-2xl tracking-tight">購物流程</h3></div>
-          <span className="text-pink-500 font-black text-xs uppercase tracking-[0.2em]">SHOPPING GUIDE</span>
-        </div>
-        <div className="relative group rounded-2xl overflow-hidden border-2 border-pink-500/30 shadow-[0_0_30px_rgba(236,72,153,0.1)] bg-black aspect-[4/5] max-w-md mx-auto cursor-pointer" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onClick={() => setIsModalOpen(true)}>
-          <div className="w-full h-full relative">
-            <img src={images[currentIndex]} alt={`Step ${currentIndex + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
-            <div className="absolute bottom-10 left-0 right-0 text-center"><p className="text-white text-xs md:text-sm font-bold tracking-widest uppercase opacity-80">點擊圖片放大檢視</p></div>
-          </div>
-          <button onClick={(e) => { e.stopPropagation(); prevSlide(); }} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-pink-500"><ChevronRight className="rotate-180 w-6 h-6" /></button>
-          <button onClick={(e) => { e.stopPropagation(); nextSlide(); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-pink-500"><ChevronRight className="w-6 h-6" /></button>
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10 px-4 flex-wrap">
-            {images.map((_, idx) => (<button key={idx} onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }} className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-6 bg-pink-500 shadow-[0_0_10px_#ec4899]' : 'bg-gray-600 hover:bg-gray-400'}`} />))}
-          </div>
-        </div>
-      </div>
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center animate-fade-in" onClick={() => setIsModalOpen(false)}>
-          <button className="absolute top-6 right-6 p-3 bg-gray-900 rounded-full text-white hover:bg-pink-500 transition-colors border border-gray-700 z-[110]"><X size={24} /></button>
-          <div className="relative w-full max-w-5xl px-4 flex items-center justify-center h-full" onClick={e => e.stopPropagation()}>
-            <img src={images[currentIndex]} referrerPolicy="no-referrer" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-gray-800" alt="Full size" />
-            <button onClick={prevSlide} className="absolute left-4 p-4 bg-black/50 rounded-full text-white hover:bg-pink-500 transition-all backdrop-blur-sm border border-white/10"><ChevronRight className="rotate-180 w-8 h-8" /></button>
-            <button onClick={nextSlide} className="absolute right-4 p-4 bg-black/50 rounded-full text-white hover:bg-pink-500 transition-all backdrop-blur-sm border border-white/10"><ChevronRight className="w-8 h-8" /></button>
-          </div>
-        </div>
-      )}
-    </>
-  );
-};
-
-// --- 資訊中心 InfoHub ---
-const InfoHub = ({ news, onSelectNews, onOpenAllNews }: { news: Announcement[], onSelectNews: (n: Announcement) => void, onOpenAllNews: () => void }) => {
-  const displayNews = useMemo(() => news.filter(n => !n.title.includes("跑馬燈")).slice(0, 4), [news]);
-  const marqueeText = useMemo(() => {
-    const marqueeItem = news.find(n => n.title.includes("跑馬燈"));
-    return marqueeItem ? marqueeItem.content : "⚠️ 年末年初日本廠商/集運公司多在放假,商品有可能會發生延誤抵台情形,請大家預留收貨時間。";
-  }, [news]);
-
-  return (
-    <div className="space-y-12 animate-fade-in-up mt-8 pb-32">
-      <div className="relative overflow-hidden bg-black border-2 border-pink-500/50 rounded-2xl py-3 px-4 shadow-[0_0_20px_rgba(236,72,153,0.2)]">
-        <div className="whitespace-nowrap flex animate-marquee">
-          <span className="text-pink-500 font-bold text-sm md:text-base px-4">{marqueeText}</span>
-          <span className="text-pink-500 font-bold text-sm md:text-base px-4">{marqueeText}</span>
-        </div>
-      </div>
-
-      <div className="space-y-4 px-2">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3"><div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div><h3 className="text-white font-black text-2xl tracking-tight">最新公告</h3></div>
-          <button onClick={onOpenAllNews} className="text-pink-500 font-black text-xs uppercase tracking-[0.2em] flex items-center gap-1 hover:opacity-70 transition-opacity">ALL NEWS <ChevronRight size={14} /></button>
-        </div>
-        <div className="space-y-1">
-          {displayNews.length === 0 ? (<div className="text-center py-10 text-gray-700 font-bold italic tracking-widest border border-dashed border-gray-800 rounded-2xl">NO RECENT NEWS</div>) : (
-            displayNews.map((item, idx) => (
-              <button key={idx} onClick={() => onSelectNews(item)} className="w-full flex items-center justify-between py-3.5 border-b border-gray-900 group text-left">
-                <div className="flex items-center gap-4 min-w-0 flex-1"><span className="text-white font-bold text-base md:text-lg whitespace-nowrap">{item.date}</span><span className="text-gray-200 font-bold text-base md:text-lg truncate group-hover:text-pink-400 transition-colors">{item.title}</span></div>
-                {item.isImportant && <span className="ml-4 bg-[#f43f5e] text-white px-5 py-1.5 rounded-full text-[12px] font-black shadow-[0_0_15px_rgba(244,63,94,0.4)] whitespace-nowrap">重要</span>}
-              </button>
-            ))
-          )}
-        </div>
-      </div>
-
-      <div className="space-y-6 px-2">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3"><div className="w-2.5 h-8 bg-pink-500 rounded-full shadow-[0_0_15px_#ec4899]"></div><h3 className="text-white font-black text-2xl tracking-tight">官方傳送門</h3></div>
-          <span className="text-pink-500 font-black text-xs uppercase tracking-[0.2em]">SOCIAL HUB</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <a href={APP_CONFIG.LINE_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-[#06C755]/30 hover:border-[#06C755] transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4"><div className="bg-[#06C755] p-3 rounded-xl shadow-[0_0_15px_rgba(6,199,85,0.3)]"><MessageCircle className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">官方 LINE 帳號</span><span className="text-[#06C755] text-[10px] font-bold uppercase tracking-tighter">Official Line</span></div></div><ArrowRight className="text-gray-700 group-hover:text-[#06C755] group-hover:translate-x-1 transition-all" />
-          </a>
-          <a href={APP_CONFIG.LINE_COMMUNITY_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-blue-500/30 hover:border-blue-500 transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4"><div className="bg-blue-600 p-3 rounded-xl shadow-[0_0_15px_rgba(37,99,235,0.3)]"><Star className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">LINE 社群 (商品資訊/喊單區)</span><span className="text-blue-500 text-[10px] font-bold uppercase tracking-tighter">Open Chat</span></div></div><ArrowRight className="text-gray-700 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-          </a>
-          <a href={APP_CONFIG.INSTAGRAM_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-[#E1306C]/30 hover:border-[#E1306C] transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4"><div className="bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4] p-3 rounded-xl shadow-[0_0_15px_rgba(225,48,108,0.3)]"><Instagram className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">Instagram</span><span className="text-[#E1306C] text-[10px] font-bold uppercase tracking-tighter">Follow Us</span></div></div><ArrowRight className="text-gray-700 group-hover:text-[#E1306C] group-hover:translate-x-1 transition-all" />
-          </a>
-          <a href={APP_CONFIG.THREADS_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-white/30 hover:border-white transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4"><div className="bg-black border border-gray-700 p-3 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.1)]"><Hash className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">Threads</span><span className="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">Latest News</span></div></div><ArrowRight className="text-gray-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
-          </a>
-          <a href={APP_CONFIG.MAIHUOBIAN_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-orange-500/30 hover:border-orange-500 transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4"><div className="bg-orange-600 p-3 rounded-xl shadow-[0_0_15px_rgba(234,88,12,0.3)]"><ShoppingBag className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">賣貨便下單賣場</span><span className="text-orange-500 text-[10px] font-bold uppercase tracking-tighter">Pre-Order</span></div></div><ArrowRight className="text-gray-700 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
-          </a>
-          <a href={APP_CONFIG.MAIHUOBIAN_STOCK_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-gray-900 border-2 border-red-500/30 hover:border-red-500 transition-all group shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-4"><div className="bg-red-600 p-3 rounded-xl shadow-[0_0_15px_rgba(220,38,38,0.3)]"><Box className="text-white w-6 h-6" /></div><div className="flex flex-col"><span className="text-white font-black text-lg">賣貨便現貨賣場</span><span className="text-red-500 text-[10px] font-bold uppercase tracking-tighter">In Stock</span></div></div><ArrowRight className="text-gray-700 group-hover:text-red-500 group-hover:translate-x-1 transition-all" />
-          </a>
-        </div>
-      </div>
-      <ShoppingGuide />
-    </div>
-  );
-};
 // --- 🎨 2.0 進化版：立體浮游糖果點點資料 (網格生成確保均勻，含動畫參數) ---
 const DOT_COLORS = ['#4ceade', '#77dbf1', '#ffaefe', '#eeda22'];
 const COLS = 8; // 橫向 8 列
@@ -286,7 +137,6 @@ const App: React.FC = () => {
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
   const [news, setNews] = useState<Announcement[]>([]);
   const [selectedNews, setSelectedNews] = useState<Announcement | null>(null);
-  const [isAllNewsOpen, setIsAllNewsOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('deposit');
@@ -972,9 +822,8 @@ const App: React.FC = () => {
               )}
             </>
           ) : mainView === 'info' ? (
-            <div className="flex flex-col">
-              <InfoHub news={news} onSelectNews={setSelectedNews} onOpenAllNews={() => setIsAllNewsOpen(true)} />
-            </div>
+            // 舊深色 InfoHub（含購物流程／AllNewsModal）已移除；info 改由下方 z-80 全螢幕 NEWS 頁顯示
+            <></>
           ) : mainView === 'about' ? (
             <div className="flex flex-col">
               <AboutSection onBack={() => setMainView('query')} />
