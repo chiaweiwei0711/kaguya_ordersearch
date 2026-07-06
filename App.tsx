@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft } from 'lucide-react';
+import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock } from 'lucide-react';
 import { Order, OrderStatus, Announcement, GroupTeam, GroupProduct } from './types';
 import PaymentModal from './components/PaymentModal';
 import OrderDetailModal from './components/OrderDetailModal';
@@ -13,13 +13,14 @@ import { APP_CONFIG } from './config';
 import Aurora from './components/Aurora';
 import AboutSection from './components/AboutSection';
 import GroupOrderList from './components/GroupOrderList';
+import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import OrderForm from './components/OrderForm';
 import OrderLookup from './components/OrderLookup';
-import { fetchTeams } from './services/groupOrderService';
+import { fetchTeams, closingSoon, fmtMDHM } from './services/groupOrderService';
 
 // --- 類型定義 ---
-type MainView = 'query' | 'info' | 'about' | 'order' | 'faq';
+type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'closing';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
 // --- 📅 倉儲倒數計算核心邏輯 (Soft Pop 無黑框撞色進化版) ---
@@ -175,17 +176,27 @@ const App: React.FC = () => {
   // hash 路由：#/order = 列表、#/order/<團代號> = 填單（支援外部直接連結）
   useEffect(() => {
     const applyHash = () => {
+      if (window.location.hash.startsWith('#/closing')) { setMainView('closing'); setSelectedTeamCode(null); return; }
       const m = window.location.hash.match(/^#\/order(?:\/([^/?]+))?/);
       if (m) { setMainView('order'); setSelectedTeamCode(m[1] ? decodeURIComponent(m[1]) : null); }
-      else { setMainView((mv) => (mv === 'order' ? 'query' : mv)); setSelectedTeamCode(null); }
+      else { setMainView((mv) => (mv === 'order' || mv === 'closing' ? 'query' : mv)); setSelectedTeamCode(null); }
     };
     applyHash();
     window.addEventListener('hashchange', applyHash);
     return () => window.removeEventListener('hashchange', applyHash);
   }, []);
 
+  // 今日／明日結單的團（首頁「結單倒數」橫幅用；今日排前面）
+  const closingTeams = useMemo(() => {
+    const list = teams
+      .map((t) => ({ team: t, when: closingSoon(t) }))
+      .filter((x): x is { team: GroupTeam; when: 'today' | 'tomorrow' } => x.when !== null);
+    return list.sort((a, b) => (a.when === b.when ? 0 : a.when === 'today' ? -1 : 1));
+  }, [teams]);
+
   const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); window.location.hash = '#/order'; window.scrollTo(0, 0); };
   const goOrderTeam = (code: string) => { setSelectedTeamCode(code); window.location.hash = '#/order/' + code; window.scrollTo(0, 0); };
+  const goClosing = () => { setMainView('closing'); window.location.hash = '#/closing'; window.scrollTo(0, 0); };
   const exitOrderToQuery = () => { setSelectedTeamCode(null); setMainView('query'); setHasSearched(false); if (window.location.hash) window.location.hash = ''; window.scrollTo(0, 0); };
 
   useEffect(() => {
@@ -408,7 +419,7 @@ const App: React.FC = () => {
       )}
       {isLoading && <LoadingOverlay />}
       {/* 🎯 2. 左上角 MENU 按鈕 (💡 聽老闆的：只有在「未搜尋」的首頁才顯示，不擋路！) */}
-      {!hasSearched && mainView !== 'order' && mainView !== 'faq' && mainView !== 'about' && (
+      {!hasSearched && mainView !== 'order' && mainView !== 'faq' && mainView !== 'about' && mainView !== 'closing' && (
         <button
           onClick={() => setIsMenuOpen(true)}
           className="fixed top-6 left-6 z-40 bg-[#3ac0bf] border-2 border-[#3be4d6] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-transform active:scale-95 hover:bg-[#34adab]"
@@ -496,6 +507,59 @@ const App: React.FC = () => {
 
                   {/* 第二屏：NEWS 與 SNS 區塊 */}
                   <div className="w-full space-y-10 flex flex-col items-center pt-10">
+                    {/* 明日結單區塊：固定存在（載入中／明日沒團也保留，不忽隱忽現） */}
+                    <div className="w-full max-w-lg">
+                        {/* 窄條標題：紅膠囊（可點，進 #/closing 明日結單頁）＋滑動提示 */}
+                        <div className="flex items-center gap-2.5 px-4 md:px-1 mb-3">
+                          <button onClick={goClosing} className="bg-[#f43f5e] text-white font-[900] text-sm pl-3.5 pr-2.5 py-1.5 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_3px_0px_rgba(0,0,0,0.25)] active:translate-y-0.5 active:shadow-none transition-all">
+                            <AlarmClock className="w-4 h-4 stroke-[3px]" />
+                            即將結單
+                            <ChevronRight className="w-4 h-4 stroke-[3px]" />
+                          </button>
+                          {closingTeams.length > 2 && (
+                            <span className="text-white/80 font-[900] text-[11px] tracking-widest">左右滑動看今明日結單</span>
+                          )}
+                        </div>
+                        {teamsLoading ? (
+                          <div className="px-4 md:px-1">
+                            <div className="bg-white rounded-2xl px-5 py-4 shadow-[0_4px_0px_rgba(0,0,0,0.15)] text-[#4c59a1]/60 font-[900] text-sm text-center">載入中…</div>
+                          </div>
+                        ) : closingTeams.length === 0 ? (
+                          <div className="px-4 md:px-1">
+                            <div className="bg-white rounded-2xl px-5 py-4 shadow-[0_4px_0px_rgba(0,0,0,0.15)] text-[#4c59a1]/70 font-[900] text-sm text-center">明日沒有結單的團</div>
+                          </div>
+                        ) : (
+                        <div className="flex gap-3 overflow-x-auto pb-3 px-4 md:px-1 snap-x" style={{ scrollbarWidth: 'none' }}>
+                          {closingTeams.map(({ team, when }) => {
+                            const img = groupProducts.find((p) => p.team === team.code && p.img)?.img;
+                            return (
+                              <button
+                                key={team.code}
+                                onClick={() => goOrderTeam(team.code)}
+                                className="snap-start shrink-0 w-36 bg-white rounded-2xl overflow-hidden text-left shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all"
+                              >
+                                <div className="w-full h-28 bg-[#eef0fa] relative">
+                                  {img ? (
+                                    <img src={img} alt={team.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-[#4c59a1]/40">
+                                      <ShoppingBag className="w-9 h-9 stroke-[2px]" />
+                                    </div>
+                                  )}
+                                  <span className={`absolute top-1.5 left-1.5 text-[10px] font-[900] px-2 py-0.5 rounded-full shadow-sm ${when === 'today' ? 'bg-[#f43f5e] text-white' : 'bg-[#fff170] text-black'}`}>
+                                    {when === 'today' ? '今日結單' : '明日結單'}
+                                  </span>
+                                </div>
+                                <div className="px-2.5 py-2">
+                                  <div className="font-[900] text-[12px] text-[#4c59a1] leading-tight line-clamp-2 min-h-[30px]">{team.name}</div>
+                                  <div className="text-[10px] font-[900] text-[#f43f5e] mt-1">{fmtMDHM(team.closeAt)} 止</div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        )}
+                    </div>
                     {(teamsLoading || teams.length > 0) && (
                       <GroupOrderList teams={teams} products={groupProducts} preview loading={teamsLoading} onSelect={goOrderTeam} onMore={goOrderList} />
                     )}
@@ -832,6 +896,8 @@ const App: React.FC = () => {
             <div className="flex flex-col pt-4">
               <FaqSection onBack={() => setMainView('query')} />
             </div>
+          ) : mainView === 'closing' ? (
+            <ClosingList teams={teams} products={groupProducts} loading={teamsLoading} onSelect={goOrderTeam} onBack={exitOrderToQuery} onAll={goOrderList} />
           ) : (
             <div className="flex flex-col w-full">
               {(() => {

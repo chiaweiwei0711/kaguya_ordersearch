@@ -51,6 +51,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   const teamOpen = isOpen(team); // 結單後仍可點進來瀏覽，但不能填單／加購
 
   const openConfirm = () => {
+    if (!isOpen(team)) { alert("本團已結單，無法再下單囉"); return; }
     if (!nick.trim()) { alert("請先填社群暱稱"); return; }
     if (!cart.length) { alert("還沒選任何商品"); return; }
     if (localStorage.getItem(`kaguya_order_done_${team.code}`)) {
@@ -60,6 +61,8 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   };
 
   const doSend = async () => {
+    // 頁面開著跨過結單時間再按送出也要擋（isOpen 每次呼叫都重新比對現在時間）
+    if (!isOpen(team)) { setShowConfirm(false); alert("本團已結單，無法再下單囉"); return; }
     setSubmitting(true);
     try {
       await submitGroupOrder(team, nick.trim(), cart, pay);

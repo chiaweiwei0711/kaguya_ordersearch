@@ -132,6 +132,29 @@ export const isOpen = (team: GroupTeam): boolean => {
   return true;
 };
 
+// 「今日／明日結單」判斷：比日曆日。
+// 不能用 daysLeft（ceil 制：明晚結單的團在今天早上會算成 2 天）。
+export const closingSoon = (team: GroupTeam): "today" | "tomorrow" | null => {
+  if (!team.closeAt || !isOpen(team)) return null;
+  const end = new Date(team.closeAt);
+  if (isNaN(end.getTime())) return null;
+  const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diff = Math.round((day(end) - day(new Date())) / 86400000);
+  if (diff === 0) return "today";
+  if (diff === 1) return "tomorrow";
+  return null;
+};
+
+// 日期格式化成 M/D HH:mm（結單時間是 00:00 整就只顯示日期）
+export const fmtMDHM = (s?: string): string => {
+  if (!s) return "";
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return String(s);
+  const p = (n: number) => String(n).padStart(2, "0");
+  const hm = d.getHours() || d.getMinutes() ? ` ${p(d.getHours())}:${p(d.getMinutes())}` : "";
+  return `${d.getMonth() + 1}/${d.getDate()}${hm}`;
+};
+
 // 日期格式化成 M/D（吃 ISO 或一般日期字串；無法解析就原樣回傳）
 export const fmtMD = (s?: string): string => {
   if (!s) return "";
