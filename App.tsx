@@ -249,15 +249,20 @@ const App: React.FC = () => {
   const [sortBy, setSortBy] = useState<'default' | 'price_desc' | 'price_asc' | 'strokes'>('default');
 
 
+  // LINE 內開啟時：從進頁到自動查詢完成前蓋載入畫面（不然 liff.init→查綁定那段是空白，客人以為當掉）
+  const [liffBoot, setLiffBoot] = useState(() => typeof navigator !== 'undefined' && / Line\//i.test(navigator.userAgent));
+
   // 🌟 【核武器啟動】：LIFF 自動登入與初始化 (精準抓蟲版)
   useEffect(() => {
     const initApp = async () => {
       fetchAnnouncements().then(setNews);
+      const bootSafety = setTimeout(() => setLiffBoot(false), 15000); // LIFF 卡死的保險絲
 
       try {
         await liff.init({ liffId: '2009367290-DGz77pHN' });
 
         if (liff.isLoggedIn()) {
+          setLiffBoot(true); // 外部瀏覽器但有 LIFF 登入的也蓋
           const profile = await liff.getProfile();
           const nickname = await fetchNicknameByLineId(profile.userId);
 
@@ -272,6 +277,9 @@ const App: React.FC = () => {
       } catch (err: any) {
         // 🚨 把原本笨笨的 JSON.stringify 換掉，逼它吐出真正的英文死因！
         alert("⚠️ LIFF 錯誤：\n" + (err.message || String(err)));
+      } finally {
+        clearTimeout(bootSafety);
+        setLiffBoot(false);
       }
     };
     initApp();
@@ -418,6 +426,20 @@ const App: React.FC = () => {
         </div>
       )}
       {isLoading && <LoadingOverlay />}
+
+      {/* LINE 內開啟的自動登入過場：蓋住 liff.init→查綁定→自動查單的空白期 */}
+      {liffBoot && (
+        <div className="fixed inset-0 z-[130] flex flex-col items-center justify-center bg-[#4c59a1]">
+          <div className="flex items-center justify-center gap-2.5 h-16">
+            <div className="w-3 h-8 bg-[#f8a3f4] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-3 h-12 bg-[#3ac0bf] rounded-full animate-bounce" style={{ animationDelay: '100ms' }}></div>
+            <div className="w-3 h-6 bg-[#fff170] rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
+            <div className="w-3 h-10 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
+          <p className="text-white font-[900] text-lg tracking-widest mt-6">LINE 自動登入中</p>
+          <p className="text-[#fff170] font-[900] text-sm tracking-widest mt-2">正在為您查詢訂單，請稍候…</p>
+        </div>
+      )}
       {/* 🎯 2. 左上角 MENU 按鈕 (💡 聽老闆的：只有在「未搜尋」的首頁才顯示，不擋路！) */}
       {!hasSearched && mainView !== 'order' && mainView !== 'faq' && mainView !== 'about' && mainView !== 'closing' && (
         <button
