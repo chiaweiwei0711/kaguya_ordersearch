@@ -65,7 +65,8 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
     if (!isOpen(team)) { setShowConfirm(false); alert("本團已結單，無法再下單囉"); return; }
     setSubmitting(true);
     try {
-      await submitGroupOrder(team, nick.trim(), cart, pay);
+      const r = await submitGroupOrder(team, nick.trim(), cart, pay);
+      if (r && r.ok === false) { setShowConfirm(false); alert(r.message || "本團已結單，無法送出"); return; }
       localStorage.setItem(`kaguya_order_done_${team.code}`, "1");
       setShowConfirm(false);
       setDone(true);
