@@ -249,36 +249,43 @@ const App: React.FC = () => {
   const [sortBy, setSortBy] = useState<'default' | 'price_desc' | 'price_asc' | 'strokes'>('default');
 
 
-  // LINE 內開啟時：從進頁到自動查詢完成前蓋載入畫面（不然 liff.init→查綁定那段是空白，客人以為當掉）
-  const [liffBoot, setLiffBoot] = useState(() => typeof navigator !== 'undefined' && / Line\//i.test(navigator.userAgent));
+  // LIFF 自動登入查單時的過場頁。只有「查單首頁＋真的登入了」才蓋，
+  // 填單頁(#/order)、明日結單(#/closing)、或沒登入都不跳（不然客人點填單連結也被蓋、還是假的）
+  const [liffBoot, setLiffBoot] = useState(false);
 
   // 🌟 【核武器啟動】：LIFF 自動登入與初始化 (精準抓蟲版)
   useEffect(() => {
     const initApp = async () => {
       fetchAnnouncements().then(setNews);
-      const bootSafety = setTimeout(() => setLiffBoot(false), 15000); // LIFF 卡死的保險絲
 
       try {
         await liff.init({ liffId: '2009367290-DGz77pHN' });
 
-        if (liff.isLoggedIn()) {
-          setLiffBoot(true); // 外部瀏覽器但有 LIFF 登入的也蓋
-          const profile = await liff.getProfile();
-          const nickname = await fetchNicknameByLineId(profile.userId);
+        const h = window.location.hash || '';
+        const isOrderOrClosing = h.indexOf('#/order') === 0 || h.indexOf('#/closing') === 0;
 
-          if (nickname) {
-            setSearchQuery(nickname);
-            await executeSearch(nickname);
-          } else {
-            // 🚨 如果後台沒回傳暱稱，我們直接把手機的 LINE ID 印出來對答案！
-            alert("❌ 系統有抓到您的 LINE，但表單沒查到暱稱！\n請核對會員資料B欄有沒有這串ID：\n" + profile.userId);
+        // 唯一該自動查單的情境：透過 LIFF（查訂單按鈕）進到查單首頁、且已登入
+        if (liff.isLoggedIn() && !isOrderOrClosing) {
+          setLiffBoot(true);
+          const bootSafety = setTimeout(() => setLiffBoot(false), 15000); // LIFF 卡死的保險絲
+          try {
+            const profile = await liff.getProfile();
+            const nickname = await fetchNicknameByLineId(profile.userId);
+            if (nickname) {
+              setSearchQuery(nickname);
+              await executeSearch(nickname);
+            } else {
+              // 🚨 如果後台沒回傳暱稱，我們直接把手機的 LINE ID 印出來對答案！
+              alert("❌ 系統有抓到您的 LINE，但表單沒查到暱稱！\n請核對會員資料B欄有沒有這串ID：\n" + profile.userId);
+            }
+          } finally {
+            clearTimeout(bootSafety);
+            setLiffBoot(false);
           }
         }
       } catch (err: any) {
         // 🚨 把原本笨笨的 JSON.stringify 換掉，逼它吐出真正的英文死因！
         alert("⚠️ LIFF 錯誤：\n" + (err.message || String(err)));
-      } finally {
-        clearTimeout(bootSafety);
         setLiffBoot(false);
       }
     };
