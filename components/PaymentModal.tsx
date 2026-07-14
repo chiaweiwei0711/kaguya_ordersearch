@@ -110,30 +110,41 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
     if ((navigator as any).vibrate) (navigator as any).vibrate(12);
   };
 
-  const renderDetailCard = () => (
-    <button
-      type="button"
-      onClick={copyDetail}
-      className={`w-full text-left rounded-[24px] p-5 border-2 transition-all active:scale-[0.99] ${detailCopied ? 'border-[#3ac0bf] bg-[#3ac0bf]/[0.08]' : 'border-dashed border-[#f8a3f4] bg-[#f8a3f4]/[0.08]'}`}
-    >
-      <div className="flex items-center justify-between gap-2 mb-2.5">
-        <span className="text-xs font-[900] tracking-widest text-[#4c59a1]">
-          {isShipping ? '欲出貨的商品清單' : '你的付款回報'}
-        </span>
-        <span className={`flex items-center gap-1 text-xs font-[900] shrink-0 ${detailCopied ? 'text-[#3ac0bf]' : 'text-[#f8a3f4]'}`}>
-          {detailCopied ? <CheckCircle size={16} strokeWidth={2.5} /> : <Copy size={16} strokeWidth={2.5} />}
-          {detailCopied ? '已複製' : '複製'}
-        </span>
+  const renderDetailCard = () => {
+    const inner = (
+      <>
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          <span className="text-xs font-[900] tracking-widest text-[#4c59a1]">
+            {isShipping ? '欲出貨的商品清單' : '回傳明細預覽'}
+          </span>
+          {/* 複製指示只在賣貨便流程出現（付訂金靠下方大按鈕自動送出，框只給看） */}
+          {isShipping && (
+            <span className={`flex items-center gap-1 text-xs font-[900] shrink-0 ${detailCopied ? 'text-[#3ac0bf]' : 'text-[#f8a3f4]'}`}>
+              {detailCopied ? <CheckCircle size={16} strokeWidth={2.5} /> : <Copy size={16} strokeWidth={2.5} />}
+              {detailCopied ? '已複製' : '複製'}
+            </span>
+          )}
+        </div>
+        <div className="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap break-words font-mono">
+          {generateDetailMessage()}
+        </div>
+        <div className={`mt-3 flex items-center justify-center gap-1.5 text-center text-xs font-[900] rounded-2xl py-2.5 transition-colors ${detailCopied ? 'bg-[#3ac0bf]/15 text-[#3ac0bf]' : 'bg-[#f8a3f4]/15 text-[#4c59a1]'}`}>
+          {detailCopied && isShipping && <CheckCircle size={14} strokeWidth={2.5} />}
+          {isShipping ? '貼到賣貨便「備註欄第二格」就好，不用自己打字' : '按下方「複製明細並回傳」會自動送出，並跳到官方 LINE 貼上就完成'}
+        </div>
+      </>
+    );
+    // 賣貨便：整張框可點複製（真功能）；付訂金：純預覽（不可點，靠下方大按鈕）
+    return isShipping ? (
+      <button type="button" onClick={copyDetail} className={`w-full text-left rounded-[24px] p-5 border-2 transition-all active:scale-[0.99] ${detailCopied ? 'border-[#3ac0bf] bg-[#3ac0bf]/[0.08]' : 'border-dashed border-[#f8a3f4] bg-[#f8a3f4]/[0.08]'}`}>
+        {inner}
+      </button>
+    ) : (
+      <div className="w-full text-left rounded-[24px] p-5 border-2 border-dashed border-[#f8a3f4] bg-[#f8a3f4]/[0.08]">
+        {inner}
       </div>
-      <div className="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap break-words font-mono">
-        {generateDetailMessage()}
-      </div>
-      <div className={`mt-3 flex items-center justify-center gap-1.5 text-center text-xs font-[900] rounded-2xl py-2.5 transition-colors ${detailCopied ? 'bg-[#3ac0bf]/15 text-[#3ac0bf]' : 'bg-[#f8a3f4]/15 text-[#4c59a1]'}`}>
-        {detailCopied && <CheckCircle size={14} strokeWidth={2.5} />}
-        {isShipping ? '貼到賣貨便「備註欄第二格」就好，不用自己打字' : '貼到官方 LINE 回傳才算是完成！'}
-      </div>
-    </button>
-  );
+    );
+  };
 
   const currentStepTitle = isShipping ? '確認出貨明細' : (step === 1 ? '確認商品與金額' : step === 2 ? '選擇付款方式與帳號' : '回報付款資訊');
 

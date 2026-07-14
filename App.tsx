@@ -148,6 +148,7 @@ const App: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [payingOrders, setPayingOrders] = useState<Order[]>([]);
   const [modalType, setModalType] = useState<'deposit' | 'shipping'>('deposit');
+  const [payingTotal, setPayingTotal] = useState(0);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetailOrder, setSelectedDetailOrder] = useState<Order | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -223,27 +224,6 @@ const App: React.FC = () => {
   };
 
   // 📊 模擬訪問量統計 (讓網頁感覺有熱度)
-  const [visitors, setVisitors] = useState({ today: 0, month: 0, total: 0 });
-  useEffect(() => {
-    const baseTotal = 158420;
-    const baseMonth = 12450;
-    const baseToday = 340;
-    const now = new Date();
-    const todayCount = baseToday + (now.getHours() * 12) + Math.floor(now.getMinutes() / 5);
-    const monthCount = baseMonth + (now.getDate() * 450) + todayCount;
-    const totalCount = baseTotal + monthCount;
-
-    let localVisits = parseInt(localStorage.getItem('kaguya_visits') || '0');
-    localVisits++;
-    localStorage.setItem('kaguya_visits', localVisits.toString());
-
-    setVisitors({
-      today: todayCount + localVisits,
-      month: monthCount + localVisits,
-      total: totalCount + localVisits
-    });
-  }, []);
-
   // 🌟 二次搜尋與排序狀態
   const [subQuery, setSubQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'price_desc' | 'price_asc' | 'strokes'>('default');
@@ -387,17 +367,19 @@ const App: React.FC = () => {
 
   const toggleCargoFilter = (filter: string) => setCargoFilters(prev => prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]);
   const toggleDeliveryFilter = (filter: string) => setDeliveryFilter(prev => prev === filter ? null : filter);
-  const openPaymentModal = () => { if (selectedOrdersData.length === 0) return; setPayingOrders(selectedOrdersData); setModalType(activeTab === 'deposit' ? 'deposit' : 'shipping'); setIsPaymentModalOpen(true); };
+  const openPaymentModal = () => { if (selectedOrdersData.length === 0) return; setPayingOrders(selectedOrdersData); setPayingTotal(totalSelectedAmount); setModalType(activeTab === 'deposit' ? 'deposit' : 'shipping'); setIsPaymentModalOpen(true); };
+  // 從訂單詳情頁付單一張：待付款→付訂金；可出貨→賣貨便付尾款（依訂單狀態，不看目前分頁）
+  const payOneOrder = (order: Order) => {
+    const isPending = order.status !== OrderStatus.PAID;
+    setPayingOrders([order]);
+    setPayingTotal(isPending ? order.depositAmount : order.balanceDue);
+    setModalType(isPending ? 'deposit' : 'shipping');
+    setIsDetailModalOpen(false);
+    setIsPaymentModalOpen(true);
+  };
 
   const footerContent = (
     <footer className="pt-12 pb-8 text-center text-gray-600 text-[11px] font-bold space-y-2 opacity-70">
-      <div className="flex justify-center items-center gap-3 mb-4 text-xs font-black text-pink-500/80 tracking-widest">
-        <span>今日瀏覽量: {visitors.today.toLocaleString()}</span>
-        <span>|</span>
-        <span>本月瀏覽量: {visitors.month.toLocaleString()}</span>
-        <span>|</span>
-        <span>累積瀏覽量: {visitors.total.toLocaleString()}</span>
-      </div>
       <div className="footer text-gray-500 font-black">本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
       <p className="mt-2">© {new Date().getFullYear()} All Rights Reserved.</p>
       <button onClick={() => setIsAdminOpen(true)} className="mt-4 opacity-20"><Lock size={12} /></button>
@@ -645,11 +627,6 @@ const App: React.FC = () => {
                   </div>
 
                   <footer className="pt-16 pb-32 text-center text-[#3ac0bf] text-[11px] font-[900] space-y-2">
-                    <div className="flex justify-center items-center gap-3 mb-4 text-xs tracking-widest">
-                      <span>今日瀏覽量: {visitors.today.toLocaleString()}</span>
-                      <span>|</span>
-                      <span>本月瀏覽量: {visitors.month.toLocaleString()}</span>
-                    </div>
                     <div className="opacity-80">本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
                     <p className="mt-2 opacity-80">© {new Date().getFullYear()} All Rights Reserved.</p>
                   </footer>
@@ -898,13 +875,6 @@ const App: React.FC = () => {
                       )}
                       {/* 🎯 專屬米色背景底部 Footer (跟著米色畫布一路延伸到底) */}
                       <footer className="w-full pt-20 pb-32 text-center text-[#4c59a1] text-[11px] font-[900] space-y-2 mt-auto opacity-80">
-                        <div className="flex justify-center items-center gap-2 mb-4 text-[10px] sm:text-[11px] tracking-widest flex-wrap px-2">
-                          <span>今日瀏覽量: {visitors.today.toLocaleString()}</span>
-                          <span>|</span>
-                          <span>本月瀏覽量: {visitors.month.toLocaleString()}</span>
-                          <span>|</span>
-                          <span>累積瀏覽量: {visitors.total.toLocaleString()}</span>
-                        </div>
                         <div>本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
                         <p className="mt-2">© {new Date().getFullYear()} All Rights Reserved.</p>
                       </footer>
@@ -973,8 +943,8 @@ const App: React.FC = () => {
 
       {/* 所有的彈窗元件 */}
       {/* 所有的彈窗元件 */}
-      <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} orders={payingOrders} totalAmount={totalSelectedAmount} type={modalType} />
-      <OrderDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} order={selectedDetailOrder} />
+      <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} orders={payingOrders} totalAmount={payingTotal} type={modalType} />
+      <OrderDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} order={selectedDetailOrder} onPay={payOneOrder} />
       <AdminDashboard isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} />
 
       {/* 填單明細查詢（整頁黃底，覆蓋在預購填單專區上） */}

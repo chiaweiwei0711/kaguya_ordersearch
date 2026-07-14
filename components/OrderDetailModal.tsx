@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Copy, ExternalLink, Package, DollarSign, Calendar, CreditCard, User } from 'lucide-react';
+import { X, ExternalLink, Package, DollarSign, Calendar, CreditCard, User, ArrowRight } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { APP_CONFIG } from '../config';
 
@@ -7,6 +7,7 @@ interface OrderDetailModalProps {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
+  onPay?: (order: Order) => void;   // 依訂單狀態走正路付款（付訂金 or 賣貨便尾款）
 }
 
 // --- 📅 1. 計算剩餘天數 (輕盈色塊版) ---
@@ -28,22 +29,17 @@ const getStorageStatus = (dateStr?: string) => {
   }
 };
 
-const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onClose }) => {
-  const [isCopied, setIsCopied] = React.useState(false);
-
+const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onClose, onPay }) => {
   if (!isOpen || !order) return null;
-
-  const handleCopy = () => {
-    const text = `Kaguya訂購付款確認\n--------------------\n♦️社群暱稱：${order.customerPhone}\n♦️訂購商品系列：\n${order.groupName}\n♦️付款金額：$${order.depositAmount.toLocaleString()}\n♦️您匯款到哪個銀行：【 請輸入後回傳 】\n♦️您的匯款帳號末五碼：【 請輸入後回傳 】\n*（無卡請拍明細回傳）*\n---------------------\n已確認訂購商品與付款金額無誤`;
-    navigator.clipboard.writeText(text).then(() => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    });
-  };
 
   const openLine = () => {
     if (APP_CONFIG.LINE_URL) window.open(APP_CONFIG.LINE_URL, '_blank');
   };
+
+  // 這張訂單「當下該做的付款動作」：待付款→付訂金；已付訂金且已抵台未出貨→付尾款；其餘→無
+  const isPending = order.status !== OrderStatus.PAID;
+  const isArrived = (order.shippingStatus || '').includes('已抵台');
+  const payLabel = isPending ? '前往付款' : (isArrived && !order.isShipped ? '賣貨便下單' : null);
 
   const storageInfo = getStorageStatus(order.arrivalDate);
 
@@ -206,16 +202,25 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
 
         </div>
 
-        {/* 🎯 Footer 按鈕區 (無邊框、純色塊) */}
-        <div className="p-6 grid grid-cols-2 gap-3 shrink-0">
-          <button onClick={handleCopy} className="flex items-center justify-center gap-2 py-4 rounded-full font-[900] text-gray-600 bg-gray-100 border-[2.5px] border-black shadow-[3px_3px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all">
-            <Copy className="w-5 h-5 stroke-[2.5px]" />
-            {isCopied ? "已複製" : "複製付款回報"}
-          </button>
-          <button onClick={openLine} className="flex items-center justify-center gap-2 py-4 rounded-full bg-[#3ac0bf] text-white font-[900] border-[2.5px] border-black shadow-[3px_3px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all">
-            <ExternalLink className="w-5 h-5 stroke-[2.5px]" />
-            聯絡客服
-          </button>
+        {/* 🎯 Footer 按鈕區：付款動作依訂單狀態變（走正路 PaymentModal），已付款不出現付款鈕 */}
+        <div className="p-6 flex gap-3 shrink-0">
+          {payLabel ? (
+            <>
+              <button onClick={() => onPay && onPay(order)} className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-[#3ac0bf] text-white font-[900] border-[2.5px] border-black shadow-[3px_3px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all">
+                <ArrowRight className="w-5 h-5 stroke-[3px]" />
+                {payLabel}
+              </button>
+              <button onClick={openLine} className="flex items-center justify-center gap-2 px-5 py-4 rounded-full bg-gray-100 text-gray-600 font-[900] border-[2.5px] border-black shadow-[3px_3px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all">
+                <ExternalLink className="w-5 h-5 stroke-[2.5px]" />
+                客服
+              </button>
+            </>
+          ) : (
+            <button onClick={openLine} className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-[#3ac0bf] text-white font-[900] border-[2.5px] border-black shadow-[3px_3px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all">
+              <ExternalLink className="w-5 h-5 stroke-[2.5px]" />
+              聯絡客服
+            </button>
+          )}
         </div>
 
       </div>
