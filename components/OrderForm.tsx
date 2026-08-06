@@ -135,7 +135,8 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
         </button>
 
         {/* 團資訊：橫向滑動卡片（右邊故意露出下一張的一角＝可以滑的暗示） */}
-        <div className="mb-4 -mx-5 sm:-mx-7 px-5 sm:px-7 overflow-x-auto snap-x snap-mandatory no-scrollbar">
+        {/* scroll-pl 一定要跟 px 一樣：不然 snap 會把左邊 padding 捲掉，卡片會比下面內容凸出去 */}
+        <div className="mb-4 -mx-5 sm:-mx-7 px-5 sm:px-7 scroll-pl-5 sm:scroll-pl-7 overflow-x-auto snap-x snap-mandatory no-scrollbar">
           <div className="flex gap-3">
             {/* 第 1 張：團資訊 */}
             <div className={`snap-start shrink-0 bg-white rounded-2xl px-5 py-4 ${showJoinCard ? "w-[87%]" : "w-full"}`}>
@@ -177,10 +178,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 text-white font-[900] text-2xl leading-snug">
-                  還沒有人填單
-                  <div className="text-white/70 text-base font-bold mt-1.5">你可以當第一個</div>
-                </div>
+                <div className="mt-4 text-white font-[900] text-2xl leading-snug">持續開放喊單中～</div>
               )}
             </div>
             )}
