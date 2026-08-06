@@ -25,6 +25,8 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
         note: String(t["備註"] ?? "").trim(),
         purchased: t["訂購完成"] === true || ["1", "true", "TRUE", "是", "✓", "v", "V"].includes(String(t["訂購完成"] ?? "").trim()),
         cover: String(t["封面圖"] ?? "").trim(),
+        // 後台「標籤」欄：用、，/ 等分隔都吃
+        tags: String(t["標籤"] ?? "").split(/[、,，/｜|]+/).map((x: string) => x.trim()).filter(Boolean),
         joinPeople: Number(t["跟團人數"]) || 0,
         joinQty: Number(t["跟團件數"]) || 0,
       }))

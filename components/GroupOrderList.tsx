@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag } from "lucide-react";
+import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag, Tag } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
 import { daysLeft, isOpen, fmtYMD } from "../services/groupOrderService";
+import { buildTagIndex } from "../services/ipTags";
 
 interface Props {
   teams: GroupTeam[];
@@ -26,6 +27,13 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   const [showOpen, setShowOpen] = useState(true);
   const [showClosed, setShowClosed] = useState(true);
   const [page, setPage] = useState(1);
+  const [tagOpen, setTagOpen] = useState(false);
+  const [pickedTags, setPickedTags] = useState<string[]>([]);
+
+  // 作品標籤（後台「標籤」欄優先，沒填就從團名／品名推導）
+  const tagIndex = useMemo(() => buildTagIndex(teams, products || []), [teams, products]);
+  const toggleTag = (t: string) =>
+    setPickedTags((s) => (s.includes(t) ? s.filter((x) => x !== t) : [...s, t]));
 
   // 團代號 → 該團所有商品名（給「商品名」關鍵字搜尋）
   const prodIndex = useMemo(() => {
@@ -50,6 +58,10 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
       if ((showOpen || showClosed) && !(showOpen && showClosed)) {
         arr = arr.filter((t) => (isOpen(t) ? showOpen : showClosed));
       }
+      // 作品標籤（複選＝任一命中，一團可能同時屬於多部作品）
+      if (pickedTags.length) {
+        arr = arr.filter((t) => (tagIndex.byTeam[t.code] || []).some((x) => pickedTags.includes(x)));
+      }
       // 關鍵字：團名 ／ 團代號 ／ 團內商品名
       const q = query.trim().toLowerCase();
       if (q) arr = arr.filter((t) => {
@@ -58,13 +70,13 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
       });
     }
     return arr;
-  }, [teams, sortBy, query, showOpen, showClosed, preview, prodIndex]);
+  }, [teams, sortBy, query, showOpen, showClosed, preview, prodIndex, pickedTags, tagIndex]);
 
   // 封面圖：後台「封面圖」欄優先（可放自己做的主題圖），沒填就退回該團第一張商品圖
   const coverOf = (t: GroupTeam) => t.cover || (products || []).find((p) => p.team === t.code && p.img)?.img || "";
 
   // 搜尋／排序／勾選變動 → 回第 1 頁
-  useEffect(() => { setPage(1); }, [query, sortBy, showOpen, showClosed]);
+  useEffect(() => { setPage(1); }, [query, sortBy, showOpen, showClosed, pickedTags]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const curPage = Math.min(page, pageCount);
@@ -148,7 +160,68 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
             <button onClick={() => setShowClosed((v) => !v)} className={chip(showClosed, "closed")}>
               {showClosed && <Check className="w-4 h-4 stroke-[4px]" />}已結單
             </button>
+            {tagIndex.all.length > 0 && (
+              <button
+                onClick={() => setTagOpen((v) => !v)}
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
+                  pickedTags.length ? "bg-[#f8a3f4] text-white" : "bg-white text-[#4c59a1]/70"
+                }`}
+              >
+                <Tag className="w-4 h-4 stroke-[3px]" />
+                作品{pickedTags.length > 0 && ` ${pickedTags.length}`}
+              </button>
+            )}
           </div>
+
+          {/* 作品標籤面板：可複選，選了幾部就列出屬於任一部的團 */}
+          {tagOpen && tagIndex.all.length > 0 && (
+            <div className="mt-3 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_#000] p-3">
+              <div className="flex items-center mb-2 px-1">
+                <span className="text-[#4c59a1] font-[900] text-sm">選作品（可複選）</span>
+                <button onClick={() => setTagOpen(false)} aria-label="收起" className="ml-auto w-7 h-7 rounded-full bg-[#eef0fa] text-[#4c59a1] flex items-center justify-center active:scale-90 transition">
+                  <X className="w-4 h-4 stroke-[3px]" />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto">
+                {tagIndex.all.map((t) => {
+                  const on = pickedTags.includes(t);
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => toggleTag(t)}
+                      className={`px-3 py-1.5 rounded-full text-[13px] font-[900] border-2 border-black transition-all active:translate-y-0.5 ${
+                        on ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
+                      }`}
+                    >
+                      {t}
+                      <span className={on ? "text-white/80 ml-1" : "text-[#4c59a1]/45 ml-1"}>{tagIndex.counts[t]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {pickedTags.length > 0 && (
+                <button onClick={() => setPickedTags([])} className="mt-3 w-full py-2 rounded-full bg-[#eef0fa] text-[#4c59a1] font-[900] text-sm active:scale-[0.98] transition">
+                  清除全部（已選 {pickedTags.length}）
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* 已選的作品：可以單獨 × 掉 */}
+          {pickedTags.length > 0 && !tagOpen && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {pickedTags.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => toggleTag(t)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#3ac0bf] text-white text-[13px] font-[900] border-2 border-black active:translate-y-0.5 transition-all"
+                >
+                  {t}
+                  <X className="w-3.5 h-3.5 stroke-[3px]" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
