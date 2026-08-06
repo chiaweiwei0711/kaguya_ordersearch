@@ -43,7 +43,8 @@ const ProductCarousel: React.FC<Props> = ({ images, onTap, className = "" }) => 
           <img
             key={i}
             src={src}
-            loading={i === 0 ? "eager" : "lazy"}
+            loading="lazy"
+            decoding="async"
             referrerPolicy="no-referrer"
             draggable={false}
             className="w-full h-full shrink-0 object-contain bg-white select-none"

@@ -153,6 +153,40 @@
       animation: float 4s ease-in-out infinite;
     }
 
+    /* 「還可以往右滑」的箭頭微動提示 */
+    @keyframes nudgeX {
+
+      0%,
+      60%,
+      100% {
+        transform: translateX(0);
+      }
+
+      30% {
+        transform: translateX(4px);
+      }
+    }
+
+    .animate-nudge-x {
+      animation: nudgeX 1.6s ease-in-out infinite;
+    }
+
+    /* 橫向滑動卡片列：隱藏捲軸但保留可滑 */
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-nudge-x {
+        animation: none;
+      }
+    }
+
     @keyframes neon-pulse {
 
       0%,

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check } from "lucide-react";
+import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
 import { daysLeft, isOpen, fmtYMD } from "../services/groupOrderService";
 
@@ -59,6 +59,9 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
     }
     return arr;
   }, [teams, sortBy, query, showOpen, showClosed, preview, prodIndex]);
+
+  // 封面圖：後台「封面圖」欄優先（可放自己做的主題圖），沒填就退回該團第一張商品圖
+  const coverOf = (t: GroupTeam) => t.cover || (products || []).find((p) => p.team === t.code && p.img)?.img || "";
 
   // 搜尋／排序／勾選變動 → 回第 1 頁
   useEffect(() => { setPage(1); }, [query, sortBy, showOpen, showClosed]);
@@ -158,18 +161,28 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
         {shown.map((t) => {
           const open = isOpen(t);
           const left = daysLeft(t.closeAt);
+          const cover = coverOf(t);
           return (
             <button
               key={t.code}
               onClick={() => onSelect(t.code)}
-              className={`w-full text-left rounded-2xl px-5 py-4 min-h-[64px] flex items-center justify-between gap-3 transition-all ${
+              className={`w-full text-left rounded-2xl px-4 py-3 min-h-[64px] flex items-center justify-between gap-3 transition-all ${
                 open ? "bg-white shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none border-2 border-transparent" : "bg-gray-100 border-2 border-transparent opacity-80 active:scale-[0.98]"
               }`}
             >
-              <div className="min-w-0">
-                <div className={`font-[900] text-base truncate ${open ? "text-[#4c59a1]" : "text-gray-400"}`}>{t.name}</div>
+              {/* 封面圖：一眼看出是什麼團的商品 */}
+              <div className={`w-16 h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center ${open ? "bg-[#eef0fa]" : "bg-gray-200"}`}>
+                {cover
+                  ? <img src={cover} alt="" referrerPolicy="no-referrer" loading="lazy" className={`w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
+                  : <ShoppingBag className="w-7 h-7 text-[#4c59a1]/25 stroke-[2px]" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className={`font-[900] text-base line-clamp-2 leading-snug ${open ? "text-[#4c59a1]" : "text-gray-400"}`}>{t.name}</div>
                 {open && (
                   <span className="inline-block mt-1.5 text-[11px] font-[900] text-white bg-[#f43f5e] px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>
+                )}
+                {(t.joinPeople ?? 0) > 0 && (
+                  <span className={`inline-block mt-1.5 ml-1.5 text-[11px] font-[900] px-2.5 py-0.5 rounded-full ${open ? "bg-[#3ac0bf] text-white" : "bg-gray-300 text-gray-600"}`}>{t.joinPeople} 人跟團</span>
                 )}
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">

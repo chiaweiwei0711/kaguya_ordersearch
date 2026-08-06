@@ -4,6 +4,8 @@ import { GroupTeam, GroupProduct, GroupCartItem } from "../types";
 import { submitGroupOrder, daysLeft, fmtYMD, isOpen } from "../services/groupOrderService";
 import ProductCarousel from "./ProductCarousel";
 
+const ALL_CAT = "__ALL__";   // 類別 pill 的「全部」；用哨符避免跟真實類別名撞名
+
 interface Props {
   team: GroupTeam;
   products: GroupProduct[];
@@ -16,7 +18,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   const [nick, setNick] = useState("");
   const [pay, setPay] = useState("匯款");
   const [qty, setQty] = useState<Record<number, number>>({});
-  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
+  const [activeCat, setActiveCat] = useState("");   // "" = 還沒選（預設吃第一個類別）；ALL_CAT = 全部
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -34,7 +36,17 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   }, [products]);
 
   const setQ = (idx: number, v: number) => setQty((s) => ({ ...s, [idx]: Math.max(0, v) }));
-  const toggleCat = (c: string) => setOpenCats((s) => ({ ...s, [c]: !s[c] }));
+  // 預設只顯示第一個類別（有些團 500+ 件，一次全渲染會很慢）；「全部」是客人自己點的選項。
+  // 換團導致類別不存在時，自動退回第一個類別。
+  const effCat = useMemo(() => {
+    const cats = grouped.map(([c]) => c);
+    if (activeCat === ALL_CAT || cats.includes(activeCat)) return activeCat;
+    return cats[0] ?? "";
+  }, [grouped, activeCat]);
+  const shownGroups = useMemo(
+    () => (effCat === ALL_CAT ? grouped : grouped.filter(([c]) => c === effCat)),
+    [grouped, effCat]
+  );
   const clearAll = () => { if (window.confirm("確定清空所有選擇？")) setQty({}); };
 
   const cart: GroupCartItem[] = useMemo(
@@ -49,6 +61,8 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
   const left = daysLeft(team.closeAt);
   const teamOpen = isOpen(team); // 結單後仍可點進來瀏覽，但不能填單／加購
+  // 已結單又沒人填單就不放第二張卡（那團不能跟了，講「當第一個」很怪）→ 也連帶不顯示「可以滑」的箭頭
+  const showJoinCard = (team.joinPeople ?? 0) > 0 || teamOpen;
 
   const openConfirm = () => {
     if (!isOpen(team)) { alert("本團已結單，無法再下單囉"); return; }
@@ -120,23 +134,56 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
           <ChevronLeft className="w-6 h-6 stroke-[3px]" />
         </button>
 
-        {/* 標題卡 */}
-        <div className="bg-white rounded-2xl px-5 py-4 mb-4">
-          <div className="flex justify-between items-baseline gap-2">
-            <span className="text-[#4c59a1]/70 font-bold text-sm">訂購表單 {team.code}</span>
-            {team.openAt && <span className="text-black font-[900] text-sm shrink-0">{fmtYMD(team.openAt)}</span>}
-          </div>
-          <div className="text-[#4c59a1] font-[900] text-xl leading-snug mt-0.5">{team.name}</div>
-          <div className="flex flex-wrap items-center gap-2 mt-3">
-            {teamOpen && left > 0 && (
-              <span className="text-[11px] font-[900] text-[#f43f5e] border-2 border-[#f43f5e] bg-white px-2.5 py-0.5 rounded-full">剩餘{left}天結單</span>
+        {/* 團資訊：橫向滑動卡片（右邊故意露出下一張的一角＝可以滑的暗示） */}
+        <div className="mb-4 -mx-5 sm:-mx-7 px-5 sm:px-7 overflow-x-auto snap-x snap-mandatory no-scrollbar">
+          <div className="flex gap-3">
+            {/* 第 1 張：團資訊 */}
+            <div className={`snap-start shrink-0 bg-white rounded-2xl px-5 py-4 ${showJoinCard ? "w-[87%]" : "w-full"}`}>
+              <div className="flex justify-between items-baseline gap-2">
+                <span className="text-[#4c59a1]/70 font-bold text-sm">訂購表單 {team.code}</span>
+                {team.openAt && <span className="text-black font-[900] text-sm shrink-0">{fmtYMD(team.openAt)}</span>}
+              </div>
+              <div className="text-[#4c59a1] font-[900] text-xl leading-snug mt-0.5">{team.name}</div>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {teamOpen && left > 0 && (
+                  <span className="text-[11px] font-[900] text-[#f43f5e] border-2 border-[#f43f5e] bg-white px-2.5 py-0.5 rounded-full">剩餘{left}天結單</span>
+                )}
+                {team.shipInfo && (
+                  <span className="text-[11px] font-[900] text-[#f43f5e] border-2 border-[#f43f5e] bg-white px-2.5 py-0.5 rounded-full">預計{team.shipInfo}發貨</span>
+                )}
+                {teamOpen
+                  ? <span className="text-sm font-[900] text-white bg-[#3ac0bf] px-4 py-1 rounded-full">開團中</span>
+                  : <span className="text-sm font-[900] text-white bg-[#2b2b2b] px-4 py-1 rounded-full">已結單</span>}
+                {showJoinCard && (
+                  <span aria-hidden className="ml-auto text-[#4c59a1]/45 animate-nudge-x shrink-0">
+                    <ChevronRight className="w-5 h-5 stroke-[3px]" />
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 第 2 張：跟團熱度。只給數字，不會出現任何人的暱稱。
+                已結單又沒人填單就整張不顯示（那團已經不能跟了，講「當第一個」很怪） */}
+            {showJoinCard && (
+            <div className="snap-start shrink-0 w-[87%] bg-[#4c59a1] rounded-2xl px-6 py-5 flex flex-col justify-center">
+              <span className="self-start bg-[#fff170] text-[#4c59a1] text-[13px] font-[900] px-3 py-1 rounded-full">填單統計</span>
+              {(team.joinPeople ?? 0) > 0 ? (
+                <div className="mt-4 text-white font-[900] text-xl">
+                  <div className="flex items-baseline">
+                    已有<span className="text-[44px] leading-none mx-1.5">{team.joinPeople}</span>人填單
+                  </div>
+                  <div className="flex items-baseline mt-3">
+                    共<span className="text-[44px] leading-none mx-1.5">{team.joinQty ?? 0}</span>件商品
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 text-white font-[900] text-2xl leading-snug">
+                  還沒有人填單
+                  <div className="text-white/70 text-base font-bold mt-1.5">你可以當第一個</div>
+                </div>
+              )}
+            </div>
             )}
-            {team.shipInfo && (
-              <span className="text-[11px] font-[900] text-[#f43f5e] border-2 border-[#f43f5e] bg-white px-2.5 py-0.5 rounded-full">預計{team.shipInfo}發貨</span>
-            )}
-            {teamOpen
-              ? <span className="text-sm font-[900] text-white bg-[#3ac0bf] px-4 py-1 rounded-full">開團中</span>
-              : <span className="text-sm font-[900] text-white bg-[#2b2b2b] px-4 py-1 rounded-full">已結單</span>}
           </div>
         </div>
 
@@ -168,22 +215,47 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
         </>)}
 
         {/* 2. 喊單 */}
-        <div className="font-[900] text-[#4c59a1] text-lg mb-2">{teamOpen ? "2. 喊單" : "商品一覽"}<span className="text-[#4c59a1]/60 text-sm font-bold">（點類別展開）</span></div>
-        {grouped.map(([cat, list]) => {
-          const open = !!openCats[cat];
+        <div className="font-[900] text-[#4c59a1] text-lg mb-2">{teamOpen ? "2. 喊單" : "商品一覽"}<span className="text-[#4c59a1]/60 text-sm font-bold">（選類別看商品）</span></div>
+
+        {/* 類別 pill 條：可橫向捲動，選中的填色 */}
+        <div className="-mx-5 sm:-mx-7 px-5 sm:px-7 mb-3 overflow-x-auto no-scrollbar">
+          <div className="flex gap-2 w-max pb-1">
+            {[[ALL_CAT, `全部（${products.length}）`] as [string, string]].concat(
+              grouped.map(([cat, list]) => [cat, `${cat}（${list.length}）`] as [string, string])
+            ).map(([val, label]) => {
+              const on = effCat === val;
+              const picked = val === ALL_CAT
+                ? Object.values(qty).reduce((s, n) => s + (n || 0), 0)
+                : (grouped.find(([c]) => c === val)?.[1] || []).reduce((s, x) => s + (qty[x.idx] || 0), 0);
+              return (
+                <button
+                  key={val}
+                  onClick={() => setActiveCat(val)}
+                  className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
+                    on ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
+                  }`}
+                >
+                  {label}
+                  {picked > 0 && (
+                    <span className="bg-[#fff170] text-[#4c59a1] text-[11px] px-1.5 py-0.5 rounded-full">{picked}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {shownGroups.map(([cat, list]) => {
           const catCount = list.reduce((s, x) => s + (qty[x.idx] || 0), 0);
           return (
-            <div key={cat} className="mb-3 rounded-2xl overflow-hidden">
-              <button onClick={() => toggleCat(cat)} className="w-full flex items-center justify-between gap-2 px-5 py-3.5 bg-[#3ac0bf] text-white font-[900] rounded-2xl">
-                <span className="shrink-0">{cat}<span className="opacity-80 font-bold text-sm">（{list.length}）</span></span>
-                <span className="flex items-center gap-2 ml-auto min-w-0">
-                  {catCount > 0 && <span className="bg-[#fff170] text-[#4c59a1] text-xs px-2 py-0.5 rounded-full shrink-0">已選 {catCount}</span>}
-                  <span className="shrink-0">{open ? "▼" : "▶"}</span>
-                </span>
-              </button>
-              <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open ? "1fr" : "0fr" }}>
-                <div className="overflow-hidden">
-                <div className="grid grid-cols-2 gap-3 p-3 bg-white/70 rounded-b-2xl">
+            <div key={cat} className="mb-4">
+              <div className="flex items-center gap-2 mb-2 px-1">
+                <span className="font-[900] text-[#4c59a1] text-base">{cat}</span>
+                <span className="text-[#4c59a1]/55 font-bold text-sm">{list.length} 項</span>
+                {catCount > 0 && <span className="bg-[#fff170] text-[#4c59a1] text-xs font-[900] px-2 py-0.5 rounded-full">已選 {catCount}</span>}
+              </div>
+              <div>
+                <div className="grid grid-cols-2 gap-3">
                   {list.map(({ p, idx }) => {
                     const q = qty[idx] || 0;
                     return (
@@ -206,8 +278,7 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
                     );
                   })}
                 </div>
-                </div>
-                </div>
+              </div>
             </div>
           );
         })}
