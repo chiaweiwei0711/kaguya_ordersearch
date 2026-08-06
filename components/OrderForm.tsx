@@ -36,12 +36,11 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
   }, [products]);
 
   const setQ = (idx: number, v: number) => setQty((s) => ({ ...s, [idx]: Math.max(0, v) }));
-  // 預設只顯示第一個類別（有些團 500+ 件，一次全渲染會很慢）；「全部」是客人自己點的選項。
-  // 換團導致類別不存在時，自動退回第一個類別。
+  // 預設就是「全部」按下去的狀態（圖片全 lazy，捲到才載）。
+  // 換團導致選過的類別不存在時，自動退回全部。
   const effCat = useMemo(() => {
     const cats = grouped.map(([c]) => c);
-    if (activeCat === ALL_CAT || cats.includes(activeCat)) return activeCat;
-    return cats[0] ?? "";
+    return cats.includes(activeCat) ? activeCat : ALL_CAT;
   }, [grouped, activeCat]);
   const shownGroups = useMemo(
     () => (effCat === ALL_CAT ? grouped : grouped.filter(([c]) => c === effCat)),
