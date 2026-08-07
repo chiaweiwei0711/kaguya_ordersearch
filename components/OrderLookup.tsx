@@ -140,9 +140,9 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
         <div className="mt-4 bg-white border-[3px] border-black rounded-2xl shadow-[3px_3px_0px_#000] px-4 pt-3 pb-3.5">
           <span className="inline-block bg-[#fff170] text-[#4c59a1] text-[12px] font-[900] px-3 py-0.5 rounded-full mb-2">小提醒</span>
           <p className="text-[#4c59a1] text-[13px] font-bold leading-relaxed">
-            本頁可預覽<b className="text-[#f43f5e]">尚未結單</b>與<b className="text-[#f43f5e]">已結單尚未訂購完成</b>的填單；尚未結單需修改請洽官賴。
+            本頁可預覽<b className="text-[#f43f5e]">尚未結單</b>與<b className="text-[#f43f5e]">已結單尚未訂購完成</b>的填單；尚未結單的訂單如需修改請洽官賴。
             <br />
-            結單且訂購完成後，訂單才正式成立！可於<b className="text-[#f43f5e]">訂單查詢</b>處查詢正式訂單！
+            結單且訂購完成後，訂單才正式成立！可於<b className="text-[#f43f5e]">首頁的訂單查詢</b>處查詢正式訂單！
           </p>
         </div>
 
