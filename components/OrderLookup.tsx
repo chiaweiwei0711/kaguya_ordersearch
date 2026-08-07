@@ -137,7 +137,7 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
           </button>
         </div>
         <p className="text-[#f43f5e] text-xs font-bold mt-3 leading-relaxed px-1">
-          本頁可預覽尚未結單與已結單的填單；尚未結單需修改請洽官賴。結單且訂購完成後，訂單才正式成立！
+          本頁可預覽尚未結單與已結單尚未訂購完成的填單；尚未結單需修改請洽官賴。結單且訂購完成後，訂單才正式成立！可於訂單查詢處查詢正式訂單！
         </p>
 
         {/* 載入中 */}
