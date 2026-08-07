@@ -6,10 +6,17 @@ export interface TeamsPayload {
   products: GroupProduct[];
 }
 
-// 讀「開團表 + 開團商品」(收單 GAS 的 ?type=listTeams)
+/**
+ * 讀「開團表」＋商品輕量索引（收單 GAS 的 ?type=listTeams&lite=1）
+ *
+ * 列表頁只需要「搜尋用的品名」跟「封面圖」，不需要 4944 件商品的價格/規格/多圖。
+ * 後端因此把一團的品名串成一個字串、只帶第一張圖，整包從 1.4MB 降到約 250KB。
+ * 這裡再把索引還原成「一團一筆」的 GroupProduct，讓列表頁、搜尋、作品標籤的程式碼都不用改。
+ * 真正的商品明細等客人點進某一團才用 fetchTeamItems 抓。
+ */
 export const fetchTeams = async (): Promise<TeamsPayload> => {
   try {
-    const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=listTeams`);
+    const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=listTeams&lite=1`);
     if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
     const data = await res.json();
     if (data.status !== "success") return { teams: [], products: [] };
@@ -31,6 +38,20 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
         joinQty: Number(t["跟團件數"]) || 0,
       }))
       .filter((t: GroupTeam) => t.code);
+
+    // lite 模式：一團一筆合成商品（品名串在一起給搜尋／標籤用，圖給封面用）
+    if (Array.isArray(data.index)) {
+      const products: GroupProduct[] = data.index.map((x: any) => ({
+        team: String(x.t ?? "").trim(),
+        category: "",
+        no: "",
+        name: String(x.n ?? ""),
+        img: String(x.c ?? ""),
+        images: [],
+        price: 0,
+      }));
+      return { teams, products };
+    }
 
     const products: GroupProduct[] = (data.items || [])
       .map((it: any) => {
@@ -55,6 +76,32 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
     console.error("fetchTeams error:", e);
     return { teams: [], products: [] };
   }
+};
+
+// 單一團的商品明細：客人點進填單頁才抓，避免列表頁背著全部商品
+export const fetchTeamItems = async (code: string): Promise<GroupProduct[]> => {
+  const c = String(code || "").trim();
+  if (!c) return [];
+  const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamItems&team=${encodeURIComponent(c)}`);
+  if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
+  const data = await res.json();
+  if (data.status !== "success") return [];
+  return (data.items || [])
+    .map((it: any) => {
+      const images = String(it["圖URL"] ?? "").trim().split(/\s+/).filter(Boolean);
+      return {
+        team: String(it["團代號"] ?? "").trim(),
+        category: String(it["類別"] ?? "").trim(),
+        no: it["編號"] ?? "",
+        name: String(it["品名"] ?? "").trim(),
+        img: images[0] ?? "",
+        images,
+        price: Number(it["價格"]) || 0,
+        star: it["★"] === 1 || it["★"] === true || String(it["★"] ?? "").trim() === "1",
+        spec: String(it["規格"] ?? "").trim(),
+      };
+    })
+    .filter((p: GroupProduct) => p.team && p.category);
 };
 
 // 送出訂單 → 收單 GAS 的 doPost（URLSearchParams 表單式，跟「按讚」同款，拿得到回應、不卡 CORS）

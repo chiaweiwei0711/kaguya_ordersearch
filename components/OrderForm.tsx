@@ -9,12 +9,13 @@ const ALL_CAT = "__ALL__";   // 類別 pill 的「全部」；用哨符避免跟
 interface Props {
   team: GroupTeam;
   products: GroupProduct[];
+  loadingItems?: boolean;   // 商品是點進來才抓的，抓的期間要有回饋
   onBack: () => void;
   onGoQuery?: () => void;
   onPreview?: (nick: string) => void;   // 帶暱稱去「填單明細查詢」自動查
 }
 
-const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPreview }) => {
+const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGoQuery, onPreview }) => {
   const [nick, setNick] = useState("");
   const [pay, setPay] = useState("匯款");
   const [qty, setQty] = useState<Record<number, number>>({});
@@ -213,6 +214,13 @@ const OrderForm: React.FC<Props> = ({ team, products, onBack, onGoQuery, onPrevi
 
         {/* 2. 喊單 */}
         <div className="font-[900] text-[#4c59a1] text-lg mb-2">{teamOpen ? "2. 喊單" : "商品一覽"}<span className="text-[#4c59a1]/60 text-sm font-bold">（選類別看商品）</span></div>
+
+        {/* 商品是點進這一團才抓的，抓的期間給個回饋，不然畫面會空一下讓人以為壞了 */}
+        {loadingItems && products.length === 0 && (
+          <div className="bg-white rounded-2xl px-5 py-8 text-center text-[#4c59a1]/70 font-[900]">
+            商品載入中…
+          </div>
+        )}
 
         {/* 類別 pill 條：可橫向捲動，選中的填色 */}
         <div className="-mx-5 sm:-mx-7 px-5 sm:px-7 mb-3 overflow-x-auto no-scrollbar">

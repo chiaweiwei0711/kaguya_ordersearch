@@ -17,7 +17,7 @@ import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import OrderForm from './components/OrderForm';
 import OrderLookup from './components/OrderLookup';
-import { fetchTeams, closingSoon, fmtMDHM } from './services/groupOrderService';
+import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM } from './services/groupOrderService';
 
 // --- 類型定義 ---
 type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'closing';
@@ -166,7 +166,7 @@ const App: React.FC = () => {
   const [showLookup, setShowLookup] = useState(false); // 填單明細查詢
   const [lookupInitialNick, setLookupInitialNick] = useState(''); // 從填單成功頁帶入的暱稱
 
-  // 載入時抓一次開團資料（首頁卡片＋列表共用）
+  // 載入時抓一次開團資料（首頁卡片＋列表共用）。products 是輕量索引：一團一筆，只夠搜尋／封面／標籤用
   useEffect(() => {
     setTeamsLoading(true);
     fetchTeams()
@@ -174,17 +174,39 @@ const App: React.FC = () => {
       .finally(() => setTeamsLoading(false));
   }, []);
 
-  // hash 路由：#/order = 列表、#/order/<團代號> = 填單（支援外部直接連結）
+  // 點進某一團才抓那團的完整商品（價格／規格／多圖），列表頁不用背著全部
+  const [teamItems, setTeamItems] = useState<GroupProduct[]>([]);
+  const [teamItemsLoading, setTeamItemsLoading] = useState(false);
   useEffect(() => {
-    const applyHash = () => {
-      if (window.location.hash.startsWith('#/closing')) { setMainView('closing'); setSelectedTeamCode(null); return; }
-      const m = window.location.hash.match(/^#\/order(?:\/([^/?]+))?/);
+    if (!selectedTeamCode) { setTeamItems([]); return; }
+    let alive = true;
+    setTeamItemsLoading(true);
+    fetchTeamItems(selectedTeamCode)
+      .then((items) => { if (alive) setTeamItems(items); })
+      .catch(() => { if (alive) setTeamItems([]); })
+      .finally(() => { if (alive) setTeamItemsLoading(false); });
+    return () => { alive = false; };
+  }, [selectedTeamCode]);
+
+  // 路由：/order = 列表、/order/<團代號> = 填單、/closing = 即將結單
+  // ⚠️ 舊的 #/order/xxx 連結已經貼在社群裡了，永遠要能開 —— 所以進站先把 hash 換算成路徑。
+  //    hash 不會送到伺服器，客人點舊連結一樣會拿到網站，程式再自己轉成新網址。
+  useEffect(() => {
+    const applyPath = () => {
+      const h = window.location.hash || '';
+      if (h.startsWith('#/')) {
+        const clean = h.slice(1) + window.location.search;
+        window.history.replaceState(null, '', clean);   // 舊連結 → 新網址，客人只看到網址列變乾淨
+      }
+      const p = window.location.pathname;
+      if (p.startsWith('/closing')) { setMainView('closing'); setSelectedTeamCode(null); return; }
+      const m = p.match(/^\/order(?:\/([^/?]+))?/);
       if (m) { setMainView('order'); setSelectedTeamCode(m[1] ? decodeURIComponent(m[1]) : null); }
       else { setMainView((mv) => (mv === 'order' || mv === 'closing' ? 'query' : mv)); setSelectedTeamCode(null); }
     };
-    applyHash();
-    window.addEventListener('hashchange', applyHash);
-    return () => window.removeEventListener('hashchange', applyHash);
+    applyPath();
+    window.addEventListener('popstate', applyPath);   // 瀏覽器上一頁／下一頁
+    return () => window.removeEventListener('popstate', applyPath);
   }, []);
 
   // 今日／明日結單的團（首頁「結單倒數」橫幅用；今日排前面）
@@ -195,10 +217,11 @@ const App: React.FC = () => {
     return list.sort((a, b) => (a.when === b.when ? 0 : a.when === 'today' ? -1 : 1));
   }, [teams]);
 
-  const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); window.location.hash = '#/order'; window.scrollTo(0, 0); };
-  const goOrderTeam = (code: string) => { setSelectedTeamCode(code); window.location.hash = '#/order/' + code; window.scrollTo(0, 0); };
-  const goClosing = () => { setMainView('closing'); window.location.hash = '#/closing'; window.scrollTo(0, 0); };
-  const exitOrderToQuery = () => { setSelectedTeamCode(null); setMainView('query'); setHasSearched(false); if (window.location.hash) window.location.hash = ''; window.scrollTo(0, 0); };
+  const nav = (path: string) => window.history.pushState(null, '', path);
+  const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/order'); window.scrollTo(0, 0); };
+  const goOrderTeam = (code: string) => { setSelectedTeamCode(code); nav('/order/' + encodeURIComponent(code)); window.scrollTo(0, 0); };
+  const goClosing = () => { setMainView('closing'); nav('/closing'); window.scrollTo(0, 0); };
+  const exitOrderToQuery = () => { setSelectedTeamCode(null); setMainView('query'); setHasSearched(false); nav('/'); window.scrollTo(0, 0); };
 
   useEffect(() => {
     if (selectedNews) {
@@ -241,8 +264,12 @@ const App: React.FC = () => {
       try {
         await liff.init({ liffId: '2009367290-DGz77pHN' });
 
+        // 路由已改成乾淨路徑，但舊的 #/order 連結還在流通，兩種都要判斷
         const h = window.location.hash || '';
-        const isOrderOrClosing = h.indexOf('#/order') === 0 || h.indexOf('#/closing') === 0;
+        const p = window.location.pathname || '';
+        const isOrderOrClosing =
+          p.indexOf('/order') === 0 || p.indexOf('/closing') === 0 ||
+          h.indexOf('#/order') === 0 || h.indexOf('#/closing') === 0;
 
         // 唯一該自動查單的情境：透過 LIFF（查訂單按鈕）進到查單首頁、且已登入
         if (liff.isLoggedIn() && !isOrderOrClosing) {
@@ -902,7 +929,7 @@ const App: React.FC = () => {
               {(() => {
                 const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
                 return t
-                  ? <OrderForm team={t} products={groupProducts.filter(p => p.team === t.code)} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} />
+                  ? <OrderForm team={t} products={teamItems} loadingItems={teamItemsLoading} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} />
                   : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} />;
               })()}
             </div>

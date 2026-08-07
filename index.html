@@ -3,8 +3,16 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="https://duk.tw/ZhYY5L.png" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <!-- 加到主畫面（PWA）：Android Chrome 會主動跳安裝提示；iOS 走「分享→加入主畫面」但圖示與名稱會正確 -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <meta name="theme-color" content="#4c59a1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="KAGUYA" />
   <title>KAGUYA日本動漫代購官方網站</title>
 
   <!-- 分享預覽（LINE／Threads／IG／FB 都是抓這幾行）。沒有這些的話，

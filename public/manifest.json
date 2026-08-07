@@ -1,0 +1,31 @@
+{
+  "name": "KAGUYA日本動漫代購",
+  "short_name": "KAGUYA",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#4c59a1",
+  "theme_color": "#4c59a1",
+  "orientation": "portrait",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
