@@ -219,7 +219,9 @@ const App: React.FC = () => {
 
   const nav = (path: string) => window.history.pushState(null, '', path);
   const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/order'); window.scrollTo(0, 0); };
-  const goOrderTeam = (code: string) => { setSelectedTeamCode(code); nav('/order/' + encodeURIComponent(code)); window.scrollTo(0, 0); };
+  // ⚠️ setMainView 一定要留著：pushState 不像改 hash 會觸發事件，
+  //    少了這行就只換網址不換畫面（從主頁的「即將結單」卡片點下去會沒反應）
+  const goOrderTeam = (code: string) => { setMainView('order'); setSelectedTeamCode(code); nav('/order/' + encodeURIComponent(code)); window.scrollTo(0, 0); };
   const goClosing = () => { setMainView('closing'); nav('/closing'); window.scrollTo(0, 0); };
   const exitOrderToQuery = () => { setSelectedTeamCode(null); setMainView('query'); setHasSearched(false); nav('/'); window.scrollTo(0, 0); };
 
