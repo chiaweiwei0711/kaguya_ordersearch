@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag, Tag } from "lucide-react";
+import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag, Tag, SlidersHorizontal } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
 import { daysLeft, isOpen, fmtYMD } from "../services/groupOrderService";
 import { buildTagIndex } from "../services/ipTags";
@@ -16,6 +16,11 @@ interface Props {
 }
 
 type SortKey = "default" | "close_asc" | "close_desc";
+const SORT_OPTS: [SortKey, string][] = [
+  ["default", "最新開團"],
+  ["close_asc", "即將截止"],
+  ["close_desc", "最晚截止"],
+];
 const PER_PAGE = 30;
 
 // 結單時間轉毫秒（無法解析＝最遠 Infinity）
@@ -27,6 +32,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   const [showOpen, setShowOpen] = useState(true);
   const [showClosed, setShowClosed] = useState(true);
   const [page, setPage] = useState(1);
+  const [sortOpen, setSortOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
   const [pickedTags, setPickedTags] = useState<string[]>([]);
 
@@ -127,33 +133,61 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
       {!preview && (
         <div className="mb-5">
           <h3 className="text-[#4c59a1] font-[900] text-lg tracking-widest mb-2 pl-1">團務查找</h3>
-          <div className="w-full bg-white rounded-full p-1.5 pl-4 flex items-center gap-2 border-[3px] border-black shadow-[3px_3px_0px_#000]">
-            <Search className="w-5 h-5 text-[#f8a3f4] stroke-[3px] shrink-0" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="搜作品名、商品名等關鍵字"
-              className="w-full bg-transparent outline-none text-base font-[900] text-[#4c59a1] placeholder-gray-400 py-1.5"
-            />
-            {q && (
-              <button onClick={() => setQuery("")} aria-label="清除搜尋" className="w-8 h-8 rounded-full bg-[#f8a3f4] text-white flex items-center justify-center shrink-0 active:scale-90 transition mr-1">
-                <X className="w-4 h-4 stroke-[3px]" />
-              </button>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-2.5 mt-3">
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortKey)}
-                className="pl-5 pr-12 py-2.5 bg-white border-[3px] border-black rounded-full shadow-[3px_3px_0px_#000] text-[#4c59a1] text-sm font-[900] outline-none appearance-none cursor-pointer active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all"
-              >
-                <option value="default">排序：預設最新開團</option>
-                <option value="close_asc">排序：即將截止</option>
-                <option value="close_desc">排序：最晚截止</option>
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#f8a3f4] font-[900] text-base">▼</div>
+          {/* 搜尋框 ＋ 右邊一顆排序鈕：排序不需要一直佔一整排的寬度 */}
+          <div className="flex items-center gap-2.5">
+            <div className="flex-1 min-w-0 bg-white rounded-full p-1.5 pl-4 flex items-center gap-2 border-[3px] border-black shadow-[3px_3px_0px_#000]">
+              <Search className="w-5 h-5 text-[#f8a3f4] stroke-[3px] shrink-0" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="搜作品名、商品名等關鍵字"
+                className="w-full bg-transparent outline-none text-base font-[900] text-[#4c59a1] placeholder-gray-400 py-1.5"
+              />
+              {q && (
+                <button onClick={() => setQuery("")} aria-label="清除搜尋" className="w-8 h-8 rounded-full bg-[#f8a3f4] text-white flex items-center justify-center shrink-0 active:scale-90 transition mr-1">
+                  <X className="w-4 h-4 stroke-[3px]" />
+                </button>
+              )}
             </div>
+            <button
+              onClick={() => setSortOpen((v) => !v)}
+              aria-label="排序方式"
+              className={`relative w-[52px] h-[52px] shrink-0 rounded-full border-[3px] border-black shadow-[3px_3px_0px_#000] flex items-center justify-center active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all ${
+                sortOpen ? "bg-[#4c59a1] text-white" : "bg-white text-[#4c59a1]"
+              }`}
+            >
+              <SlidersHorizontal className="w-5 h-5 stroke-[2.5px]" />
+              {/* 不是預設排序時點一個記號，不然客人不知道現在是照什麼排 */}
+              {sortBy !== "default" && (
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#f8a3f4] border-2 border-black" />
+              )}
+            </button>
+          </div>
+
+          {/* 排序選單：點右邊那顆才展開 */}
+          {sortOpen && (
+            <div className="mt-2.5 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_#000] p-1.5">
+              {SORT_OPTS.map(([val, label]) => {
+                const on = sortBy === val;
+                return (
+                  <button
+                    key={val}
+                    onClick={() => { setSortBy(val); setSortOpen(false); }}
+                    className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-[900] transition-all ${
+                      on ? "bg-[#4c59a1] text-white" : "text-[#4c59a1] active:bg-[#eef0fa]"
+                    }`}
+                  >
+                    {on ? <Check className="w-4 h-4 stroke-[4px] shrink-0" /> : <span className="w-4 shrink-0" />}
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* 篩選一排：不換行，窄螢幕就橫向滑，不會再折成參差的兩塊 */}
+          <div className="-mx-5 sm:-mx-7 px-5 sm:px-7 mt-2.5 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-2.5 w-max pb-1">
             <button onClick={() => setShowOpen((v) => !v)} className={chip(showOpen, "open")}>
               {showOpen && <Check className="w-4 h-4 stroke-[4px]" />}開團中
             </button>
@@ -163,7 +197,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
             {tagIndex.all.length > 0 && (
               <button
                 onClick={() => setTagOpen((v) => !v)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
+                className={`shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
                   pickedTags.length ? "bg-[#f8a3f4] text-white" : "bg-white text-[#4c59a1]/70"
                 }`}
               >
@@ -171,6 +205,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                 作品{pickedTags.length > 0 && ` ${pickedTags.length}`}
               </button>
             )}
+            </div>
           </div>
 
           {/* 作品標籤面板：可複選，選了幾部就列出屬於任一部的團 */}
