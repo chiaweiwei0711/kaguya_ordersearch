@@ -68,6 +68,7 @@ const IP_DICT: [string, string[]][] = [
   ["境界觸發者", ["境界觸發者", "ワールドトリガー", "WORLD TRIGGER"]],
   ["青之驅魔師", ["青之驅魔師", "青の祓魔師", "BLUE EXORCIST"]],
   ["東京復仇者", ["東京復仇者", "東京卍", "TOKYO REVENGERS"]],
+  ["日本三國", ["日本三國", "日本三国", "ニホンサンゴク"]],
 ];
 
 const norm = (s: unknown) => String(s ?? "").toUpperCase().replace(/[\s　・·]/g, "");
