@@ -263,18 +263,23 @@ const App: React.FC = () => {
     const initApp = async () => {
       fetchAnnouncements().then(setNews);
 
+      // 路由已改成乾淨路徑，但舊的 #/order 連結還在流通，兩種都要判斷
+      const h = window.location.hash || '';
+      const p = window.location.pathname || '';
+      const isOrderOrClosing =
+        p.indexOf('/order') === 0 || p.indexOf('/closing') === 0 ||
+        h.indexOf('#/order') === 0 || h.indexOf('#/closing') === 0;
+
+      // 填單頁／即將結單頁本來就不會自動查單 → 連 liff.init 都不要跑。
+      // 原本不管在哪一頁都先 init 一次，等於做一件用不到、又可能失敗的事：
+      // 從社群(OpenChat)點連結進來時 init 會失敗，客人就被錯誤視窗擋在填單頁前面。
+      if (isOrderOrClosing) return;
+
       try {
         await liff.init({ liffId: '2009367290-DGz77pHN' });
 
-        // 路由已改成乾淨路徑，但舊的 #/order 連結還在流通，兩種都要判斷
-        const h = window.location.hash || '';
-        const p = window.location.pathname || '';
-        const isOrderOrClosing =
-          p.indexOf('/order') === 0 || p.indexOf('/closing') === 0 ||
-          h.indexOf('#/order') === 0 || h.indexOf('#/closing') === 0;
-
         // 唯一該自動查單的情境：透過 LIFF（查訂單按鈕）進到查單首頁、且已登入
-        if (liff.isLoggedIn() && !isOrderOrClosing) {
+        if (liff.isLoggedIn()) {
           setLiffBoot(true);
           const bootSafety = setTimeout(() => setLiffBoot(false), 15000); // LIFF 卡死的保險絲
           try {
@@ -284,8 +289,9 @@ const App: React.FC = () => {
               setSearchQuery(nickname);
               await executeSearch(nickname);
             } else {
-              // 🚨 如果後台沒回傳暱稱，我們直接把手機的 LINE ID 印出來對答案！
-              alert("❌ 系統有抓到您的 LINE，但表單沒查到暱稱！\n請核對會員資料B欄有沒有這串ID：\n" + profile.userId);
+              // 沒綁定的人本來就查不到暱稱，這是正常情況不是錯誤——安靜略過，讓他自己打暱稱查。
+              // （原本會 alert 出整串 LINE userId，客人看了只會嚇到）
+              console.warn('[LIFF] 這個 LINE 帳號還沒綁定暱稱', profile.userId);
             }
           } finally {
             clearTimeout(bootSafety);
@@ -293,8 +299,9 @@ const App: React.FC = () => {
           }
         }
       } catch (err: any) {
-        // 🚨 把原本笨笨的 JSON.stringify 換掉，逼它吐出真正的英文死因！
-        alert("⚠️ LIFF 錯誤：\n" + (err.message || String(err)));
+        // LIFF 只是「從官賴進來自動查單」的加值功能，失敗了網站照常能用。
+        // 絕對不要 alert 給客人看——他看不懂也幫不上忙，只會以為網站壞了。
+        console.warn('[LIFF] init 失敗，略過自動查單：', err && (err.message || String(err)));
         setLiffBoot(false);
       }
     };
