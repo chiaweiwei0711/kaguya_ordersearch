@@ -51,6 +51,23 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
       }))
       .filter((t: GroupTeam) => t.code);
 
+    // 跟團人數是即時數字、不能吃靜態檔——另打 GAS 輕量端點（下單當下會刷新），2.5 秒抓不到就先用靜態檔裡的舊值
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 2500);
+      const stRes = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=stats`, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (stRes.ok) {
+        const st = await stRes.json();
+        if (st.status === "success" && st.stats) {
+          teams.forEach((t) => {
+            const s = st.stats[t.code];
+            if (s) { t.joinPeople = Number(s.people) || 0; t.joinQty = Number(s.qty) || 0; }
+          });
+        }
+      }
+    } catch (_) { /* 逾時 → 用靜態值 */ }
+
     // lite 模式：一團一筆合成商品（品名串在一起給搜尋／標籤用，圖給封面用）
     if (Array.isArray(data.index)) {
       const products: GroupProduct[] = data.index.map((x: any) => ({
