@@ -52,6 +52,7 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
       .filter((t: GroupTeam) => t.code);
 
     // 跟團人數是即時數字、不能吃靜態檔——另打 GAS 輕量端點（下單當下會刷新），2.5 秒抓不到就先用靜態檔裡的舊值
+    let liveStats: any = null;
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 2500);
@@ -60,13 +61,21 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
       if (stRes.ok) {
         const st = await stRes.json();
         if (st.status === "success" && st.stats) {
-          teams.forEach((t) => {
-            const s = st.stats[t.code];
-            if (s) { t.joinPeople = Number(s.people) || 0; t.joinQty = Number(s.qty) || 0; }
-          });
+          liveStats = st.stats;
+          try { localStorage.setItem("kg_stats", JSON.stringify(st.stats)); } catch (_) {}
         }
       }
-    } catch (_) { /* 逾時 → 用靜態值 */ }
+    } catch (_) { /* 逾時 → 走下面的上次成功值 */ }
+    // 問不到就用「上次成功的人數」（localStorage），避免 GAS 不穩時人數 0/N 跳動；連上次都沒有才用靜態檔值
+    if (!liveStats) {
+      try { liveStats = JSON.parse(localStorage.getItem("kg_stats") || "null"); } catch (_) {}
+    }
+    if (liveStats) {
+      teams.forEach((t) => {
+        const s = liveStats[t.code];
+        if (s) { t.joinPeople = Number(s.people) || 0; t.joinQty = Number(s.qty) || 0; }
+      });
+    }
 
     // lite 模式：一團一筆合成商品（品名串在一起給搜尋／標籤用，圖給封面用）
     if (Array.isArray(data.index)) {
