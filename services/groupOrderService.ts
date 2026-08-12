@@ -14,11 +14,23 @@ export interface TeamsPayload {
  * 這裡再把索引還原成「一團一筆」的 GroupProduct，讓列表頁、搜尋、作品標籤的程式碼都不用改。
  * 真正的商品明細等客人點進某一團才用 fetchTeamItems 抓。
  */
+// 讀取來源二選一：CDN 靜態檔（秒開、無上限）優先，失敗才退回 GAS（2026-08-12 讀取雪崩事故後的架構）
+const fetchTeamsRaw = async (): Promise<any> => {
+  try {
+    const sres = await fetch(`${APP_CONFIG.STATIC_API_URL}/teams.json`, { cache: "no-cache" });
+    if (sres.ok) {
+      const sdata = await sres.json();
+      if (sdata.status === "success" && Array.isArray(sdata.teams) && sdata.teams.length) return sdata;
+    }
+  } catch (_) { /* CDN 抓不到 → 退回 GAS */ }
+  const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=listTeams&lite=1`);
+  if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
+  return await res.json();
+};
+
 export const fetchTeams = async (): Promise<TeamsPayload> => {
   try {
-    const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=listTeams&lite=1`);
-    if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
-    const data = await res.json();
+    const data = await fetchTeamsRaw();
     if (data.status !== "success") return { teams: [], products: [] };
 
     const teams: GroupTeam[] = (data.teams || [])
@@ -82,9 +94,19 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
 export const fetchTeamItems = async (code: string): Promise<GroupProduct[]> => {
   const c = String(code || "").trim();
   if (!c) return [];
-  const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamItems&team=${encodeURIComponent(c)}`);
-  if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
-  const data = await res.json();
+  let data: any = null;
+  try {
+    const sres = await fetch(`${APP_CONFIG.STATIC_API_URL}/items/${encodeURIComponent(c)}.json`, { cache: "no-cache" });
+    if (sres.ok) {
+      const sdata = await sres.json();
+      if (sdata.status === "success" && Array.isArray(sdata.items) && sdata.items.length) data = sdata;
+    }
+  } catch (_) { /* CDN 沒這團（新團未重印）→ 退回 GAS */ }
+  if (!data) {
+    const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamItems&team=${encodeURIComponent(c)}`);
+    if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
+    data = await res.json();
+  }
   if (data.status !== "success") return [];
   return (data.items || [])
     .map((it: any) => {

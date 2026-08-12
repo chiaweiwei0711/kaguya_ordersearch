@@ -5,6 +5,8 @@ export const APP_CONFIG = {
   // 請確保這是您最新部署的 GAS 網址（查詢/公告/付款主後台）
   API_URL: "https://script.google.com/macros/s/AKfycbzyWKTJDGviJrR5pBmcKSvn7ar2-FsYYuaElCUKWVOjmj5W-XvNq8G9hZgi6VrowKYx/exec",
 
+  // 開團「讀取」靜態資料層（jsDelivr CDN，2026-08-12 起）：團列表/商品明細先吃這裡，無流量上限；抓不到才退回下面的收單 GAS
+  STATIC_API_URL: "https://cdn.jsdelivr.net/gh/chiaweiwei0711/kaguya-assets@main/api",
   // 開團訂購「收單」GAS — 獨立後台，與上面查詢系統完全分開（listTeams 給資料 / submitGroupOrder 收單）
   ORDER_API_URL: "https://script.google.com/macros/s/AKfycbyHf4PKNb8GHBJKSmBkQUKr-3Oc1lilpg55eNQFmHQJmKhONdGNFj7R0C3GyUfL1Y_u-Q/exec",
 
