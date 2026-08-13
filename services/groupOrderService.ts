@@ -1,6 +1,22 @@
 import { APP_CONFIG } from "../config";
 import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
 
+// 開團表一列 → 前端 GroupTeam（靜態檔與 GAS live 共用同一套欄位轉換）
+const mapTeam = (t: any): GroupTeam => ({
+  code: String(t["團代號"] ?? "").trim(),
+  name: String(t["團名"] ?? "").trim(),
+  status: String(t["狀態"] ?? "").trim(),
+  closeAt: String(t["結單時間"] ?? "").trim(),
+  openAt: String(t["開團日期"] ?? "").trim(),
+  shipInfo: String(t["發貨"] ?? "").trim(),
+  note: String(t["備註"] ?? "").trim(),
+  purchased: t["訂購完成"] === true || ["1", "true", "TRUE", "是", "✓", "v", "V"].includes(String(t["訂購完成"] ?? "").trim()),
+  cover: String(t["封面圖"] ?? "").trim(),
+  tags: String(t["標籤"] ?? "").split(/[、,，/｜|]+/).map((x: string) => x.trim()).filter(Boolean),
+  joinPeople: Number(t["跟團人數"]) || 0,
+  joinQty: Number(t["跟團件數"]) || 0,
+});
+
 export interface TeamsPayload {
   teams: GroupTeam[];
   products: GroupProduct[];
@@ -33,47 +49,37 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
     const data = await fetchTeamsRaw();
     if (data.status !== "success") return { teams: [], products: [] };
 
-    const teams: GroupTeam[] = (data.teams || [])
-      .map((t: any) => ({
-        code: String(t["團代號"] ?? "").trim(),
-        name: String(t["團名"] ?? "").trim(),
-        status: String(t["狀態"] ?? "").trim(),
-        closeAt: String(t["結單時間"] ?? "").trim(),
-        openAt: String(t["開團日期"] ?? "").trim(),
-        shipInfo: String(t["發貨"] ?? "").trim(),
-        note: String(t["備註"] ?? "").trim(),
-        purchased: t["訂購完成"] === true || ["1", "true", "TRUE", "是", "✓", "v", "V"].includes(String(t["訂購完成"] ?? "").trim()),
-        cover: String(t["封面圖"] ?? "").trim(),
-        // 後台「標籤」欄：用、，/ 等分隔都吃
-        tags: String(t["標籤"] ?? "").split(/[、,，/｜|]+/).map((x: string) => x.trim()).filter(Boolean),
-        joinPeople: Number(t["跟團人數"]) || 0,
-        joinQty: Number(t["跟團件數"]) || 0,
-      }))
+    let teams: GroupTeam[] = (data.teams || [])
+      .map(mapTeam)
       .filter((t: GroupTeam) => t.code);
 
     // 跟團人數是即時數字、不能吃靜態檔——另打 GAS 輕量端點（下單當下會刷新），2.5 秒抓不到就先用靜態檔裡的舊值
-    let liveStats: any = null;
+    // 即時層：GAS 的輕量 live（團表＋人數，不掃商品表）。新開團／改狀態／人數都不必等重印靜態檔。
+    // 抓得到就以 live 為準；抓不到（GAS 忙）就用靜態檔＋上次成功的人數，頁面照樣秒開。
+    let live: any = null;
     try {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 2500);
-      const stRes = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=stats`, { signal: ctrl.signal });
+      const timer = setTimeout(() => ctrl.abort(), 4000);
+      const lres = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=live`, { signal: ctrl.signal });
       clearTimeout(timer);
-      if (stRes.ok) {
-        const st = await stRes.json();
-        if (st.status === "success" && st.stats) {
-          liveStats = st.stats;
-          try { localStorage.setItem("kg_stats", JSON.stringify(st.stats)); } catch (_) {}
+      if (lres.ok) {
+        const ld = await lres.json();
+        if (ld.status === "success" && Array.isArray(ld.teams) && ld.teams.length) {
+          live = ld.teams;
+          try { localStorage.setItem("kg_live", JSON.stringify(ld.teams)); } catch (_) {}
         }
       }
-    } catch (_) { /* 逾時 → 走下面的上次成功值 */ }
-    // 問不到就用「上次成功的人數」（localStorage），避免 GAS 不穩時人數 0/N 跳動；連上次都沒有才用靜態檔值
-    if (!liveStats) {
-      try { liveStats = JSON.parse(localStorage.getItem("kg_stats") || "null"); } catch (_) {}
+    } catch (_) { /* 逾時 → 用下面的備援 */ }
+    if (!live) {
+      try { live = JSON.parse(localStorage.getItem("kg_live") || "null"); } catch (_) {}
     }
-    if (liveStats) {
-      teams.forEach((t) => {
-        const s = liveStats[t.code];
-        if (s) { t.joinPeople = Number(s.people) || 0; t.joinQty = Number(s.qty) || 0; }
+    if (Array.isArray(live) && live.length) {
+      const liveTeams: GroupTeam[] = live.map(mapTeam).filter((t: GroupTeam) => t.code);
+      const staticByCode = new Map(teams.map((t) => [t.code, t]));
+      // live 是團列表的真相（新團會出現、刪掉的團會消失）；封面等欄位 live 沒帶到就沿用靜態值
+      teams = liveTeams.map((lt) => {
+        const st = staticByCode.get(lt.code);
+        return st ? { ...st, ...lt } : lt;
       });
     }
 
