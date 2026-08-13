@@ -1,6 +1,10 @@
 import { APP_CONFIG } from "../config";
 import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
 
+// 靜態檔（CDN）是否已過期：fetchTeams 時比對「靜態檔版號 vs 試算表版號」，
+// 過期＝她剛改過團/商品 → 之後抓商品明細一律走 GAS 拿最新的，不吃舊靜態檔。
+let staticStale = true;   // 還沒比對前一律當過期（寧可慢一點也不給客人看到舊價格）
+
 // 開團表一列 → 前端 GroupTeam（靜態檔與 GAS live 共用同一套欄位轉換）
 const mapTeam = (t: any): GroupTeam => ({
   code: String(t["團代號"] ?? "").trim(),
@@ -39,6 +43,7 @@ const fetchTeamsRaw = async (): Promise<any> => {
       if (sdata.status === "success" && Array.isArray(sdata.teams) && sdata.teams.length) return sdata;
     }
   } catch (_) { /* CDN 抓不到 → 退回 GAS */ }
+  staticStale = true;      // 連靜態檔都沒有 → 全部走 GAS
   const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=listTeams&lite=1`);
   if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
   return await res.json();
@@ -66,6 +71,8 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
         const ld = await lres.json();
         if (ld.status === "success" && Array.isArray(ld.teams) && ld.teams.length) {
           live = ld.teams;
+          // 版號一致＝靜態檔跟試算表同步，商品明細可以放心吃 CDN（秒開）；不一致就走 GAS 拿最新
+          staticStale = !(data && data.ver && ld.ver && String(data.ver) === String(ld.ver));
           try { localStorage.setItem("kg_live", JSON.stringify(ld.teams)); } catch (_) {}
         }
       }
@@ -127,17 +134,29 @@ export const fetchTeamItems = async (code: string): Promise<GroupProduct[]> => {
   const c = String(code || "").trim();
   if (!c) return [];
   let data: any = null;
-  try {
-    const sres = await fetch(`${APP_CONFIG.STATIC_API_URL}/items/${encodeURIComponent(c)}.json`, { cache: "no-cache" });
-    if (sres.ok) {
-      const sdata = await sres.json();
-      if (sdata.status === "success" && Array.isArray(sdata.items) && sdata.items.length) data = sdata;
-    }
-  } catch (_) { /* CDN 沒這團（新團未重印）→ 退回 GAS */ }
+  // 靜態檔跟試算表同步時才吃 CDN（秒開）；她剛改過東西（版號不同）就直接走 GAS，確保價格/品項是最新的
+  if (!staticStale) {
+    try {
+      const sres = await fetch(`${APP_CONFIG.STATIC_API_URL}/items/${encodeURIComponent(c)}.json`, { cache: "no-cache" });
+      if (sres.ok) {
+        const sdata = await sres.json();
+        if (sdata.status === "success" && Array.isArray(sdata.items) && sdata.items.length) data = sdata;
+      }
+    } catch (_) { /* CDN 沒這團 → 退回 GAS */ }
+  }
   if (!data) {
-    const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamItems&team=${encodeURIComponent(c)}`);
-    if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
-    data = await res.json();
+    try {
+      const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamItems&team=${encodeURIComponent(c)}`);
+      if (res.ok) {
+        const gd = await res.json();
+        if (gd.status === "success") data = gd;
+      }
+    } catch (_) { /* GAS 掛了 → 下面用靜態檔頂著，總比開不了好 */ }
+  }
+  if (!data) {
+    const sres2 = await fetch(`${APP_CONFIG.STATIC_API_URL}/items/${encodeURIComponent(c)}.json`, { cache: "no-cache" });
+    if (!sres2.ok) throw new Error(`連線失敗 (${sres2.status})`);
+    data = await sres2.json();
   }
   if (data.status !== "success") return [];
   return (data.items || [])
