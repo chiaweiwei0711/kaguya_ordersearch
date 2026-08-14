@@ -169,7 +169,8 @@ const App: React.FC = () => {
   // 載入時抓一次開團資料（首頁卡片＋列表共用）。products 是輕量索引：一團一筆，只夠搜尋／封面／標籤用
   useEffect(() => {
     setTeamsLoading(true);
-    fetchTeams()
+    // 靜態檔先上（秒開）→ 背景的即時資料回來後再無縫更新（新團／人數／封面）
+    fetchTeams(({ teams: lt, products: lp }) => { setTeams(lt); if (lp.length) setGroupProducts(lp); })
       .then(({ teams, products }) => { setTeams(teams); setGroupProducts(products); })
       .finally(() => setTeamsLoading(false));
   }, []);

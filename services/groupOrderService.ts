@@ -4,6 +4,7 @@ import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
 // 靜態檔（CDN）是否已過期：fetchTeams 時比對「靜態檔版號 vs 試算表版號」，
 // 過期＝她剛改過團/商品 → 之後抓商品明細一律走 GAS 拿最新的，不吃舊靜態檔。
 let staticStale = true;   // 還沒比對前一律當過期（寧可慢一點也不給客人看到舊價格）
+let lastProducts: GroupProduct[] = [];   // 搜尋索引（來自靜態檔），背景更新時沿用
 
 // 開團表一列 → 前端 GroupTeam（靜態檔與 GAS live 共用同一套欄位轉換）
 const mapTeam = (t: any): GroupTeam => ({
@@ -49,7 +50,8 @@ const fetchTeamsRaw = async (): Promise<any> => {
   return await res.json();
 };
 
-export const fetchTeams = async (): Promise<TeamsPayload> => {
+// onLive：live（即時團表）回來後才呼叫，用來更新畫面。首屏不等它 → 頁面永遠秒開。
+export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<TeamsPayload> => {
   try {
     const data = await fetchTeamsRaw();
     if (data.status !== "success") return { teams: [], products: [] };
@@ -59,40 +61,44 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
       .filter((t: GroupTeam) => t.code);
 
     // 跟團人數是即時數字、不能吃靜態檔——另打 GAS 輕量端點（下單當下會刷新），2.5 秒抓不到就先用靜態檔裡的舊值
-    // 即時層：GAS 的輕量 live（團表＋人數，不掃商品表）。新開團／改狀態／人數都不必等重印靜態檔。
-    // 抓得到就以 live 為準；抓不到（GAS 忙）就用靜態檔＋上次成功的人數，頁面照樣秒開。
-    let live: any = null;
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 4000);
-      const lres = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=live`, { signal: ctrl.signal });
-      clearTimeout(timer);
-      if (lres.ok) {
-        const ld = await lres.json();
-        if (ld.status === "success" && Array.isArray(ld.teams) && ld.teams.length) {
-          live = ld.teams;
-          // 版號一致＝靜態檔跟試算表同步，商品明細可以放心吃 CDN（秒開）；不一致就走 GAS 拿最新
-          staticStale = !(data && data.ver && ld.ver && String(data.ver) === String(ld.ver));
-          try { localStorage.setItem("kg_live", JSON.stringify(ld.teams)); } catch (_) {}
-        }
-      }
-    } catch (_) { /* 逾時 → 用下面的備援 */ }
-    if (!live) {
-      try { live = JSON.parse(localStorage.getItem("kg_live") || "null"); } catch (_) {}
-    }
-    if (Array.isArray(live) && live.length) {
-      const liveTeams: GroupTeam[] = live.map(mapTeam).filter((t: GroupTeam) => t.code);
-      const staticByCode = new Map(teams.map((t) => [t.code, t]));
-      // live 是團列表的真相（新團會出現、刪掉的團會消失）；封面等欄位 live 沒帶到就沿用靜態值
-      teams = liveTeams.map((lt) => {
-        const st = staticByCode.get(lt.code);
+    // 先用上次成功的 live 快照補一次（localStorage，0 成本），首屏就能看到最近一次的新團/人數
+    const mergeLive = (raw: any[], base: GroupTeam[]): GroupTeam[] => {
+      const liveTeams: GroupTeam[] = raw.map(mapTeam).filter((t: GroupTeam) => t.code);
+      if (!liveTeams.length) return base;
+      const byCode = new Map(base.map((t) => [t.code, t]));
+      // live 是團列表的真相（新團會出現、刪掉的團會消失）；靜態值只當補漏
+      return liveTeams.map((lt) => {
+        const st = byCode.get(lt.code);
         return st ? { ...st, ...lt } : lt;
       });
+    };
+    try {
+      const cached = JSON.parse(localStorage.getItem("kg_live") || "null");
+      if (Array.isArray(cached) && cached.length) teams = mergeLive(cached, teams);
+    } catch (_) {}
+
+    // 背景抓 live：不擋首屏，回來後用 onLive 更新畫面（新團、狀態、人數、封面都會補上）
+    if (onLive) {
+      (async () => {
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 8000);
+          const lres = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=live`, { signal: ctrl.signal });
+          clearTimeout(timer);
+          if (!lres.ok) return;
+          const ld = await lres.json();
+          if (ld.status !== "success" || !Array.isArray(ld.teams) || !ld.teams.length) return;
+          // 版號一致＝靜態檔與試算表同步 → 商品明細可以吃 CDN（秒開）；不一致代表她剛改過 → 走 GAS 拿最新
+          staticStale = !(data && data.ver && ld.ver && String(data.ver) === String(ld.ver));
+          try { localStorage.setItem("kg_live", JSON.stringify(ld.teams)); } catch (_) {}
+          onLive({ teams: mergeLive(ld.teams, teams), products: lastProducts });
+        } catch (_) { /* GAS 忙 → 畫面維持靜態檔內容，不影響使用 */ }
+      })();
     }
 
     // lite 模式：一團一筆合成商品（品名串在一起給搜尋／標籤用，圖給封面用）
     if (Array.isArray(data.index)) {
-      const products: GroupProduct[] = data.index.map((x: any) => ({
+      lastProducts = data.index.map((x: any) => ({
         team: String(x.t ?? "").trim(),
         category: "",
         no: "",
@@ -101,7 +107,7 @@ export const fetchTeams = async (): Promise<TeamsPayload> => {
         images: [],
         price: 0,
       }));
-      return { teams, products };
+      return { teams, products: lastProducts };
     }
 
     const products: GroupProduct[] = (data.items || [])
