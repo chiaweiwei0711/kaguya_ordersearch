@@ -208,21 +208,35 @@ export const submitGroupOrder = async (
   team: GroupTeam,
   nick: string,
   items: GroupCartItem[],
-  pay: string = "匯款"
+  pay: string = "匯款",
+  orderId?: string
 ): Promise<{ ok?: boolean; [k: string]: any }> => {
-  const res = await fetch(APP_CONFIG.ORDER_API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      type: "submitGroupOrder",
-      team: team.code,
-      teamName: team.name,
-      nick: nick,
-      pay: pay,
-      items: JSON.stringify(items),
-    }),
-  });
-  return res.json();
+  // orderId：同一張單重送幾次，後端只會收一次（避免「送出失敗其實有寫進去」造成重複下單）
+  const oid = orderId || `${team.code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const send = () =>
+    fetch(APP_CONFIG.ORDER_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        type: "submitGroupOrder",
+        team: team.code,
+        teamName: team.name,
+        nick: nick,
+        pay: pay,
+        orderId: oid,
+        items: JSON.stringify(items),
+      }),
+    });
+
+  try {
+    const res = await send();
+    return await res.json();
+  } catch (e) {
+    // 網路中斷／逾時：可能已經寫進去了。帶同一個 orderId 重試一次 —— 後端冪等，不會變成兩筆
+    await new Promise((r) => setTimeout(r, 1500));
+    const res2 = await send();
+    return await res2.json();
+  }
 };
 
 // 查「我已送出的填單」(收單 GAS 的 ?type=pre-orderform&nick=...)

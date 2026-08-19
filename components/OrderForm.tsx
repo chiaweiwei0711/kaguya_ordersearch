@@ -74,18 +74,21 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
     setShowConfirm(true);
   };
 
+  // 同一張單的單號：重試沿用同一個 → 後端只會收一次（防重複下單）
+  const orderIdRef = React.useRef<string>("");
   const doSend = async () => {
     // 頁面開著跨過結單時間再按送出也要擋（isOpen 每次呼叫都重新比對現在時間）
     if (!isOpen(team)) { setShowConfirm(false); alert("本團已結單，無法再下單囉"); return; }
     setSubmitting(true);
     try {
-      const r = await submitGroupOrder(team, nick.trim(), cart, pay);
+      if (!orderIdRef.current) orderIdRef.current = `${team.code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const r = await submitGroupOrder(team, nick.trim(), cart, pay, orderIdRef.current);
       if (r && r.ok === false) { setShowConfirm(false); alert(r.message || "本團已結單，無法送出"); return; }
       localStorage.setItem(`kaguya_order_done_${team.code}`, "1");
       setShowConfirm(false);
       setDone(true);
     } catch {
-      alert("送出失敗，請再試一次");
+      alert("網路不太穩，請再按一次送出（放心，系統會自動避免重複下單）");
     } finally {
       setSubmitting(false);
     }
