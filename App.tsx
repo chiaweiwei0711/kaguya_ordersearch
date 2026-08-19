@@ -182,7 +182,8 @@ const App: React.FC = () => {
     if (!selectedTeamCode) { setTeamItems([]); return; }
     let alive = true;
     setTeamItemsLoading(true);
-    fetchTeamItems(selectedTeamCode)
+    // 靜態檔先上（秒開）；若她剛改過商品，背景校驗回來會再更新一次
+    fetchTeamItems(selectedTeamCode, (fresh) => { if (alive) setTeamItems(fresh); })
       .then((items) => { if (alive) setTeamItems(items); })
       .catch(() => { if (alive) setTeamItems([]); })
       .finally(() => { if (alive) setTeamItemsLoading(false); });

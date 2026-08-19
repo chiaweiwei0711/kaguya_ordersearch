@@ -82,7 +82,7 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
       (async () => {
         try {
           const ctrl = new AbortController();
-          const timer = setTimeout(() => ctrl.abort(), 8000);
+          const timer = setTimeout(() => ctrl.abort(), 4000);
           const lres = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=live`, { signal: ctrl.signal });
           clearTimeout(timer);
           if (!lres.ok) return;
@@ -136,51 +136,66 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
 };
 
 // 單一團的商品明細：客人點進填單頁才抓，避免列表頁背著全部商品
-export const fetchTeamItems = async (code: string): Promise<GroupProduct[]> => {
+export const fetchTeamItems = async (code: string, onFresh?: (items: GroupProduct[]) => void): Promise<GroupProduct[]> => {
   const c = String(code || "").trim();
   if (!c) return [];
-  let data: any = null;
-  // 靜態檔跟試算表同步時才吃 CDN（秒開）；她剛改過東西（版號不同）就直接走 GAS，確保價格/品項是最新的
-  if (!staticStale) {
+
+  const parse = (data: any): GroupProduct[] =>
+    (data?.items || [])
+      .map((it: any) => {
+        const images = String(it["圖URL"] ?? "").trim().split(/\s+/).filter(Boolean);
+        return {
+          team: String(it["團代號"] ?? "").trim(),
+          category: String(it["類別"] ?? "").trim(),
+          no: it["編號"] ?? "",
+          name: String(it["品名"] ?? "").trim(),
+          img: images[0] ?? "",
+          images,
+          price: Number(it["價格"]) || 0,
+          star: it["★"] === 1 || it["★"] === true || String(it["★"] ?? "").trim() === "1",
+          spec: String(it["規格"] ?? "").trim(),
+        };
+      })
+      .filter((p: GroupProduct) => p.team && p.category);
+
+  const fromGas = async (ms: number): Promise<GroupProduct[] | null> => {
     try {
-      const sres = await fetch(`${APP_CONFIG.STATIC_API_URL}/items/${encodeURIComponent(c)}.json`, { cache: "no-cache" });
-      if (sres.ok) {
-        const sdata = await sres.json();
-        if (sdata.status === "success" && Array.isArray(sdata.items) && sdata.items.length) data = sdata;
-      }
-    } catch (_) { /* CDN 沒這團 → 退回 GAS */ }
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), ms);
+      const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamItems&team=${encodeURIComponent(c)}`, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) return null;
+      const d = await res.json();
+      if (d.status !== "success") return null;
+      const items = parse(d);
+      return items.length ? items : null;
+    } catch (_) { return null; }
+  };
+
+  // 1) 先拿 CDN 靜態檔 → 客人秒看到商品，永遠不等 GAS（GAS 掛掉也不會卡頁面）
+  let staticItems: GroupProduct[] | null = null;
+  try {
+    const sres = await fetch(`${APP_CONFIG.STATIC_API_URL}/items/${encodeURIComponent(c)}.json`, { cache: "no-cache" });
+    if (sres.ok) {
+      const items = parse(await sres.json());
+      if (items.length) staticItems = items;
+    }
+  } catch (_) {}
+
+  // 2) 靜態檔可能比試算表舊（她剛改過）→ 背景跟 GAS 校驗，有差異就用 onFresh 更新畫面
+  if (staticItems) {
+    if (staticStale && onFresh) {
+      (async () => {
+        const fresh = await fromGas(12000);
+        if (fresh && JSON.stringify(fresh) !== JSON.stringify(staticItems)) onFresh(fresh);
+      })();
+    }
+    return staticItems;
   }
-  if (!data) {
-    try {
-      const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamItems&team=${encodeURIComponent(c)}`);
-      if (res.ok) {
-        const gd = await res.json();
-        if (gd.status === "success") data = gd;
-      }
-    } catch (_) { /* GAS 掛了 → 下面用靜態檔頂著，總比開不了好 */ }
-  }
-  if (!data) {
-    const sres2 = await fetch(`${APP_CONFIG.STATIC_API_URL}/items/${encodeURIComponent(c)}.json`, { cache: "no-cache" });
-    if (!sres2.ok) throw new Error(`連線失敗 (${sres2.status})`);
-    data = await sres2.json();
-  }
-  if (data.status !== "success") return [];
-  return (data.items || [])
-    .map((it: any) => {
-      const images = String(it["圖URL"] ?? "").trim().split(/\s+/).filter(Boolean);
-      return {
-        team: String(it["團代號"] ?? "").trim(),
-        category: String(it["類別"] ?? "").trim(),
-        no: it["編號"] ?? "",
-        name: String(it["品名"] ?? "").trim(),
-        img: images[0] ?? "",
-        images,
-        price: Number(it["價格"]) || 0,
-        star: it["★"] === 1 || it["★"] === true || String(it["★"] ?? "").trim() === "1",
-        spec: String(it["規格"] ?? "").trim(),
-      };
-    })
-    .filter((p: GroupProduct) => p.team && p.category);
+
+  // 3) 靜態檔沒有這團（剛開的新團，還沒重印）→ 只好等 GAS，但給短超時，失敗就回空而不是卡住
+  const fresh = await fromGas(12000);
+  return fresh || [];
 };
 
 // 送出訂單 → 收單 GAS 的 doPost（URLSearchParams 表單式，跟「按讚」同款，拿得到回應、不卡 CORS）
