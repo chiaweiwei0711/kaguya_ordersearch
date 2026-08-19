@@ -85,6 +85,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       const r = await submitGroupOrder(team, nick.trim(), cart, pay, orderIdRef.current);
       if (r && r.ok === false) { setShowConfirm(false); alert(r.message || "本團已結單，無法送出"); return; }
       localStorage.setItem(`kaguya_order_done_${team.code}`, "1");
+      orderIdRef.current = "";      // 這張單已收下 → 清空單號，之後客人「加買一單」會是全新的單，不會被當成重複
       setShowConfirm(false);
       setDone(true);
     } catch {
