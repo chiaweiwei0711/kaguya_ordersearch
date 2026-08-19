@@ -62,16 +62,21 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
 
     // 跟團人數是即時數字、不能吃靜態檔——另打 GAS 輕量端點（下單當下會刷新），2.5 秒抓不到就先用靜態檔裡的舊值
     // 先用上次成功的 live 快照補一次（localStorage，0 成本），首屏就能看到最近一次的新團/人數
+    // ⚠️ 只補不蓋：CDN 菜單是完整清單（基礎），live 只用來「更新既有團 + 補上新團」。
+    //   （2026-08-15 事故：原本讓 live 取代整份清單，GAS 半掛回傳殘缺時客人就看到團憑空消失）
     const mergeLive = (raw: any[], base: GroupTeam[]): GroupTeam[] => {
-      const liveTeams: GroupTeam[] = raw.map(mapTeam).filter((t: GroupTeam) => t.code);
+      const liveTeams: GroupTeam[] = (raw || []).map(mapTeam).filter((t: GroupTeam) => t.code);
       if (!liveTeams.length) return base;
-      const byCode = new Map(base.map((t) => [t.code, t]));
-      // live 是團列表的真相（新團會出現、刪掉的團會消失）；靜態值只當補漏
-      return liveTeams.map((lt) => {
-        const st = byCode.get(lt.code);
-        return st ? { ...st, ...lt } : lt;
+      const liveByCode = new Map(liveTeams.map((t) => [t.code, t]));
+      const merged = base.map((st) => {
+        const lt = liveByCode.get(st.code);
+        return lt ? { ...st, ...lt } : st;      // 既有團：用 live 的最新狀態/人數/結單時間
       });
+      const baseCodes = new Set(base.map((t) => t.code));
+      liveTeams.forEach((lt) => { if (!baseCodes.has(lt.code)) merged.push(lt); });  // 新團補進來
+      return merged;
     };
+    // 電腦裡存的上次 live 只用來補人數等欄位，一樣不會讓團消失
     try {
       const cached = JSON.parse(localStorage.getItem("kg_live") || "null");
       if (Array.isArray(cached) && cached.length) teams = mergeLive(cached, teams);
