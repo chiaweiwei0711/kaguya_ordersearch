@@ -1,7 +1,9 @@
-import React, { useState, useMemo, useRef } from "react";
-import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info } from "lucide-react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info, Check, Loader2, UserX } from "lucide-react";
 import { GroupTeam, GroupProduct, GroupCartItem } from "../types";
-import { submitGroupOrder, daysLeft, fmtYMD, isOpen } from "../services/groupOrderService";
+import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound } from "../services/groupOrderService";
+import { APP_CONFIG } from "../config";
+import { usePullToRefresh } from "./usePullToRefresh";
 import ProductCarousel from "./ProductCarousel";
 
 const ALL_CAT = "__ALL__";   // 類別 pill 的「全部」；用哨符避免跟真實類別名撞名
@@ -13,10 +15,18 @@ interface Props {
   onBack: () => void;
   onGoQuery?: () => void;
   onPreview?: (nick: string) => void;   // 帶暱稱去「填單明細查詢」自動查
+  onRefresh?: () => Promise<any> | any; // 下拉重整：重抓這團的商品與人數
 }
 
-const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGoQuery, onPreview }) => {
-  const [nick, setNick] = useState("");
+const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGoQuery, onPreview, onRefresh }) => {
+  // 暱稱記住上次填的：同一支手機第二次以後就不用再打（回頭客佔大多數）
+  const [nick, setNick] = useState(() => { try { return localStorage.getItem("kg_nick") || ""; } catch { return ""; } });
+  const [nickState, setNickState] = useState<"idle" | "checking" | "ok" | "unbound" | "unknown">("idle");
+  const [showUnbound, setShowUnbound] = useState(false);   // 「尚未綁定」小視窗
+  const [bypass, setBypass] = useState(false);             // 客人自己確認「我有綁定」→ 這次放行
+  const nickRef = useRef<HTMLInputElement>(null);
+  const nickSeq = useRef(0);
+  const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(onRefresh);
   const [pay, setPay] = useState("匯款");
   const [qty, setQty] = useState<Record<number, number>>({});
   const [activeCat, setActiveCat] = useState("");   // "" = 還沒選（預設吃第一個類別）；ALL_CAT = 全部
@@ -26,6 +36,21 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const [zoomP, setZoomP] = useState<GroupProduct | null>(null);
   const [zoomIdx, setZoomIdx] = useState(0);
   const zStart = useRef({ x: 0, y: 0 });
+
+  // 暱稱綁定即時檢查：停手 0.5 秒才問，打錯當場就會變 ❌，改對了自己變 ✅、送出鈕自動解鎖
+  useEffect(() => {
+    setBypass(false);
+    const q = nick.trim();
+    if (!q) { setNickState("idle"); nickSeq.current++; return; }
+    setNickState("checking");
+    const my = ++nickSeq.current;
+    const t = setTimeout(async () => {
+      const r = await checkNickBound(q);
+      if (my !== nickSeq.current) return;      // 期間又打了新字 → 舊結果丟掉
+      setNickState(r === true ? "ok" : r === false ? "unbound" : "unknown");
+    }, 500);
+    return () => clearTimeout(t);
+  }, [nick]);
 
   const grouped = useMemo(() => {
     const m = new Map<string, { p: GroupProduct; idx: number }[]>();
@@ -67,6 +92,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const openConfirm = () => {
     if (!isOpen(team)) { alert("本團已結單，無法再下單囉"); return; }
     if (!nick.trim()) { alert("請先填社群暱稱"); return; }
+    // 查無此暱稱 → 跳小視窗（查不到綁定表本身時 nickState 是 unknown，一律放行）
+    if (nickState === "unbound" && !bypass) { setShowUnbound(true); return; }
     if (!cart.length) { alert("還沒選任何商品"); return; }
     if (localStorage.getItem(`kaguya_order_done_${team.code}`)) {
       if (!window.confirm("本裝置已下單過一次，是否要繼續訂購？")) return;
@@ -85,6 +112,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       const r = await submitGroupOrder(team, nick.trim(), cart, pay, orderIdRef.current);
       if (r && r.ok === false) { setShowConfirm(false); alert(r.message || "本團已結單，無法送出"); return; }
       localStorage.setItem(`kaguya_order_done_${team.code}`, "1");
+      try { localStorage.setItem("kg_nick", nick.trim()); } catch (_) {}   // 下次填單自動帶入
       orderIdRef.current = "";      // 這張單已收下 → 清空單號，之後客人「加買一單」會是全新的單，不會被當成重複
       setShowConfirm(false);
       setDone(true);
@@ -131,7 +159,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const zGo = (d: number) => { if (zTotal) setZoomIdx((i) => (i + d + zTotal) % zTotal); };
 
   return (
-    <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto">
+    <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
+      {ptrIndicator}
       <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-7 relative">
         {/* 返回 */}
         <button onClick={onBack} aria-label="返回" className="w-11 h-11 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shadow-md active:scale-90 transition mb-4">
@@ -207,13 +236,39 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
         {teamOpen && (<>
         {/* 1. 暱稱 */}
         <div className="font-[900] text-[#4c59a1] text-lg mb-1">1. 填寫您的社群暱稱<span className="text-[#f43f5e]">*</span></div>
-        <input
-          value={nick}
-          onChange={(e) => setNick(e.target.value)}
-          placeholder="請輸入您的社群暱稱"
-          className="w-full px-4 py-3 rounded-xl bg-white text-[#4c59a1] font-bold outline-none focus:ring-2 focus:ring-[#3ac0bf] placeholder-gray-400"
-        />
-        <p className="text-[#f43f5e] text-xs font-bold mt-2 mb-5">提醒：請務必確認已至官賴綁定社群暱稱！未綁定恕無法受理訂單！</p>
+        <div className="relative">
+          <input
+            ref={nickRef}
+            value={nick}
+            onChange={(e) => setNick(e.target.value)}
+            placeholder="請輸入您的社群暱稱"
+            className={`w-full px-4 py-3 pr-12 rounded-xl bg-white text-[#4c59a1] font-bold outline-none placeholder-gray-400 ring-2 transition ${
+              nickState === "ok" ? "ring-[#3ac0bf]" : nickState === "unbound" ? "ring-[#f43f5e]" : "ring-transparent focus:ring-[#3ac0bf]"
+            }`}
+          />
+          {/* 右邊那顆狀態燈：確認中 / 已綁定 / 查無此暱稱 */}
+          <span className="absolute right-3 top-1/2 -translate-y-1/2">
+            {nickState === "checking" && <Loader2 className="w-5 h-5 stroke-[3px] text-[#4c59a1]/35 animate-spin" />}
+            {nickState === "ok" && (
+              <span className="w-6 h-6 rounded-full bg-[#3ac0bf] flex items-center justify-center">
+                <Check className="w-4 h-4 stroke-[4px] text-white" />
+              </span>
+            )}
+            {nickState === "unbound" && (
+              <span className="w-6 h-6 rounded-full bg-[#f43f5e] flex items-center justify-center">
+                <X className="w-4 h-4 stroke-[4px] text-white" />
+              </span>
+            )}
+          </span>
+        </div>
+
+        {nickState === "ok" ? (
+          <p className="text-[#3ac0bf] text-xs font-[900] mt-2 mb-5">已綁定，可以填單囉！</p>
+        ) : nickState === "unbound" ? (
+          <p className="text-[#f43f5e] text-xs font-[900] mt-2 mb-5">查無此暱稱！請確認有沒有打錯，或先到官賴綁定。</p>
+        ) : (
+          <p className="text-[#f43f5e] text-xs font-bold mt-2 mb-5">提醒：請務必確認已至官賴綁定社群暱稱！未綁定恕無法受理訂單！</p>
+        )}
         </>)}
 
         {/* 2. 喊單 */}
@@ -324,6 +379,41 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           <div className="mt-6 pt-4 border-t-2 border-[#4c59a1]/15 text-center text-gray-500 font-[900]">本團已結單，無法再下單</div>
         )}
       </div>
+
+      {/* 暱稱尚未綁定：擋在送出前，但留一條「我確定有綁定」的路（客人改過 LINE 暱稱時不會被鎖死） */}
+      {showUnbound && (
+        <div className="fixed inset-0 z-[105] bg-black/40 flex items-end sm:items-center justify-center p-3">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 border-[3px] border-black shadow-[6px_6px_0px_#000]">
+            <div className="w-14 h-14 rounded-full bg-[#f43f5e] flex items-center justify-center mx-auto mb-3">
+              <UserX className="w-8 h-8 stroke-[2.5px] text-white" />
+            </div>
+            <div className="font-[900] text-[#4c59a1] text-xl text-center mb-1.5">您的暱稱尚未綁定！</div>
+            <div className="text-center text-sm font-bold text-[#4c59a1]/70 mb-5 leading-relaxed">
+              「<span className="text-[#f43f5e] font-[900]">{nick.trim()}</span>」在官賴查不到綁定紀錄。<br />可能是打錯字，或還沒去官賴綁定。
+            </div>
+            <a
+              href={APP_CONFIG.LINE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="block w-full text-center bg-[#3ac0bf] text-white font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition mb-2.5"
+            >
+              先去綁定
+            </a>
+            <button
+              onClick={() => { setShowUnbound(false); setTimeout(() => nickRef.current?.focus(), 50); }}
+              className="w-full bg-white text-[#4c59a1] font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition"
+            >
+              重新填寫暱稱
+            </button>
+            <button
+              onClick={() => { setBypass(true); setShowUnbound(false); setShowConfirm(true); }}
+              className="w-full text-center text-[#4c59a1]/45 text-xs font-bold mt-4 underline underline-offset-2"
+            >
+              我確定已經綁定過了，仍要送出
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 確認 modal */}
       {showConfirm && (

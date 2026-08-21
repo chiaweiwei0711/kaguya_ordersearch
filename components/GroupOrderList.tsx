@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag, Tag, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag, Tag, SlidersHorizontal, Flame } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
 import { daysLeft, isOpen, fmtYMD } from "../services/groupOrderService";
 import { buildTagIndex } from "../services/ipTags";
+import { usePullToRefresh } from "./usePullToRefresh";
 
 interface Props {
   teams: GroupTeam[];
@@ -13,22 +14,30 @@ interface Props {
   onMore?: () => void;   // 預覽的 More 進完整列表
   onBack?: () => void;   // 列表頁返回首頁
   onLookup?: () => void; // 列表頁開「填單明細查詢」
+  onRefresh?: () => Promise<any> | any; // 下拉重整：重抓團表（列表頁專用）
 }
 
-type SortKey = "default" | "close_asc" | "close_desc";
+type SortKey = "default" | "close_asc" | "close_desc" | "people_desc";
 const SORT_OPTS: [SortKey, string][] = [
   ["default", "最新開團"],
   ["close_asc", "即將截止"],
   ["close_desc", "最晚截止"],
+  ["people_desc", "最多人跟團"],
 ];
 const PER_PAGE = 30;
+const HOT_MIN = 3;   // 今日填單人數低於這個數就不掛熱度標，免得出現「今日 1 人填單」反效果
 
 // 結單時間轉毫秒（無法解析＝最遠 Infinity）
 const closeMs = (t: GroupTeam) => { const ms = new Date(t.closeAt).getTime(); return isNaN(ms) ? Infinity : ms; };
 
-const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, preview, onMore, onBack, onLookup }) => {
+const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, preview, onMore, onBack, onLookup, onRefresh }) => {
+  // 下拉重整只掛在整頁的列表（首頁預覽那張黃卡不是自己捲的容器）
+  const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(preview ? undefined : onRefresh);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("default");
+  const [hot, setHot] = useState(false);      // 首頁預覽：最新 ↔ 熱銷（熱銷＝跟團人數多的在前）
+  // 首頁預覽吃自己的切換，列表頁吃排序選單
+  const effSort: SortKey = preview ? (hot ? "people_desc" : "default") : sortBy;
   const [showOpen, setShowOpen] = useState(true);
   const [showClosed, setShowClosed] = useState(true);
   const [page, setPage] = useState(1);
@@ -57,8 +66,9 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
       default:    (a, b) => openFirst(a, b) || (b.i - a.i),
       close_asc:  (a, b) => openFirst(a, b) || (closeMs(a.t) - closeMs(b.t)) || (b.i - a.i),
       close_desc: (a, b) => openFirst(a, b) || (closeMs(b.t) - closeMs(a.t)) || (b.i - a.i),
+      people_desc: (a, b) => openFirst(a, b) || ((b.t.joinPeople ?? 0) - (a.t.joinPeople ?? 0)) || (b.i - a.i),
     };
-    let arr = teams.map((t, i) => ({ t, i })).sort(cmp[preview ? "default" : sortBy]).map((x) => x.t);
+    let arr = teams.map((t, i) => ({ t, i })).sort(cmp[effSort]).map((x) => x.t);
     if (!preview) {
       // 狀態勾選（兩個都勾 or 兩個都不勾＝不過濾，全部顯示）
       if ((showOpen || showClosed) && !(showOpen && showClosed)) {
@@ -76,7 +86,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
       });
     }
     return arr;
-  }, [teams, sortBy, query, showOpen, showClosed, preview, prodIndex, pickedTags, tagIndex]);
+  }, [teams, effSort, query, showOpen, showClosed, preview, prodIndex, pickedTags, tagIndex]);
 
   // 封面圖：後台「封面圖」欄優先（可放自己做的主題圖），沒填就退回該團第一張商品圖
   const coverOf = (t: GroupTeam) => t.cover || (products || []).find((p) => p.team === t.code && p.img)?.img || "";
@@ -115,9 +125,30 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
         </button>
       )}
 
-      <h2 className={`text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-6 ${!preview && onBack ? "mt-8" : ""}`}>
+      <h2 className={`text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center ${preview ? "mb-4" : "mb-6"} ${!preview && onBack ? "mt-8" : ""}`}>
         預購填單專區
       </h2>
+
+      {/* 首頁預覽：最新 ↔ 熱銷。只是換排序，不多佔一塊版面 */}
+      {preview && (
+        <div className="flex justify-center gap-2 mb-5">
+          {([[false, "最新開團"], [true, "熱銷"]] as [boolean, string][]).map(([val, label]) => {
+            const on = hot === val;
+            return (
+              <button
+                key={label}
+                onClick={() => setHot(val)}
+                className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
+                  on ? (val ? "bg-[#f43f5e] text-white" : "bg-[#4c59a1] text-white") : "bg-white text-[#4c59a1]/45"
+                }`}
+              >
+                {val && <Flame className="w-4 h-4 stroke-[3px]" />}
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {!preview && onLookup && (
         <button onClick={onLookup} className="w-full bg-white border-[3px] border-black rounded-full shadow-[4px_4px_0px_#000] px-3 py-2 flex items-center gap-3 mb-5 active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition-all">
@@ -292,6 +323,12 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                 {(t.joinPeople ?? 0) > 0 && (
                   <span className={`inline-block mt-1.5 ml-1.5 text-[11px] font-[900] px-2.5 py-0.5 rounded-full ${open ? "bg-[#3ac0bf] text-white" : "bg-gray-300 text-gray-600"}`}>{t.joinPeople} 人跟團</span>
                 )}
+                {/* 熱度只在真的熱的時候出現：今日填單人數 <3 就整個不顯示 */}
+                {open && (t.todayPeople ?? 0) >= HOT_MIN && (
+                  <span className="inline-flex items-center gap-1 mt-1.5 ml-1.5 text-[11px] font-[900] px-2.5 py-0.5 rounded-full bg-[#f43f5e] text-white">
+                    <Flame className="w-3 h-3 stroke-[3px]" />今日 {t.todayPeople} 人填單
+                  </span>
+                )}
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">
                 <span className={`text-sm font-[900] px-4 py-1.5 rounded-full ${open ? "bg-[#3ac0bf] text-white" : "bg-[#2b2b2b] text-white"}`}>
@@ -364,7 +401,8 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   }
   // 列表頁：整頁鋪滿黃色
   return (
-    <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto">
+    <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
+      {ptrIndicator}
       <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-8 relative">{inner}</div>
     </div>
   );

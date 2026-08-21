@@ -20,6 +20,7 @@ const mapTeam = (t: any): GroupTeam => ({
   tags: String(t["標籤"] ?? "").split(/[、,，/｜|]+/).map((x: string) => x.trim()).filter(Boolean),
   joinPeople: Number(t["跟團人數"]) || 0,
   joinQty: Number(t["跟團件數"]) || 0,
+  todayPeople: Number(t["今日人數"]) || 0,
 });
 
 export interface TeamsPayload {
@@ -237,6 +238,25 @@ export const submitGroupOrder = async (
     const res2 = await send();
     return await res2.json();
   }
+};
+
+// 這個社群暱稱在官賴綁定了沒？（查單 GAS 的 ?type=checkNick）
+//   true  = 綁定表裡有這個暱稱
+//   false = 查無此暱稱
+//   null  = 問不到（GAS 忙／逾時／端點還沒上）→ 呼叫端一律當「放行」，絕不能因為後端不穩擋到真客人
+export const checkNickBound = async (nick: string): Promise<boolean | null> => {
+  const q = String(nick || "").trim();
+  if (!q) return null;
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 6000);
+    const res = await fetch(`${APP_CONFIG.API_URL}?type=checkNick&nick=${encodeURIComponent(q)}`, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const d = await res.json();
+    if (d && d.status === "success" && typeof d.bound === "boolean") return d.bound;
+    return null;
+  } catch (_) { return null; }
 };
 
 // 查「我已送出的填單」(收單 GAS 的 ?type=pre-orderform&nick=...)

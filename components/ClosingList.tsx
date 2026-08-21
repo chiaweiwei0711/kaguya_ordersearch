@@ -2,6 +2,7 @@ import React from "react";
 import { ChevronLeft, ChevronRight, AlarmClock, ShoppingBag } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
 import { closingSoon, fmtMDHM } from "../services/groupOrderService";
+import { usePullToRefresh } from "./usePullToRefresh";
 
 interface Props {
   teams: GroupTeam[];
@@ -10,10 +11,12 @@ interface Props {
   onSelect: (code: string) => void; // 進該團填單頁
   onBack: () => void;               // 返回首頁
   onAll: () => void;                // 去看全部開團列表
+  onRefresh?: () => Promise<any> | any; // 下拉重整：重抓團表
 }
 
 // 明日結單專頁（#/closing，可直接發連結到群組）：列出今明兩天要收單的團
-const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBack, onAll }) => {
+const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBack, onAll, onRefresh }) => {
+  const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(onRefresh);
   const list = teams
     .map((t) => ({ t, when: closingSoon(t) }))
     .filter((x): x is { t: GroupTeam; when: "today" | "tomorrow" } => x.when !== null)
@@ -22,7 +25,8 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
   const imgOf = (code: string) => products.find((p) => p.team === code && p.img)?.img;
 
   return (
-    <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto">
+    <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
+      {ptrIndicator}
       <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-8 relative">
         <button onClick={onBack} aria-label="返回" className="absolute top-6 left-6 w-11 h-11 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shadow-md active:scale-90 transition">
           <ChevronLeft className="w-6 h-6 stroke-[3px]" />

@@ -167,13 +167,31 @@ const App: React.FC = () => {
   const [lookupInitialNick, setLookupInitialNick] = useState(''); // 從填單成功頁帶入的暱稱
 
   // 載入時抓一次開團資料（首頁卡片＋列表共用）。products 是輕量索引：一團一筆，只夠搜尋／封面／標籤用
+  // 抽成函式，下拉重整與「切回分頁自動更新」共用同一條路
+  const lastRefreshRef = React.useRef(Date.now());
+  const loadTeams = React.useCallback(() => {
+    lastRefreshRef.current = Date.now();
+    // 靜態檔先上（秒開）→ 背景的即時資料回來後再無縫更新（新團／人數／封面）
+    return fetchTeams(({ teams: lt, products: lp }) => { setTeams(lt); if (lp.length) setGroupProducts(lp); })
+      .then(({ teams, products }) => { setTeams(teams); setGroupProducts(products); });
+  }, []);
+
   useEffect(() => {
     setTeamsLoading(true);
-    // 靜態檔先上（秒開）→ 背景的即時資料回來後再無縫更新（新團／人數／封面）
-    fetchTeams(({ teams: lt, products: lp }) => { setTeams(lt); if (lp.length) setGroupProducts(lp); })
-      .then(({ teams, products }) => { setTeams(teams); setGroupProducts(products); })
-      .finally(() => setTeamsLoading(false));
-  }, []);
+    loadTeams().finally(() => setTeamsLoading(false));
+  }, [loadTeams]);
+
+  // 切去 LINE 再切回來 → 靜靜重抓一次（30 秒內不重複打，不會多打 GAS）。
+  // 這是「看不見的重整」，配下拉重整用，客人不必自己想到要更新。
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - lastRefreshRef.current < 30000) return;
+      loadTeams();
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [loadTeams]);
 
   // 點進某一團才抓那團的完整商品（價格／規格／多圖），列表頁不用背著全部
   const [teamItems, setTeamItems] = useState<GroupProduct[]>([]);
@@ -189,6 +207,16 @@ const App: React.FC = () => {
       .finally(() => { if (alive) setTeamItemsLoading(false); });
     return () => { alive = false; };
   }, [selectedTeamCode]);
+
+  // 下拉重整：重抓團表（人數／新團／狀態），在填單頁時連這團的商品一起重抓。
+  // 至少轉 0.6 秒再收，不然快到像沒反應，客人會一直拉。
+  const refreshNow = React.useCallback(async () => {
+    const jobs: Promise<any>[] = [loadTeams(), new Promise((r) => setTimeout(r, 600))];
+    if (selectedTeamCode) {
+      jobs.push(fetchTeamItems(selectedTeamCode, (fresh) => setTeamItems(fresh)).then((items) => { if (items.length) setTeamItems(items); }));
+    }
+    await Promise.all(jobs);
+  }, [loadTeams, selectedTeamCode]);
 
   // 路由：/order = 列表、/order/<團代號> = 填單、/closing = 即將結單
   // ⚠️ 舊的 #/order/xxx 連結已經貼在社群裡了，永遠要能開 —— 所以進站先把 hash 換算成路徑。
@@ -934,14 +962,14 @@ const App: React.FC = () => {
               <FaqSection onBack={() => setMainView('query')} />
             </div>
           ) : mainView === 'closing' ? (
-            <ClosingList teams={teams} products={groupProducts} loading={teamsLoading} onSelect={goOrderTeam} onBack={exitOrderToQuery} onAll={goOrderList} />
+            <ClosingList teams={teams} products={groupProducts} loading={teamsLoading} onSelect={goOrderTeam} onBack={exitOrderToQuery} onAll={goOrderList} onRefresh={refreshNow} />
           ) : (
             <div className="flex flex-col w-full">
               {(() => {
                 const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
                 return t
-                  ? <OrderForm team={t} products={teamItems} loadingItems={teamItemsLoading} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} />
-                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} />;
+                  ? <OrderForm team={t} products={teamItems} loadingItems={teamItemsLoading} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} onRefresh={refreshNow} />
+                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} onRefresh={refreshNow} />;
               })()}
             </div>
           )}
