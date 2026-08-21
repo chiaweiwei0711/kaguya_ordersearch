@@ -25,7 +25,6 @@ const SORT_OPTS: [SortKey, string][] = [
   ["people_desc", "最多人跟團"],
 ];
 const PER_PAGE = 30;
-const HOT_MIN = 3;   // 今日填單人數低於這個數就不掛熱度標，免得出現「今日 1 人填單」反效果
 
 // 結單時間轉毫秒（無法解析＝最遠 Infinity）
 const closeMs = (t: GroupTeam) => { const ms = new Date(t.closeAt).getTime(); return isNaN(ms) ? Infinity : ms; };
@@ -322,12 +321,6 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                 )}
                 {(t.joinPeople ?? 0) > 0 && (
                   <span className={`inline-block mt-1.5 ml-1.5 text-[11px] font-[900] px-2.5 py-0.5 rounded-full ${open ? "bg-[#3ac0bf] text-white" : "bg-gray-300 text-gray-600"}`}>{t.joinPeople} 人跟團</span>
-                )}
-                {/* 熱度只在真的熱的時候出現：今日填單人數 <3 就整個不顯示 */}
-                {open && (t.todayPeople ?? 0) >= HOT_MIN && (
-                  <span className="inline-flex items-center gap-1 mt-1.5 ml-1.5 text-[11px] font-[900] px-2.5 py-0.5 rounded-full bg-[#f43f5e] text-white">
-                    <Flame className="w-3 h-3 stroke-[3px]" />今日 {t.todayPeople} 人填單
-                  </span>
                 )}
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">

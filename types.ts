@@ -57,7 +57,6 @@ export interface GroupTeam {
   tags?: string[];     // 作品標籤（後台「標籤」欄，留空前端自動從團名／品名推導）
   joinPeople?: number; // 已有幾人填單（後端彙總，不含任何暱稱）
   joinQty?: number;    // 已被訂走幾件
-  todayPeople?: number; // 今天有幾人填單（熱度用；後端彙總，一樣不含暱稱）
 }
 
 export interface GroupProduct {

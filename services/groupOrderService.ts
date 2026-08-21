@@ -20,7 +20,6 @@ const mapTeam = (t: any): GroupTeam => ({
   tags: String(t["標籤"] ?? "").split(/[、,，/｜|]+/).map((x: string) => x.trim()).filter(Boolean),
   joinPeople: Number(t["跟團人數"]) || 0,
   joinQty: Number(t["跟團件數"]) || 0,
-  todayPeople: Number(t["今日人數"]) || 0,
 });
 
 export interface TeamsPayload {
