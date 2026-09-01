@@ -36,12 +36,20 @@ export interface TeamsPayload {
  * 真正的商品明細等客人點進某一團才用 fetchTeamItems 抓。
  */
 // 讀取來源二選一：CDN 靜態檔（秒開、無上限）優先，失敗才退回 GAS（2026-08-12 讀取雪崩事故後的架構）
+// 靜態檔長得對不對：一定要是「團表」（有團名），不能是商品表或空殼。
+// （2026-09-02 事故：重印把 7094 筆商品當成團寫進 teams.json，CDN 又快取住，
+//   客人就看到同一團重複幾百張卡。CDN 上的壞檔清不掉時，這裡要能自己認出來並跳過。）
+const looksLikeTeams = (arr: any): boolean =>
+  Array.isArray(arr) && arr.length > 0 &&
+  arr.some((t: any) => t && typeof t === "object" && String(t["團名"] ?? "").trim());
+
 const fetchTeamsRaw = async (): Promise<any> => {
   try {
     const sres = await fetch(`${APP_CONFIG.STATIC_API_URL}/teams.json`, { cache: "no-cache" });
     if (sres.ok) {
       const sdata = await sres.json();
-      if (sdata.status === "success" && Array.isArray(sdata.teams) && sdata.teams.length) return sdata;
+      if (sdata.status === "success" && looksLikeTeams(sdata.teams)) return sdata;
+      console.warn("靜態菜單內容異常 → 改走 GAS");
     }
   } catch (_) { /* CDN 抓不到 → 退回 GAS */ }
   staticStale = true;      // 連靜態檔都沒有 → 全部走 GAS
@@ -56,9 +64,18 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
     const data = await fetchTeamsRaw();
     if (data.status !== "success") return { teams: [], products: [] };
 
-    let teams: GroupTeam[] = (data.teams || [])
-      .map(mapTeam)
-      .filter((t: GroupTeam) => t.code);
+    // 同團代號只留一筆：來源若混進重複列（壞掉的靜態檔、合併殘留），畫面也不會冒出幾百張同款卡
+    const dedupe = (list: GroupTeam[]): GroupTeam[] => {
+      const m = new Map<string, GroupTeam>();
+      list.forEach((t) => m.set(t.code, m.has(t.code) ? { ...m.get(t.code)!, ...t } : t));
+      return Array.from(m.values());
+    };
+
+    let teams: GroupTeam[] = dedupe(
+      (data.teams || [])
+        .map(mapTeam)
+        .filter((t: GroupTeam) => t.code)
+    );
 
     // 跟團人數是即時數字、不能吃靜態檔——另打 GAS 輕量端點（下單當下會刷新），2.5 秒抓不到就先用靜態檔裡的舊值
     // 先用上次成功的 live 快照補一次（localStorage，0 成本），首屏就能看到最近一次的新團/人數
@@ -74,7 +91,7 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
       });
       const baseCodes = new Set(base.map((t) => t.code));
       liveTeams.forEach((lt) => { if (!baseCodes.has(lt.code)) merged.push(lt); });  // 新團補進來
-      return merged;
+      return dedupe(merged);
     };
     // 電腦裡存的上次 live 只用來補人數等欄位，一樣不會讓團消失
     try {
