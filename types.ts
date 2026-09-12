@@ -69,6 +69,7 @@ export interface GroupProduct {
   price: number;       // 價格
   star?: boolean;      // ★款
   spec?: string;       // 規格/類別備註（顯示在類別名右邊，自由寫）
+  minQty?: number;     // 成團數（後台「成團數」欄；滿 N 的倍數成團。1 或空＝沒有成團限制）
 }
 
 export interface GroupCartItem {

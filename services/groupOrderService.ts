@@ -146,6 +146,7 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
           price: Number(it["價格"]) || 0,
           star: it["★"] === 1 || it["★"] === true || String(it["★"] ?? "").trim() === "1",
           spec: String(it["規格"] ?? "").trim(),
+          minQty: Number(it["成團數"]) || 1,
         };
       })
       .filter((p: GroupProduct) => p.team && p.category);
@@ -176,6 +177,7 @@ export const fetchTeamItems = async (code: string, onFresh?: (items: GroupProduc
           price: Number(it["價格"]) || 0,
           star: it["★"] === 1 || it["★"] === true || String(it["★"] ?? "").trim() === "1",
           spec: String(it["規格"] ?? "").trim(),
+          minQty: Number(it["成團數"]) || 1,
         };
       })
       .filter((p: GroupProduct) => p.team && p.category);
@@ -218,6 +220,23 @@ export const fetchTeamItems = async (code: string, onFresh?: (items: GroupProduc
   // 3) 靜態檔沒有這團（剛開的新團，還沒重印）→ 只好等 GAS，但給短超時，失敗就回空而不是卡住
   const fresh = await fromGas(12000);
   return fresh || [];
+};
+
+// 單一團「每個商品已被訂了幾件」（收單 GAS ?type=itemStats）→ 填單頁成團進度條用。
+// key＝`${類別}|#${編號} ${品名}`，跟訂單列寫進去的欄位一樣。抓不到就回空物件：進度條只是少了數字，不影響下單。
+export const itemKey = (p: GroupProduct): string => `${p.category}|#${p.no} ${p.name}`;
+export const fetchItemStats = async (code: string, ms = 8000): Promise<Record<string, number>> => {
+  const c = String(code || "").trim();
+  if (!c) return {};
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=itemStats&team=${encodeURIComponent(c)}`, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) return {};
+    const d = await res.json();
+    return d && d.status === "success" && d.items && typeof d.items === "object" ? d.items : {};
+  } catch (_) { return {}; }
 };
 
 // 送出訂單 → 收單 GAS 的 doPost（URLSearchParams 表單式，跟「按讚」同款，拿得到回應、不卡 CORS）

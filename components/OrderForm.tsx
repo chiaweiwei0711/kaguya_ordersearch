@@ -1,12 +1,47 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info, Check, Loader2, UserX } from "lucide-react";
 import { GroupTeam, GroupProduct, GroupCartItem } from "../types";
-import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound } from "../services/groupOrderService";
+import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, fetchItemStats, itemKey } from "../services/groupOrderService";
 import { APP_CONFIG } from "../config";
 import { usePullToRefresh } from "./usePullToRefresh";
 import ProductCarousel from "./ProductCarousel";
 
 const ALL_CAT = "__ALL__";   // 類別 pill 的「全部」；用哨符避免跟真實類別名撞名
+
+// 成團進度條：滿 N 的倍數成團。目標＝下一個倍數（8 件→8/12）；已成團的段落青綠、還沒滿的那段紅；每過一關畫一顆里程碑點。
+// ordered 拿不到（GAS 忙）就當 0：仍看得到「滿 6 成團」的規則，只是少了目前件數。
+const MinBar: React.FC<{ min: number; ordered: number; big?: boolean }> = ({ min, ordered, big }) => {
+  const n = Math.max(0, ordered), m = Math.max(1, min);
+  const done = n > 0 && n % m === 0;
+  const target = done ? n : Math.ceil(Math.max(n, 1) / m) * m;   // 下一個倍數
+  const reached = Math.floor(n / m) * m;                          // 已成團的件數（綠色段落）
+  const G = "#3ac0bf", R = "#f43f5e";
+  const ticks: number[] = [];
+  for (let t = m; t < target; t += m) ticks.push(t);
+  return (
+    <div className={big ? "mt-2" : "mt-1"}>
+      <div className={`flex justify-between items-baseline font-[900] leading-none ${big ? "text-sm" : "text-[11px]"}`}>
+        <span className="truncate">
+          {reached > 0 && <span style={{ color: G }}>已成團{reached}</span>}
+          {!done && (
+            <>
+              {reached > 0 && <span className="text-[#4c59a1]/40">，</span>}
+              <span style={{ color: R }}>差{target - n}件{reached > 0 ? "成下一團" : "成團"}</span>
+            </>
+          )}
+        </span>
+        <span className="text-[#4c59a1]/60 shrink-0 ml-1">{n}/{target}</span>
+      </div>
+      <div className={`relative rounded-full mt-1 ${big ? "h-2.5" : "h-2"}`} style={{ background: R + "22" }}>
+        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(100, (n / target) * 100)}%`, background: R }} />
+        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${(reached / target) * 100}%`, background: G }} />
+        {ticks.map((t) => (
+          <span key={t} className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 bg-white" style={{ left: `${(t / target) * 100}%`, borderColor: G }} />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 interface Props {
   team: GroupTeam;
@@ -26,7 +61,12 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const [bypass, setBypass] = useState(false);             // 客人自己確認「我有綁定」→ 這次放行
   const nickRef = useRef<HTMLInputElement>(null);
   const nickSeq = useRef(0);
-  const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(onRefresh);
+  // 每個商品已被訂了幾件（成團進度條用）：進頁抓一次、送單成功再抓、下拉重整也抓。抓不到＝空物件，進度條退化成只顯示規則
+  const [stats, setStats] = useState<Record<string, number>>({});
+  const loadStats = React.useCallback(async () => { setStats(await fetchItemStats(team.code)); }, [team.code]);
+  useEffect(() => { setStats({}); loadStats(); }, [loadStats]);
+  const refreshAll = onRefresh ? async () => { await Promise.all([onRefresh(), loadStats()]); } : undefined;
+  const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(refreshAll);
   const [pay, setPay] = useState("匯款");
   const [qty, setQty] = useState<Record<number, number>>({});
   const [activeCat, setActiveCat] = useState("");   // "" = 還沒選（預設吃第一個類別）；ALL_CAT = 全部
@@ -88,6 +128,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const teamOpen = isOpen(team); // 結單後仍可點進來瀏覽，但不能填單／加購
   // 已結單又沒人填單就不放第二張卡（那團不能跟了，講「當第一個」很怪）→ 也連帶不顯示「可以滑」的箭頭
   const showJoinCard = (team.joinPeople ?? 0) > 0 || teamOpen;
+  const hasMin = products.some((p) => (p.minQty ?? 1) > 1);   // 這團有商品有成團限制 → 團卡掛紅底提醒
 
   const openConfirm = () => {
     if (!isOpen(team)) { alert("本團已結單，無法再下單囉"); return; }
@@ -116,6 +157,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       orderIdRef.current = "";      // 這張單已收下 → 清空單號，之後客人「加買一單」會是全新的單，不會被當成重複
       setShowConfirm(false);
       setDone(true);
+      loadStats();      // 自己剛送的件數馬上反映在進度條
     } catch {
       alert("網路不太穩，請再按一次送出（放心，系統會自動避免重複下單）");
     } finally {
@@ -184,6 +226,9 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                 )}
                 {team.shipInfo && (
                   <span className="text-[11px] font-[900] text-[#f43f5e] border-2 border-[#f43f5e] bg-white px-2.5 py-0.5 rounded-full">預計{team.shipInfo}發貨</span>
+                )}
+                {hasMin && (
+                  <span className="text-[11px] font-[900] text-white bg-[#f43f5e] border-2 border-[#f43f5e] px-2.5 py-0.5 rounded-full">成團限制</span>
                 )}
                 {teamOpen
                   ? <span className="text-sm font-[900] text-white bg-[#3ac0bf] px-4 py-1 rounded-full">開團中</span>
@@ -331,6 +376,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                         <div className="text-[13px] text-[#4c59a1] font-bold mt-1 leading-tight truncate">#{p.no} {p.name}</div>
                         {p.spec && <div className="text-[11px] text-[#4c59a1]/60 font-bold leading-tight truncate">{p.spec}</div>}
                         <div className="text-[#4c59a1] font-[900] text-base">${p.price}</div>
+                        {(p.minQty ?? 1) > 1 && <MinBar min={p.minQty!} ordered={stats[itemKey(p)] || 0} />}
                         {teamOpen && (
                         <div className="flex items-center justify-between mt-1">
                           <button onClick={() => setQ(idx, q - 1)} className="w-7 h-7 rounded-full bg-[#e6e9ff] text-[#4c59a1] font-black">−</button>
@@ -468,6 +514,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
               <div className="font-[900] text-[#4c59a1] text-base leading-snug">#{zoomP.no} {zoomP.name}</div>
               {zoomP.spec && <div className="text-sm text-[#4c59a1]/70 font-bold mt-1.5 leading-relaxed">{zoomP.spec}</div>}
               <div className="text-[#4c59a1] font-[900] text-xl mt-2">${zoomP.price}</div>
+              {(zoomP.minQty ?? 1) > 1 && <MinBar min={zoomP.minQty!} ordered={stats[itemKey(zoomP)] || 0} big />}
             </div>
           </div>
         </div>
