@@ -4,6 +4,7 @@ import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
 // 靜態檔（CDN）是否已過期：fetchTeams 時比對「靜態檔版號 vs 試算表版號」，
 // 過期＝她剛改過團/商品 → 之後抓商品明細一律走 GAS 拿最新的，不吃舊靜態檔。
 let staticStale = true;   // 還沒比對前一律當過期（寧可慢一點也不給客人看到舊價格）
+let liveCheck: Promise<void> = Promise.resolve();   // 背景 live 比對的進度：商品校驗要等它做完才知道靜態檔新不新
 let lastProducts: GroupProduct[] = [];   // 搜尋索引（來自靜態檔），背景更新時沿用
 
 // 開團表一列 → 前端 GroupTeam（靜態檔與 GAS live 共用同一套欄位轉換）
@@ -94,17 +95,21 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
       return dedupe(merged);
     };
     // 電腦裡存的上次 live 只用來補人數等欄位，一樣不會讓團消失
+    // ⚠️ 只在「這份快照不比靜態檔舊」時才補：快照帶著當時的版號，版號比 CDN 舊＝她後來又改過、CDN 已經是新的，
+    //    再拿舊快照蓋上去客人就會看到「回到上一步」（2026-09-15 她回報：有時最新、有時上一步）
     try {
       const cached = JSON.parse(localStorage.getItem("kg_live") || "null");
-      if (Array.isArray(cached) && cached.length) teams = mergeLive(cached, teams);
+      const cv = Number(cached && cached.ver) || 0, sv = Number(data && data.ver) || 0;
+      if (cached && Array.isArray(cached.teams) && cached.teams.length && cv >= sv) teams = mergeLive(cached.teams, teams);
     } catch (_) {}
 
     // 背景抓 live：不擋首屏，回來後用 onLive 更新畫面（新團、狀態、人數、封面都會補上）
     if (onLive) {
-      (async () => {
+      liveCheck = (async () => {
         try {
           const ctrl = new AbortController();
-          const timer = setTimeout(() => ctrl.abort(), 4000);
+          // 10 秒：GAS 忙時 live 常要 3～6 秒，以前只等 4 秒就放棄 → 網站以為靜態檔是最新的，客人一直看舊菜單
+          const timer = setTimeout(() => ctrl.abort(), 10000);
           const lres = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=live`, { signal: ctrl.signal });
           clearTimeout(timer);
           if (!lres.ok) return;
@@ -112,7 +117,7 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
           if (ld.status !== "success" || !Array.isArray(ld.teams) || !ld.teams.length) return;
           // 版號一致＝靜態檔與試算表同步 → 商品明細可以吃 CDN（秒開）；不一致代表她剛改過 → 走 GAS 拿最新
           staticStale = !(data && data.ver && ld.ver && String(data.ver) === String(ld.ver));
-          try { localStorage.setItem("kg_live", JSON.stringify(ld.teams)); } catch (_) {}
+          try { localStorage.setItem("kg_live", JSON.stringify({ ver: String(ld.ver || ""), teams: ld.teams })); } catch (_) {}
           onLive({ teams: mergeLive(ld.teams, teams), products: lastProducts });
         } catch (_) { /* GAS 忙 → 畫面維持靜態檔內容，不影響使用 */ }
       })();
@@ -208,8 +213,10 @@ export const fetchTeamItems = async (code: string, onFresh?: (items: GroupProduc
 
   // 2) 靜態檔可能比試算表舊（她剛改過）→ 背景跟 GAS 校驗，有差異就用 onFresh 更新畫面
   if (staticItems) {
-    if (staticStale && onFresh) {
+    if (onFresh) {
       (async () => {
+        await liveCheck;                 // 先等背景的版號比對做完（直接開填單連結時它可能還在跑），再決定要不要跟 GAS 校驗
+        if (!staticStale) return;
         const fresh = await fromGas(12000);
         if (fresh && JSON.stringify(fresh) !== JSON.stringify(staticItems)) onFresh(fresh);
       })();

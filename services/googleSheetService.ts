@@ -3,21 +3,37 @@ import { Order, OrderStatus, OrderItem, Announcement } from "../types";
 
 const IMPORTANT_KEYWORDS = ["重要", "通知", "延遲", "公告", "提醒", "緊急", "注意"];
 
+// 查單 GAS 偶爾會回 Google 的錯誤頁（HTML）或空回應，那不是客人沒單。
+// 以前一失敗就回空陣列 → 畫面寫「目前沒有相關訂單」，客人以為單不見了（2026-09-14 吃吃案例）。
+// 現在：一次請求最多等 30 秒；失敗就靜靜再打，最多 3 次；全部失敗才丟 SearchFailedError，畫面回到搜尋框請他再按一次。
+export class SearchFailedError extends Error {}
+
+const fetchOrdersRaw = async (query: string): Promise<any[]> => {
+  const url = `${APP_CONFIG.API_URL}?search=${encodeURIComponent(query.trim())}`;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 30000);
+  try {
+    const response = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    if (!response.ok) throw new Error(`連線失敗 (${response.status})`);
+    const data = await response.json();     // 回 HTML 錯誤頁時這行會丟錯 → 交給外面重試
+    if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
+    return Array.isArray(data.data) ? data.data : [];
+  } finally { clearTimeout(timer); }
+};
+
 // --- 1. 訂單搜尋 (超級防呆嚴格過濾版) ---
 export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
+  if (!query.trim()) return [];
+  console.log(`正在雲端搜尋: ${query} ... ☁️`);
+  let rawRows: any[] | null = null;
+  let lastErr: any = null;
+  for (let attempt = 0; attempt < 3 && rawRows === null; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 800 * attempt));
+    try { rawRows = await fetchOrdersRaw(query); }
+    catch (e) { lastErr = e; console.warn(`查單第 ${attempt + 1} 次沒成功，重試`, e); }
+  }
+  if (rawRows === null) throw new SearchFailedError(String((lastErr && lastErr.message) || lastErr || "search failed"));
   try {
-    if (!query.trim()) return [];
-
-    console.log(`正在雲端搜尋: ${query} ... ☁️`);
-    const url = `${APP_CONFIG.API_URL}?search=${encodeURIComponent(query.trim())}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`連線失敗 (${response.status})`);
-
-    const data = await response.json();
-    if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
-    if (!data.data) return [];
-
-    const rawRows = data.data;
     const map = APP_CONFIG.COLUMN_MAPPING;
     const ordersMap = new Map<string, Order>();
     const queryLower = query.toLowerCase().trim();
@@ -77,7 +93,7 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
     });
     return Array.from(ordersMap.values());
   } catch (error) {
-    console.error("Fetch Error:", error);
+    console.error("解析訂單資料失敗:", error);   // 資料格式問題才會到這裡（連線問題已在上面重試過），照舊回空
     return [];
   }
 };
@@ -131,13 +147,12 @@ export const fetchNicknameByLineId = async (lineId: string): Promise<string | nu
 
     if (data.status === 'success' && data.nickname) {
       return data.nickname;
-    } else {
-      // 🚨 照妖鏡 3 號：逼供出 Google 後台拒絕的原因
-      alert("⚠️ 後台拒絕連線，原因：\n" + data.message);
-      return null;
     }
+    // 沒綁定是正常情況（讓他自己打暱稱查），不能跳 alert 嚇客人（2026-08-09 只改了 App.tsx，這裡漏掉）
+    console.warn('[LIFF] 查綁定暱稱：', data && data.message);
+    return null;
   } catch (e) {
-    alert("⚠️ API 網路連線錯誤：\n" + String(e));
+    console.warn('[LIFF] 查綁定暱稱連線失敗：', String(e));
     return null;
   }
 };

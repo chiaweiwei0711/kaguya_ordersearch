@@ -5,7 +5,7 @@ import PaymentModal from './components/PaymentModal';
 import OrderDetailModal from './components/OrderDetailModal';
 import AdminDashboard from './components/AdminDashboard';
 import NewsModal from './components/NewsModal';
-import { fetchOrdersFromSheet, fetchAnnouncements, fetchNicknameByLineId, incrementAnnouncementLike } from './services/googleSheetService';
+import { fetchOrdersFromSheet, fetchAnnouncements, fetchNicknameByLineId, incrementAnnouncementLike, SearchFailedError } from './services/googleSheetService';
 import liff from '@line/liff';
 import { APP_CONFIG } from './config';
 
@@ -139,6 +139,7 @@ const App: React.FC = () => {
   const [news, setNews] = useState<Announcement[]>([]);
   const [selectedNews, setSelectedNews] = useState<Announcement | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchNotice, setSearchNotice] = useState('');   // 查單重試三次都沒成功時，回到搜尋框給的一行提示
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('deposit');
   const [visibleLimit, setVisibleLimit] = useState(10); // 🎯 控制目前顯示幾筆訂單
@@ -394,7 +395,7 @@ const App: React.FC = () => {
   // 🌟 1. 自動搜尋的大腦：讓程式可以自己呼叫並帶入暱稱
   const executeSearch = async (queryToSearch: string) => {
     if (!queryToSearch) return;
-    setIsLoading(true);
+    setIsLoading(true); setSearchNotice('');
     setFoundOrders([]); setSelectedOrderIds(new Set()); setCargoFilters([]); setDeliveryFilter(null);
     setSubQuery(''); setSortBy('default');
     try {
@@ -409,7 +410,11 @@ const App: React.FC = () => {
       if (hasPending) setActiveTab('deposit');
       else if (hasReadyToShip) setActiveTab('balance');
       else setActiveTab('all');
-    } catch (error: any) { console.error(error); } finally { setIsLoading(false); }
+    } catch (error: any) {
+      console.error(error);
+      // 查單 GAS 連續三次都沒回資料：不能畫成「沒有相關訂單」（那是騙人的），回到搜尋框請他再按一次
+      if (error instanceof SearchFailedError) { setHasSearched(false); setSearchNotice('查詢逾時，請再按一次查詢'); }
+    } finally { setIsLoading(false); }
   };
 
   // 🌟 2. 手動搜尋的按鈕：給客人手動按 Enter 或點擊箭頭用的
@@ -575,6 +580,9 @@ const App: React.FC = () => {
                             <ArrowRight className="stroke-[3px]" />
                           </button>
                         </div>
+                        {searchNotice && (
+                          <p className="text-[#f8a3f4] text-sm font-[900] mt-3 text-center tracking-widest">{searchNotice}</p>
+                        )}
                         <p className="text-[#3ac0bf] text-xs sm:text-sm font-[900] mt-4 text-center tracking-widest">
                           ※若有更改社群暱稱，請務必私訊官賴協助修改！
                         </p>

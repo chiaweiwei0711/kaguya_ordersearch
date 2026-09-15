@@ -65,8 +65,10 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const [stats, setStats] = useState<Record<string, number>>({});
   const loadStats = React.useCallback(async () => { setStats(await fetchItemStats(team.code)); }, [team.code]);
   useEffect(() => { setStats({}); loadStats(); }, [loadStats]);
-  const refreshAll = onRefresh ? async () => { await Promise.all([onRefresh(), loadStats()]); } : undefined;
-  const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(refreshAll);
+  // ⚠️ 一定要 useCallback：下拉重整的 hook 只要收到「新的函式」就會重掛監聽器並把手勢歸零，
+  //    而手指一拉畫面就重繪 → 每次重繪都給新函式＝拉第一下就斷（2026-09-12 這樣寫，訂單頁下拉重整整個失效）
+  const refreshAll = React.useCallback(async () => { await Promise.all([onRefresh ? onRefresh() : null, loadStats()]); }, [onRefresh, loadStats]);
+  const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(onRefresh ? refreshAll : undefined);
   const [pay, setPay] = useState("匯款");
   const [qty, setQty] = useState<Record<number, number>>({});
   const [activeCat, setActiveCat] = useState("");   // "" = 還沒選（預設吃第一個類別）；ALL_CAT = 全部
