@@ -523,8 +523,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
               <div key={t} className="mb-3">
                 <div className="font-[900] text-[#3ac0bf] text-sm mb-1">{t}（{items.length} 款）</div>
                 {items.map((it, i) => (
-                  <div key={i} className="flex justify-between text-sm text-[#4c59a1] py-0.5">
-                    <span className="truncate mr-2">{it.label}</span>
+                  <div key={i} className="flex justify-between items-start text-sm text-[#4c59a1] py-0.5">
+                    <span className="min-w-0 break-words mr-2 leading-snug">{it.label}</span>
                     <span className="shrink-0">×{it.qty}　${it.price * it.qty}</span>
                   </div>
                 ))}
