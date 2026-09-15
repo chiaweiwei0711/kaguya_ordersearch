@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info, Check, Loader2, UserX } from "lucide-react";
-import { GroupTeam, GroupProduct, GroupCartItem } from "../types";
-import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, fetchItemStats, itemKey } from "../services/groupOrderService";
+import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
+import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, fetchTeamStat, fetchMySubmissions, itemKey } from "../services/groupOrderService";
+import type { TeamStat } from "../services/groupOrderService";
 import { APP_CONFIG } from "../config";
 import { usePullToRefresh } from "./usePullToRefresh";
 import ProductCarousel from "./ProductCarousel";
@@ -61,13 +62,32 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const [bypass, setBypass] = useState(false);             // 客人自己確認「我有綁定」→ 這次放行
   const nickRef = useRef<HTMLInputElement>(null);
   const nickSeq = useRef(0);
-  // 每個商品已被訂了幾件（成團進度條用）：進頁抓一次、送單成功再抓、下拉重整也抓。抓不到＝空物件，進度條退化成只顯示規則
-  const [stats, setStats] = useState<Record<string, number>>({});
-  const loadStats = React.useCallback(async () => { setStats(await fetchItemStats(team.code)); }, [team.code]);
-  useEffect(() => { setStats({}); loadStats(); }, [loadStats]);
+  // 人數／件數／各品項已訂件數／狀態／結單時間：一次跟 GAS 拿（teamStat），進頁抓、送單成功再抓、下拉重整抓、從 LINE 切回來也抓。
+  // 拿不到＝null → 畫面顯示「更新中」而不是舊數字或 0（2026-09-15 她回報客人從 LINE 點進來看到舊人數，以為沒喊到）
+  const [stat, setStat] = useState<TeamStat | null>(null);
+  const [statLoading, setStatLoading] = useState(true);
+  const lastStatAt = useRef(0);
+  const loadStat = React.useCallback(async () => {
+    setStatLoading(true);
+    const s = await fetchTeamStat(team.code);
+    lastStatAt.current = Date.now();
+    if (s) setStat(s);
+    setStatLoading(false);
+  }, [team.code]);
+  useEffect(() => { setStat(null); loadStat(); }, [loadStat]);
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === "visible" && Date.now() - lastStatAt.current > 20000) loadStat(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [loadStat]);
+  const stats: Record<string, number> = stat?.items ?? {};
+  // 狀態／結單時間以 teamStat 回來的為準（她剛結單、直接開連結也要馬上看到已結單）
+  const liveTeam = useMemo(() => (stat ? { ...team, status: stat.teamStatus || team.status, closeAt: stat.closeAt || team.closeAt } : team), [team, stat]);
+  const people = stat ? stat.people : (team.joinPeople ?? 0);
+  const joinQty = stat ? stat.qty : (team.joinQty ?? 0);
   // ⚠️ 一定要 useCallback：下拉重整的 hook 只要收到「新的函式」就會重掛監聽器並把手勢歸零，
   //    而手指一拉畫面就重繪 → 每次重繪都給新函式＝拉第一下就斷（2026-09-12 這樣寫，訂單頁下拉重整整個失效）
-  const refreshAll = React.useCallback(async () => { await Promise.all([onRefresh ? onRefresh() : null, loadStats()]); }, [onRefresh, loadStats]);
+  const refreshAll = React.useCallback(async () => { await Promise.all([onRefresh ? onRefresh() : null, loadStat()]); }, [onRefresh, loadStat]);
   const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(onRefresh ? refreshAll : undefined);
   const [pay, setPay] = useState("匯款");
   const [qty, setQty] = useState<Record<number, number>>({});
@@ -126,14 +146,14 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   );
   const count = cart.reduce((s, i) => s + i.qty, 0);
   const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
-  const left = daysLeft(team.closeAt);
-  const teamOpen = isOpen(team); // 結單後仍可點進來瀏覽，但不能填單／加購
+  const left = daysLeft(liveTeam.closeAt);
+  const teamOpen = isOpen(liveTeam); // 結單後仍可點進來瀏覽，但不能填單／加購
   // 已結單又沒人填單就不放第二張卡（那團不能跟了，講「當第一個」很怪）→ 也連帶不顯示「可以滑」的箭頭
-  const showJoinCard = (team.joinPeople ?? 0) > 0 || teamOpen;
+  const showJoinCard = people > 0 || teamOpen || statLoading;
   const hasMin = products.some((p) => (p.minQty ?? 1) > 1);   // 這團有商品有成團限制 → 團卡掛紅底提醒
 
   const openConfirm = () => {
-    if (!isOpen(team)) { alert("本團已結單，無法再下單囉"); return; }
+    if (!isOpen(liveTeam)) { alert("本團已結單，無法再下單囉"); return; }
     if (!nick.trim()) { alert("請先填社群暱稱"); return; }
     // 查無此暱稱 → 跳小視窗（查不到綁定表本身時 nickState 是 unknown，一律放行）
     if (nickState === "unbound" && !bypass) { setShowUnbound(true); return; }
@@ -146,22 +166,45 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
 
   // 同一張單的單號：重試沿用同一個 → 後端只會收一次（防重複下單）
   const orderIdRef = React.useRef<string>("");
+  const [sendNotice, setSendNotice] = useState("");            // 三次送出都沒回應、回查也沒看到時，在確認視窗裡的提示
+  const [landed, setLanded] = useState<MySubmission | null>(null);   // 送出後回查到的那筆填單紀錄（成功畫面顯示「系統已記錄」）
+  // 回頭跟伺服器確認「這張單真的寫進去了」：同一團、品項與數量完全一樣、時間在 30 分鐘內
+  const verifyLanded = async (tries: number): Promise<MySubmission | null> => {
+    const key = (items: GroupCartItem[]) => items.map((it) => `${it.type}|${it.label}|${it.qty}`).sort().join("\n");
+    const want = key(cart);
+    for (let i = 0; i < tries; i++) {
+      if (i) await new Promise((r) => setTimeout(r, 2000 * i));
+      try {
+        const subs = await fetchMySubmissions(nick.trim());
+        const hit = subs.find((s) => s.team === team.code && key(s.items) === want && Math.abs(Date.now() - new Date(s.time).getTime()) < 30 * 60 * 1000);
+        if (hit) return hit;
+      } catch (_) { /* 再試 */ }
+    }
+    return null;
+  };
   const doSend = async () => {
     // 頁面開著跨過結單時間再按送出也要擋（isOpen 每次呼叫都重新比對現在時間）
-    if (!isOpen(team)) { setShowConfirm(false); alert("本團已結單，無法再下單囉"); return; }
-    setSubmitting(true);
-    try {
-      if (!orderIdRef.current) orderIdRef.current = `${team.code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const r = await submitGroupOrder(team, nick.trim(), cart, pay, orderIdRef.current);
-      if (r && r.ok === false) { setShowConfirm(false); alert(r.message || "本團已結單，無法送出"); return; }
+    if (!isOpen(liveTeam)) { setShowConfirm(false); alert("本團已結單，無法再下單囉"); return; }
+    setSubmitting(true); setSendNotice("");
+    const finish = (hit: MySubmission | null) => {
       localStorage.setItem(`kaguya_order_done_${team.code}`, "1");
       try { localStorage.setItem("kg_nick", nick.trim()); } catch (_) {}   // 下次填單自動帶入
       orderIdRef.current = "";      // 這張單已收下 → 清空單號，之後客人「加買一單」會是全新的單，不會被當成重複
+      setLanded(hit);
       setShowConfirm(false);
       setDone(true);
-      loadStats();      // 自己剛送的件數馬上反映在進度條
-    } catch {
-      alert("網路不太穩，請再按一次送出（放心，系統會自動避免重複下單）");
+      loadStat();       // 自己剛送的人數／件數馬上反映
+    };
+    try {
+      if (!orderIdRef.current) orderIdRef.current = `${team.code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      let r: any = null;
+      try { r = await submitGroupOrder(team, nick.trim(), cart, pay, orderIdRef.current); }
+      catch (_) { r = null; }        // 三次都沒回應：可能其實已經寫進去了 → 下面用填單紀錄確認，不直接叫客人重按
+      if (r && r.ok === false) { setShowConfirm(false); alert(r.message || "本團已結單，無法送出"); return; }
+      if (r && r.ok) { finish(await verifyLanded(1)); return; }
+      const hit = await verifyLanded(3);
+      if (hit) { finish(hit); return; }
+      setSendNotice("系統還在處理這張單，請再按一次「確認送出」。同一張單不會重複計算。");
     } finally {
       setSubmitting(false);
     }
@@ -177,6 +220,11 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           </div>
           <h2 className="text-2xl font-[900] text-[#4c59a1]">填單已送出！</h2>
           <p className="text-[#4c59a1] font-[900] text-lg">共 {count} 件　預估 ${total} 元</p>
+          {landed && (
+            <p className="text-[#3ac0bf] font-[900] text-sm bg-white rounded-full px-4 py-1.5 border-2 border-[#3ac0bf]">
+              系統已記錄 {landed.items.reduce((s, it) => s + it.qty, 0)} 件　{landed.time.slice(11, 16)}
+            </p>
+          )}
           <p className="text-[#4c59a1]/75 text-xs font-bold leading-relaxed max-w-xs">本金額未包含可能需要二補的國際運費或境內運費，實際金額以結單後訂單狀態查詢顯示為主！</p>
           <div className="bg-white text-[#4c59a1] font-bold rounded-2xl px-5 py-3 max-w-sm text-sm leading-relaxed shadow-sm flex items-start gap-2 text-left">
             <AlertTriangle className="w-5 h-5 shrink-0 text-[#f43f5e] stroke-[2.5px] mt-0.5" />
@@ -248,15 +296,17 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
             {showJoinCard && (
             <div className="snap-start shrink-0 w-[87%] bg-[#4c59a1] rounded-2xl px-6 py-5 flex flex-col justify-center">
               <span className="self-start bg-[#fff170] text-[#4c59a1] text-[13px] font-[900] px-3 py-1 rounded-full">填單統計</span>
-              {(team.joinPeople ?? 0) > 0 ? (
+              {people > 0 ? (
                 <div className="mt-4 text-white font-[900] text-xl">
                   <div className="flex items-baseline">
-                    已有<span className="text-[44px] leading-none mx-1.5">{team.joinPeople}</span>人填單
+                    已有<span className="text-[44px] leading-none mx-1.5">{people}</span>人填單
                   </div>
                   <div className="flex items-baseline mt-3">
-                    共<span className="text-[44px] leading-none mx-1.5">{team.joinQty ?? 0}</span>件商品
+                    共<span className="text-[44px] leading-none mx-1.5">{joinQty}</span>件商品
                   </div>
                 </div>
+              ) : !stat && statLoading ? (
+                <div className="mt-4 text-white/80 font-[900] text-2xl leading-snug">人數更新中…</div>
               ) : (
                 <div className="mt-4 text-white font-[900] text-2xl leading-snug">持續開放喊單中～</div>
               )}
@@ -489,6 +539,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
               <button onClick={() => setShowConfirm(false)} disabled={submitting} className="flex-1 bg-white border-2 border-[#3ac0bf] text-[#4c59a1] font-[900] py-3 rounded-full">修改訂單</button>
               <button onClick={doSend} disabled={submitting} className="flex-1 bg-[#3ac0bf] text-white font-[900] py-3 rounded-full active:scale-95 transition">{submitting ? "送出中…" : "確認送出"}</button>
             </div>
+            {submitting && <div className="text-xs text-gray-500 mt-2 text-center">正在寫入訂單並跟系統核對，請不要關閉畫面（最多約一分鐘）</div>}
+            {sendNotice && <div className="text-[#f43f5e] font-bold text-sm mt-2 text-center leading-relaxed">{sendNotice}</div>}
           </div>
         </div>
       )}

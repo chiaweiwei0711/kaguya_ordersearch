@@ -49,7 +49,7 @@ const fetchTeamsRaw = async (): Promise<any> => {
     const sres = await fetch(`${APP_CONFIG.STATIC_API_URL}/teams.json`, { cache: "no-cache" });
     if (sres.ok) {
       const sdata = await sres.json();
-      if (sdata.status === "success" && looksLikeTeams(sdata.teams)) return sdata;
+      if (sdata.status === "success" && looksLikeTeams(sdata.teams)) { sdata.__static = true; return sdata; }
       console.warn("靜態菜單內容異常 → 改走 GAS");
     }
   } catch (_) { /* CDN 抓不到 → 退回 GAS */ }
@@ -77,6 +77,9 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
         .map(mapTeam)
         .filter((t: GroupTeam) => t.code)
     );
+    // 靜態檔裡的跟團人數是重印時抄上一版的（凍結的舊數字，2026-09-15 她回報客人看到舊人數）→ 一律不採用，
+    // 人數只認 live／teamStat 回來的即時值；還沒回來前卡片就先不掛人數
+    if (data.__static) teams = teams.map((t) => ({ ...t, joinPeople: 0, joinQty: 0 }));
 
     // 跟團人數是即時數字、不能吃靜態檔——另打 GAS 輕量端點（下單當下會刷新），2.5 秒抓不到就先用靜態檔裡的舊值
     // 先用上次成功的 live 快照補一次（localStorage，0 成本），首屏就能看到最近一次的新團/人數
@@ -229,7 +232,36 @@ export const fetchTeamItems = async (code: string, onFresh?: (items: GroupProduc
   return fresh || [];
 };
 
-// 單一團「每個商品已被訂了幾件」（收單 GAS ?type=itemStats）→ 填單頁成團進度條用。
+// 填單頁一次拿齊：人數／件數／各品項已訂件數／狀態／結單時間（收單 GAS ?type=teamStat，全讀白板）。
+// 失敗或後端還在算（pending）就自動再問，最多 4 次；全部失敗回 null → 畫面顯示「更新中」，絕不把 0 當真。
+export interface TeamStat { people: number; qty: number; items: Record<string, number>; teamStatus: string; closeAt: string; }
+export const fetchTeamStat = async (code: string): Promise<TeamStat | null> => {
+  const c = String(code || "").trim();
+  if (!c) return null;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 1500 * attempt));
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 12000);
+      const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamStat&team=${encodeURIComponent(c)}`, { signal: ctrl.signal, cache: "no-store" });
+      clearTimeout(timer);
+      if (!res.ok) continue;
+      const d = await res.json();
+      if (!d || d.status !== "success") continue;
+      if (d.pending && attempt < 3) continue;
+      return {
+        people: Number(d.people) || 0,
+        qty: Number(d.qty) || 0,
+        items: d.items && typeof d.items === "object" ? d.items : {},
+        teamStatus: String(d.teamStatus ?? ""),
+        closeAt: String(d.closeAt ?? ""),
+      };
+    } catch (_) { /* 重試 */ }
+  }
+  return null;
+};
+
+// 單一團「每個商品已被訂了幾件」（收單 GAS ?type=itemStats）→ 舊接口，填單頁已改用 fetchTeamStat。
 // key＝`${類別}|#${編號} ${品名}`，跟訂單列寫進去的欄位一樣。抓不到就回空物件：進度條只是少了數字，不影響下單。
 export const itemKey = (p: GroupProduct): string => `${p.category}|#${p.no} ${p.name}`;
 export const fetchItemStats = async (code: string, ms = 8000): Promise<Record<string, number>> => {
@@ -256,30 +288,37 @@ export const submitGroupOrder = async (
 ): Promise<{ ok?: boolean; [k: string]: any }> => {
   // orderId：同一張單重送幾次，後端只會收一次（避免「送出失敗其實有寫進去」造成重複下單）
   const oid = orderId || `${team.code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const send = () =>
-    fetch(APP_CONFIG.ORDER_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        type: "submitGroupOrder",
-        team: team.code,
-        teamName: team.name,
-        nick: nick,
-        pay: pay,
-        orderId: oid,
-        items: JSON.stringify(items),
-      }),
-    });
-
-  try {
-    const res = await send();
-    return await res.json();
-  } catch (e) {
-    // 網路中斷／逾時：可能已經寫進去了。帶同一個 orderId 重試一次 —— 後端冪等，不會變成兩筆
-    await new Promise((r) => setTimeout(r, 1500));
-    const res2 = await send();
-    return await res2.json();
+  // 2026-09-15：以前沒有逾時，GAS 慢多久畫面就轉多久（客人回報「喊單很當」）；回 HTML 錯誤頁也只重試一次。
+  //   現在一次最多等 25 秒、同一單號最多送 3 次；三次都沒有 JSON 回應才丟錯，由填單頁回頭查填單紀錄確認。
+  const send = async () => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 25000);
+    try {
+      const res = await fetch(APP_CONFIG.ORDER_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          type: "submitGroupOrder",
+          team: team.code,
+          teamName: team.name,
+          nick: nick,
+          pay: pay,
+          orderId: oid,
+          items: JSON.stringify(items),
+        }),
+        signal: ctrl.signal,
+      });
+      const d = await res.json();            // Google 打嗝回 HTML 時這行會丟錯 → 當失敗重送
+      if (!d || typeof d !== "object") throw new Error("bad response");
+      return d;
+    } finally { clearTimeout(timer); }
+  };
+  let lastErr: any = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 1500));
+    try { return await send(); } catch (e) { lastErr = e; console.warn(`送單第 ${attempt + 1} 次沒回應，重送`, e); }
   }
+  throw lastErr || new Error("submit failed");
 };
 
 // 這個社群暱稱在官賴綁定了沒？（查單 GAS 的 ?type=checkNick）
@@ -306,7 +345,9 @@ export const checkNickBound = async (nick: string): Promise<boolean | null> => {
 export const fetchMySubmissions = async (nick: string): Promise<MySubmission[]> => {
   const q = nick.trim();
   if (!q) return [];
-  const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=pre-orderform&nick=${encodeURIComponent(q)}`);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
+  const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=pre-orderform&nick=${encodeURIComponent(q)}`, { signal: ctrl.signal, cache: "no-store" }).finally(() => clearTimeout(timer));
   if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
   const data = await res.json();
   if (data.status !== "success" || !Array.isArray(data.submissions)) return [];
