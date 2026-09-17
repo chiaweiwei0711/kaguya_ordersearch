@@ -345,12 +345,24 @@ export const checkNickBound = async (nick: string): Promise<boolean | null> => {
 export const fetchMySubmissions = async (nick: string): Promise<MySubmission[]> => {
   const q = nick.trim();
   if (!q) return [];
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 20000);
-  const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=pre-orderform&nick=${encodeURIComponent(q)}`, { signal: ctrl.signal, cache: "no-store" }).finally(() => clearTimeout(timer));
-  if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
-  const data = await res.json();
-  if (data.status !== "success" || !Array.isArray(data.submissions)) return [];
+  // 2026-09-17：這頁以前只打一次、20 秒沒回就「查詢失敗」——她實測 5 次 2 次失敗全是 Google 偶發回錯誤頁。
+  //   跟查單／送單一樣：最多等 20 秒、失敗靜靜再打、共 3 次；三次都沒有才丟錯給畫面
+  let data: any = null, lastErr: any = null;
+  for (let attempt = 0; attempt < 3 && data === null; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 1000 * attempt));
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 20000);
+    try {
+      const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=pre-orderform&nick=${encodeURIComponent(q)}`, { signal: ctrl.signal, cache: "no-store" });
+      if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
+      const d = await res.json();                       // 回 HTML 錯誤頁會在這裡丟錯 → 重試
+      if (!d || d.status !== "success") throw new Error(String((d && d.message) || "bad response"));
+      data = d;
+    } catch (e) { lastErr = e; console.warn(`填單明細第 ${attempt + 1} 次沒成功，重試`, e); }
+    finally { clearTimeout(timer); }
+  }
+  if (data === null) throw lastErr || new Error("lookup failed");
+  if (!Array.isArray(data.submissions)) return [];
 
   return (data.submissions || [])
     .map((s: any): MySubmission => {
