@@ -47,13 +47,13 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
 
   const total = openSubs.length + closedSubs.length;
 
-  const doSearch = async (override?: string) => {
+  const doSearch = async (override?: string, fresh = false) => {
     const q = (override ?? nick).trim();
     if (!q || loading) return;
     setLoading(true);
     setError(false);
     try {
-      const data = await fetchMySubmissions(q);
+      const data = await fetchMySubmissions(q, fresh);
       setResults(data);
       setSearched(true);
     } catch (e) {
@@ -70,7 +70,7 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
 
   // 從填單成功頁帶暱稱進來 → 自動查一次
   useEffect(() => {
-    if (initialNick && initialNick.trim()) { setNick(initialNick); doSearch(initialNick); }
+    if (initialNick && initialNick.trim()) { setNick(initialNick); doSearch(initialNick, true); }   // 從送出成功頁帶過來 → 繞過快取，一定看到剛送的
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 單張填單卡（badge 依分區不同）

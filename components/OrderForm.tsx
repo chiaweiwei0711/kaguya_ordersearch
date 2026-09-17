@@ -67,9 +67,9 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const [stat, setStat] = useState<TeamStat | null>(null);
   const [statLoading, setStatLoading] = useState(true);
   const lastStatAt = useRef(0);
-  const loadStat = React.useCallback(async () => {
+  const loadStat = React.useCallback(async (fresh = false) => {
     setStatLoading(true);
-    const s = await fetchTeamStat(team.code);
+    const s = await fetchTeamStat(team.code, fresh);
     lastStatAt.current = Date.now();
     if (s) setStat(s);
     setStatLoading(false);
@@ -87,7 +87,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const joinQty = stat ? stat.qty : (team.joinQty ?? 0);
   // ⚠️ 一定要 useCallback：下拉重整的 hook 只要收到「新的函式」就會重掛監聽器並把手勢歸零，
   //    而手指一拉畫面就重繪 → 每次重繪都給新函式＝拉第一下就斷（2026-09-12 這樣寫，訂單頁下拉重整整個失效）
-  const refreshAll = React.useCallback(async () => { await Promise.all([onRefresh ? onRefresh() : null, loadStat()]); }, [onRefresh, loadStat]);
+  const refreshAll = React.useCallback(async () => { await Promise.all([onRefresh ? onRefresh() : null, loadStat(true)]); }, [onRefresh, loadStat]);
   const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(onRefresh ? refreshAll : undefined);
   const [pay, setPay] = useState("匯款");
   const [qty, setQty] = useState<Record<number, number>>({});
@@ -175,7 +175,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
     for (let i = 0; i < tries; i++) {
       if (i) await new Promise((r) => setTimeout(r, 2000 * i));
       try {
-        const subs = await fetchMySubmissions(nick.trim());
+        const subs = await fetchMySubmissions(nick.trim(), true);   // 剛送的單：繞過邊緣快取
         const hit = subs.find((s) => s.team === team.code && key(s.items) === want && Math.abs(Date.now() - new Date(s.time).getTime()) < 30 * 60 * 1000);
         if (hit) return hit;
       } catch (_) { /* 再試 */ }
@@ -193,7 +193,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       setLanded(hit);
       setShowConfirm(false);
       setDone(true);
-      loadStat();       // 自己剛送的人數／件數馬上反映
+      loadStat(true);   // 自己剛送的人數／件數馬上反映（繞過邊緣快取）
     };
     try {
       if (!orderIdRef.current) orderIdRef.current = `${team.code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

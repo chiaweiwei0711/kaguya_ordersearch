@@ -1,5 +1,6 @@
 import { APP_CONFIG } from "../config";
 import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
+import { gasGet } from "./edge";
 
 // 靜態檔（CDN）是否已過期：fetchTeams 時比對「靜態檔版號 vs 試算表版號」，
 // 過期＝她剛改過團/商品 → 之後抓商品明細一律走 GAS 拿最新的，不吃舊靜態檔。
@@ -54,9 +55,7 @@ const fetchTeamsRaw = async (): Promise<any> => {
     }
   } catch (_) { /* CDN 抓不到 → 退回 GAS */ }
   staticStale = true;      // 連靜態檔都沒有 → 全部走 GAS
-  const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=listTeams&lite=1`);
-  if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
-  return await res.json();
+  return await gasGet("order", { type: "listTeams", lite: "1" }, { timeoutMs: 20000 });
 };
 
 // onLive：live（即時團表）回來後才呼叫，用來更新畫面。首屏不等它 → 頁面永遠秒開。
@@ -110,13 +109,8 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
     if (onLive) {
       liveCheck = (async () => {
         try {
-          const ctrl = new AbortController();
-          // 10 秒：GAS 忙時 live 常要 3～6 秒，以前只等 4 秒就放棄 → 網站以為靜態檔是最新的，客人一直看舊菜單
-          const timer = setTimeout(() => ctrl.abort(), 10000);
-          const lres = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=live`, { signal: ctrl.signal });
-          clearTimeout(timer);
-          if (!lres.ok) return;
-          const ld = await lres.json();
+          // 先走 Netlify 邊緣快取（20 秒，全站共用一份）；10 秒沒回才放棄，畫面維持靜態檔內容
+          const ld = await gasGet("order", { type: "live" }, { timeoutMs: 10000 });
           if (ld.status !== "success" || !Array.isArray(ld.teams) || !ld.teams.length) return;
           // 版號一致＝靜態檔與試算表同步 → 商品明細可以吃 CDN（秒開）；不一致代表她剛改過 → 走 GAS 拿最新
           staticStale = !(data && data.ver && ld.ver && String(data.ver) === String(ld.ver));
@@ -192,12 +186,7 @@ export const fetchTeamItems = async (code: string, onFresh?: (items: GroupProduc
 
   const fromGas = async (ms: number): Promise<GroupProduct[] | null> => {
     try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), ms);
-      const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamItems&team=${encodeURIComponent(c)}`, { signal: ctrl.signal });
-      clearTimeout(timer);
-      if (!res.ok) return null;
-      const d = await res.json();
+      const d = await gasGet("order", { type: "teamItems", team: c }, { timeoutMs: ms });   // 邊緣快取 60 秒
       if (d.status !== "success") return null;
       const items = parse(d);
       return items.length ? items : null;
@@ -235,18 +224,14 @@ export const fetchTeamItems = async (code: string, onFresh?: (items: GroupProduc
 // 填單頁一次拿齊：人數／件數／各品項已訂件數／狀態／結單時間（收單 GAS ?type=teamStat，全讀白板）。
 // 失敗或後端還在算（pending）就自動再問，最多 4 次；全部失敗回 null → 畫面顯示「更新中」，絕不把 0 當真。
 export interface TeamStat { people: number; qty: number; items: Record<string, number>; teamStatus: string; closeAt: string; }
-export const fetchTeamStat = async (code: string): Promise<TeamStat | null> => {
+// fresh=true：客人剛送完單、或下拉重整 → 這一次繞過邊緣快取直接拿最新（自己的那筆一定看得到）
+export const fetchTeamStat = async (code: string, fresh = false): Promise<TeamStat | null> => {
   const c = String(code || "").trim();
   if (!c) return null;
   for (let attempt = 0; attempt < 4; attempt++) {
     if (attempt) await new Promise((r) => setTimeout(r, 1500 * attempt));
     try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 12000);
-      const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=teamStat&team=${encodeURIComponent(c)}`, { signal: ctrl.signal, cache: "no-store" });
-      clearTimeout(timer);
-      if (!res.ok) continue;
-      const d = await res.json();
+      const d = await gasGet("order", { type: "teamStat", team: c }, { timeoutMs: 12000, fresh });   // 邊緣快取 20 秒
       if (!d || d.status !== "success") continue;
       if (d.pending && attempt < 3) continue;
       return {
@@ -268,12 +253,7 @@ export const fetchItemStats = async (code: string, ms = 8000): Promise<Record<st
   const c = String(code || "").trim();
   if (!c) return {};
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), ms);
-    const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=itemStats&team=${encodeURIComponent(c)}`, { signal: ctrl.signal });
-    clearTimeout(timer);
-    if (!res.ok) return {};
-    const d = await res.json();
+    const d = await gasGet("order", { type: "itemStats", team: c }, { timeoutMs: ms });
     return d && d.status === "success" && d.items && typeof d.items === "object" ? d.items : {};
   } catch (_) { return {}; }
 };
@@ -329,12 +309,7 @@ export const checkNickBound = async (nick: string): Promise<boolean | null> => {
   const q = String(nick || "").trim();
   if (!q) return null;
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 6000);
-    const res = await fetch(`${APP_CONFIG.API_URL}?type=checkNick&nick=${encodeURIComponent(q)}`, { signal: ctrl.signal });
-    clearTimeout(timer);
-    if (!res.ok) return null;
-    const d = await res.json();
+    const d = await gasGet("query", { type: "checkNick", nick: q }, { timeoutMs: 6000 });   // 邊緣快取 60 秒
     if (d && d.status === "success" && typeof d.bound === "boolean") return d.bound;
     return null;
   } catch (_) { return null; }
@@ -342,7 +317,8 @@ export const checkNickBound = async (nick: string): Promise<boolean | null> => {
 
 // 查「我已送出的填單」(收單 GAS 的 ?type=pre-orderform&nick=...)
 // 回傳一筆 = 一次送出；品項可能存成 JSON 字串或陣列，兩種都吃
-export const fetchMySubmissions = async (nick: string): Promise<MySubmission[]> => {
+// fresh=true：剛送完單回查自己那筆 → 繞過邊緣快取
+export const fetchMySubmissions = async (nick: string, fresh = false): Promise<MySubmission[]> => {
   const q = nick.trim();
   if (!q) return [];
   // 2026-09-17：這頁以前只打一次、20 秒沒回就「查詢失敗」——她實測 5 次 2 次失敗全是 Google 偶發回錯誤頁。
@@ -350,16 +326,11 @@ export const fetchMySubmissions = async (nick: string): Promise<MySubmission[]> 
   let data: any = null, lastErr: any = null;
   for (let attempt = 0; attempt < 3 && data === null; attempt++) {
     if (attempt) await new Promise((r) => setTimeout(r, 1000 * attempt));
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 20000);
     try {
-      const res = await fetch(`${APP_CONFIG.ORDER_API_URL}?type=pre-orderform&nick=${encodeURIComponent(q)}`, { signal: ctrl.signal, cache: "no-store" });
-      if (!res.ok) throw new Error(`連線失敗 (${res.status})`);
-      const d = await res.json();                       // 回 HTML 錯誤頁會在這裡丟錯 → 重試
+      const d = await gasGet("order", { type: "pre-orderform", nick: q }, { timeoutMs: 20000, fresh });   // 邊緣快取 60 秒；回 HTML 錯誤頁會丟錯 → 重試
       if (!d || d.status !== "success") throw new Error(String((d && d.message) || "bad response"));
       data = d;
     } catch (e) { lastErr = e; console.warn(`填單明細第 ${attempt + 1} 次沒成功，重試`, e); }
-    finally { clearTimeout(timer); }
   }
   if (data === null) throw lastErr || new Error("lookup failed");
   if (!Array.isArray(data.submissions)) return [];

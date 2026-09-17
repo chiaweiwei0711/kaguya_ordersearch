@@ -1,5 +1,6 @@
 import { APP_CONFIG } from "../config";
 import { Order, OrderStatus, OrderItem, Announcement } from "../types";
+import { gasGet } from "./edge";
 
 const IMPORTANT_KEYWORDS = ["重要", "通知", "延遲", "公告", "提醒", "緊急", "注意"];
 
@@ -9,16 +10,10 @@ const IMPORTANT_KEYWORDS = ["重要", "通知", "延遲", "公告", "提醒", "�
 export class SearchFailedError extends Error {}
 
 const fetchOrdersRaw = async (query: string): Promise<any[]> => {
-  const url = `${APP_CONFIG.API_URL}?search=${encodeURIComponent(query.trim())}`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 30000);
-  try {
-    const response = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
-    if (!response.ok) throw new Error(`連線失敗 (${response.status})`);
-    const data = await response.json();     // 回 HTML 錯誤頁時這行會丟錯 → 交給外面重試
-    if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
-    return Array.isArray(data.data) ? data.data : [];
-  } finally { clearTimeout(timer); }
+  // 先走 Netlify 邊緣快取（60 秒），失敗才直接打 GAS；回 HTML 錯誤頁會丟錯 → 交給外面重試
+  const data = await gasGet("query", { search: query.trim() }, { timeoutMs: 30000 });
+  if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
+  return Array.isArray(data.data) ? data.data : [];
 };
 
 // --- 1. 訂單搜尋 (超級防呆嚴格過濾版) ---
@@ -101,9 +96,7 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
 // --- 2. 抓取公告 ---
 export const fetchAnnouncements = async (): Promise<Announcement[]> => {
   try {
-    const response = await fetch(`${APP_CONFIG.API_URL}?type=announcements`);
-    if (!response.ok) return [];
-    const data = await response.json();
+    const data = await gasGet("query", { type: "announcements" }, { timeoutMs: 15000 });   // 邊緣快取 5 分鐘
     if (data.status !== "success") return [];
     return data.data.map((item: any, index: number) => {
       const dateObj = new Date(item.date);
@@ -142,8 +135,7 @@ export const incrementAnnouncementLike = async (newsId: string) => {
 // --- 4. 透過 LINE ID 取得會員暱稱 (自動登入用) ---
 export const fetchNicknameByLineId = async (lineId: string): Promise<string | null> => {
   try {
-    const response = await fetch(`${APP_CONFIG.API_URL}?type=getNickname&lineId=${encodeURIComponent(lineId)}`);
-    const data = await response.json();
+    const data = await gasGet("query", { type: "getNickname", lineId }, { timeoutMs: 15000 });   // 邊緣快取 2 分鐘
 
     if (data.status === 'success' && data.nickname) {
       return data.nickname;
