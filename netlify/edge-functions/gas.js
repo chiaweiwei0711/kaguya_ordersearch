@@ -19,6 +19,9 @@ const UPSTREAM_TIMEOUT_MS = 26000;   // Google 卡波時最多等這麼久；等
 const headersFor = (ttl) => ({
   "content-type": "application/json; charset=utf-8",
   "access-control-allow-origin": "*",
+  // ⚠️ 2026-09-17 事故：Netlify 的快取鍵預設「不看問號後面的參數」→ 所有 ?search=誰 都共用同一份，
+  //    白白白查完換瓦多查還是白白白的單。這行讓每組參數各自一份快取。
+  "netlify-vary": "query",
   "cache-control": "public, max-age=0, must-revalidate",             // 瀏覽器不要自己留，一律問 Netlify
   "netlify-cdn-cache-control": ttl > 0
     ? `public, durable, s-maxage=${ttl}, stale-while-revalidate=3600`   // durable＝全球節點共用一份
@@ -41,10 +44,12 @@ export default async (req) => {
   try {
     const r = await fetch(up + (qs ? "?" + qs : ""), { signal: ctrl.signal, redirect: "follow", headers: { accept: "application/json,text/plain,*/*" } });
     const text = await r.text();
-    let ok = false;
-    try { const j = JSON.parse(text); ok = !!j && typeof j === "object"; } catch (_) { ok = false; }
-    if (!ok) return json({ status: "error", message: "upstream", http: r.status }, 502, 0);   // Google 回錯誤頁 → 不快取，前端退回直打
-    return new Response(text, { status: 200, headers: headersFor(ttl) });
+    let j = null;
+    try { j = JSON.parse(text); } catch (_) { j = null; }
+    if (!j || typeof j !== "object") return json({ status: "error", message: "upstream", http: r.status }, 502, 0);   // Google 回錯誤頁 → 不快取，前端退回直打
+    // 第二道保險：答案裡蓋上「這是回答哪個問題的」，前端核對不符就丟掉、直接打 GAS（防任何快取鍵撞在一起）
+    if (!Array.isArray(j)) j._edgeKey = url.pathname + "?" + qs;
+    return new Response(JSON.stringify(j), { status: 200, headers: headersFor(ttl) });
   } catch (_) {
     return json({ status: "error", message: "upstream timeout" }, 504, 0);
   } finally { clearTimeout(timer); }
