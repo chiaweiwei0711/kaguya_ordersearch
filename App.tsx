@@ -28,7 +28,7 @@ import { getStorageInfo, balanceWithFee } from './services/storage';
 
 // --- 類型定義 ---
 type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing' | 'works' | 'orders';
-type TabType = 'deposit' | 'balance' | 'completed' | 'all';
+type TabType = 'deposit' | 'balance' | 'completed' | 'all' | 'pending';
 
 // --- 📅 倉儲倒數／倉儲費：算式統一在 services/storage.ts（30 天免費、之後每天 $5、收費 90 天後視為放棄） ---
 const getStorageStatus = (dateStr?: string) => getStorageInfo(dateStr);
@@ -124,7 +124,12 @@ const App: React.FC = () => {
   const [mainView, setMainView] = useState<MainView>('query');
   const [searchQuery, setSearchQuery] = useState('');
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
-  const [mySubs, setMySubs] = useState<MySubmission[]>([]);   // 同一個暱稱送出的填單（還沒變成訂單的那些）
+  const [mySubs, setMySubs] = useState<MySubmission[]>([]);   // 同一個暱稱送出的填單
+  // 還沒變成訂單的填單：同暱稱同團名已經有訂單了就不重複顯示（訂單是後面的階段，蓋過填單）
+  const pendingSubs = useMemo(() => {
+    const ordered = new Set(foundOrders.map((o) => (o.groupName || '').trim()));
+    return mySubs.filter((s) => s.teamName && !ordered.has(s.teamName.trim()));
+  }, [mySubs, foundOrders]);
   const [news, setNews] = useState<Announcement[]>([]);
   const [selectedNews, setSelectedNews] = useState<Announcement | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -767,43 +772,10 @@ const App: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* 尚未結單的填單：跟訂單併在同一頁看，不用再去填單專區查一次。
-                        已經變成訂單的那些就不重複顯示（同暱稱同團名＝同一筆） */}
-                    {(() => {
-                      const ordered = new Set(foundOrders.map(o => (o.groupName || '').trim()));
-                      const pending = mySubs.filter(s => s.teamName && !ordered.has(s.teamName.trim()));
-                      if (!pending.length) return null;
-                      return (
-                        <div className="w-full max-w-md bg-[#fff170] rounded-3xl p-4 mb-1">
-                          <div className="flex items-baseline mb-2.5 px-1">
-                            <h3 className="text-[#4c59a1] font-[900] text-base tracking-widest">尚未結單的填單</h3>
-                            <span className="ml-auto text-[#4c59a1]/55 font-[900] text-xs">{pending.length} 筆</span>
-                          </div>
-                          <div className="space-y-2">
-                            {pending.map((sub, i) => (
-                              <button
-                                key={sub.team + i}
-                                onClick={() => goOrderTeam(sub.team)}
-                                className="w-full text-left bg-white rounded-2xl px-4 py-3 shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all"
-                              >
-                                <div className="font-[900] text-[#4c59a1] text-sm leading-snug line-clamp-2">{sub.teamName}</div>
-                                <div className="flex items-center gap-2 mt-1.5">
-                                  <span className="text-[11px] font-[900] text-white bg-[#3ac0bf] px-2.5 py-0.5 rounded-full">{sub.items.length} 項・約 ${sub.subtotal}</span>
-                                  <span className="text-[11px] font-bold text-[#4c59a1]/55">{fmtMDHM(sub.time)} 填單</span>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                          <p className="text-[#4c59a1]/60 font-bold text-[11px] mt-3 px-1 leading-relaxed">
-                            這些是你已經送出、但還沒結單的填單。結單後我們會推播「訂購付款通知」，那時才會出現在下面的訂單裡。
-                          </p>
-                        </div>
-                      );
-                    })()}
-
                     {/* 2. 分頁標籤 */}
                     <div className="flex justify-start sm:justify-center gap-3 overflow-x-auto w-full max-w-md no-scrollbar pb-1">
                       {[
+                        ...(pendingSubs.length ? [{ id: 'pending', label: `尚未結單 ${pendingSubs.length}` }] : []),
                         { id: 'deposit', label: '待付款訂單' },
                         { id: 'balance', label: '可出貨訂單' },
                         { id: 'completed', label: '已完成' },
@@ -938,8 +910,31 @@ const App: React.FC = () => {
                       </div>
                     )}
 
+                    {/* 尚未結單：這一格顯示的是「填單」不是訂單——它還沒成立，只是登記 */}
+                    {activeTab === 'pending' && (
+                      <div className="w-full max-w-md space-y-3">
+                        <p className="text-white/85 font-bold text-[12.5px] leading-relaxed px-1">
+                          這些是你送出、但團還沒結單的填單。結單後我們會推播「訂購付款通知」，那時才會變成下面的訂單。
+                        </p>
+                        {pendingSubs.map((sub, i) => (
+                          <button
+                            key={sub.team + i}
+                            onClick={() => goOrderTeam(sub.team)}
+                            className="w-full text-left bg-white rounded-2xl px-4 py-3.5 shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all"
+                          >
+                            <div className="font-[900] text-[#4c59a1] text-[15px] leading-snug line-clamp-2">{sub.teamName}</div>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              <span className="text-[11px] font-[900] text-white bg-[#3ac0bf] px-2.5 py-0.5 rounded-full">{sub.items.length} 項・約 ${sub.subtotal}</span>
+                              <span className="text-[11px] font-bold text-[#4c59a1]/55">{fmtMDHM(sub.time)} 填單</span>
+                              <span className="ml-auto text-[12px] font-[900] text-[#4c59a1]">看這團 ›</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     {/* 🎯 白色的訂單卡片列表 */}
-                    <div className="w-full max-w-md space-y-4">
+                    <div className={`w-full max-w-md space-y-4 ${activeTab === 'pending' ? 'hidden' : ''}`}>
                       {filteredOrders.length === 0 ? (
                         <div className="text-center py-20 text-[#4c59a1] font-[900] text-lg bg-white rounded-3xl border-2 border-dashed">目前沒有相關訂單</div>
                       ) : (
@@ -1063,7 +1058,7 @@ const App: React.FC = () => {
                 const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
                 return t
                   ? <OrderForm team={t} products={teamItems} loadingItems={teamItemsLoading} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} onRefresh={refreshNow} />
-                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} onRefresh={refreshNow} initialTags={orderTag} />;
+                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onRefresh={refreshNow} initialTags={orderTag} />;
               })()}
             </div>
           )}

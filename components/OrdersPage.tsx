@@ -1,6 +1,7 @@
 import React from "react";
 import { Search, ArrowRight, BookOpen, HelpCircle, Shield, MessageCircle, Users, Instagram, ChevronRight, CheckCircle2 } from "lucide-react";
 import { APP_CONFIG } from "../config";
+import { logoutLine } from "../services/lineIdentity";
 
 interface Props {
   searchQuery: string;
@@ -51,10 +52,13 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
         {boundNick ? (
           <div className="mt-4 bg-white rounded-2xl px-4 py-3 flex items-center gap-2.5 shadow-[0_4px_0px_rgba(0,0,0,0.15)]">
             <CheckCircle2 className="w-5 h-5 stroke-[3px] text-[#3ac0bf] shrink-0" />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="font-[900] text-[#4c59a1] text-sm truncate">已綁定：{boundNick}</div>
               <div className="font-bold text-[#4c59a1]/60 text-[12px]">從官賴進來會自動認出你</div>
             </div>
+            <button onClick={logoutLine} className="shrink-0 text-[#4c59a1]/55 font-[900] text-xs underline underline-offset-2 active:opacity-60">
+              不是我／登出
+            </button>
           </div>
         ) : (
           <p className="text-[#3ac0bf] text-xs sm:text-sm font-[900] mt-4 text-center tracking-widest">

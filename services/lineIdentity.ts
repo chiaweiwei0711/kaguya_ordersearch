@@ -55,6 +55,13 @@ export const checkFriendship = async (): Promise<boolean | null> => {
   }
 };
 
+// 登出：家人共用手機、或想換帳號時用。登出後這個 session 的身分快取也要清掉。
+export const logoutLine = () => {
+  try { liff.logout(); } catch (e) { console.warn("[LIFF] 登出失敗：", String(e)); }
+  cached = null;
+  window.location.reload();
+};
+
 // 請客人登入：登入完回到他原本在看的那一團（不會被丟回首頁）
 // Add friend option 設成 aggressive 時，授權畫面會順便問要不要加官方帳號好友。
 export const loginWithLine = () => {
