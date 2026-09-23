@@ -530,9 +530,9 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
             </div>
             {lineId?.status === "can-login" ? (
               <>
-                <div className="font-[900] text-[#4c59a1] text-xl text-center mb-1.5">用 LINE 登入就能送單</div>
+                <div className="font-[900] text-[#4c59a1] text-xl text-center mb-1.5">登入以填單購買</div>
                 <div className="text-center text-sm font-bold text-[#4c59a1]/70 mb-5 leading-relaxed">
-                  登入才認得出你是誰，到貨和收款通知也才找得到你。<br />同時會邀請你加入官方帳號，一次完成。
+                  用 LINE 登入並加入我們的官方 LINE 立即訂購，同時收到訂單相關資訊！
                 </div>
                 <button
                   onClick={loginWithLine}
@@ -574,7 +574,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
               onClick={() => setShowLineGate(false)}
               className="w-full text-center text-[#4c59a1]/45 text-xs font-bold mt-4 underline underline-offset-2"
             >
-              先回去看商品
+              {lineId?.status === "can-login" ? "不登入瀏覽商品" : "先回去看商品"}
             </button>
           </div>
         </div>
