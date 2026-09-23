@@ -494,7 +494,7 @@ const App: React.FC = () => {
         </div>
       )}
       {/* 🎯 2. 左上角 MENU 按鈕 (💡 聽老闆的：只有在「未搜尋」的首頁才顯示，不擋路！) */}
-      {!hasSearched && mainView !== 'order' && mainView !== 'faq' && mainView !== 'guide' && mainView !== 'about' && mainView !== 'closing' && (
+      {!hasSearched && mainView !== 'order' && mainView !== 'faq' && mainView !== 'guide' && mainView !== 'about' && mainView !== 'closing' && mainView !== 'works' && (
         <button
           onClick={() => setIsMenuOpen(true)}
           className="fixed top-6 left-6 z-40 bg-[#3ac0bf] border-2 border-[#3be4d6] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-transform active:scale-95 hover:bg-[#34adab]"
