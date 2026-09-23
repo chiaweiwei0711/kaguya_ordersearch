@@ -482,7 +482,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   }
   // 列表頁：整頁鋪滿黃色
   return (
-    <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
+    <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#f8a3f4] overflow-y-auto overscroll-y-contain">
       {ptrIndicator}
       <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-8 relative">{inner}</div>
     </div>

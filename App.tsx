@@ -16,6 +16,7 @@ import GroupOrderList from './components/GroupOrderList';
 import HomeHero from './components/HomeHero';
 import WorksPage from './components/WorksPage';
 import OrdersPage from './components/OrdersPage';
+import TabBar from './components/TabBar';
 import { getLineIdentity } from './services/lineIdentity';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
@@ -459,7 +460,18 @@ const App: React.FC = () => {
 
   return (
     // 🎯 1. 最外層深藍色背景
-    <div className="min-h-screen font-sans text-black selection:bg-[#e891d4] relative bg-[#4c59a1] flex justify-center overflow-x-hidden">
+    <div
+      className="min-h-screen font-sans text-black selection:bg-[#e891d4] relative flex justify-center overflow-x-hidden transition-colors duration-500"
+      style={{
+        // 一頁一色：首頁紫／作品黃／填單粉／我的訂單薄荷
+        backgroundColor:
+          mainView === 'works' ? '#fff170'
+          : mainView === 'order' && !selectedTeamCode ? '#f8a3f4'
+          : mainView === 'orders' && !hasSearched ? '#3ac0bf'
+          : '#4c59a1',
+        transitionTimingFunction: 'cubic-bezier(.32,.72,0,1)',
+      }}
+    >
       {/* 🎯 全新加入：靜態糖果色背景圓點 (放底層不擋點擊) */}
       {mainView === 'query' && !hasSearched && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -500,15 +512,23 @@ const App: React.FC = () => {
           <p className="text-[#fff170] font-[900] text-sm tracking-widest mt-2">正在為您查詢訂單，請稍候…</p>
         </div>
       )}
-      {/* 🎯 2. 左上角 MENU 按鈕 (💡 聽老闆的：只有在「未搜尋」的首頁才顯示，不擋路！) */}
-      {!hasSearched && mainView !== 'order' && mainView !== 'faq' && mainView !== 'guide' && mainView !== 'about' && mainView !== 'closing' && mainView !== 'works' && (
-        <button
-          onClick={() => setIsMenuOpen(true)}
-          className="fixed top-6 left-6 z-40 bg-[#3ac0bf] border-2 border-[#3be4d6] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-transform active:scale-95 hover:bg-[#34adab]"
-        >
-          MENU
-        </button>
-      )}
+
+      {/* 底部導覽（Liquid Glass）：四個主頁之間切換 */}
+      <TabBar
+        active={
+          mainView === 'orders' ? 'orders'
+          : mainView === 'works' ? 'works'
+          : mainView === 'order' && !selectedTeamCode ? 'order'
+          : mainView === 'query' && !hasSearched ? 'home'
+          : null
+        }
+        onGo={(k) => {
+          if (k === 'home') { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); nav('/'); window.scrollTo(0, 0); }
+          else if (k === 'works') goWorks();
+          else if (k === 'order') goOrderList();
+          else goOrders();
+        }}
+      />
 
       {/* 全新全螢幕 MENU */}
       {isMenuOpen && (
