@@ -2,6 +2,7 @@ import React from 'react';
 import { X, ExternalLink, Package, DollarSign, Calendar, CreditCard, User, ArrowRight } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { APP_CONFIG } from '../config';
+import { getStorageInfo, balanceWithFee } from '../services/storage';
 
 interface OrderDetailModalProps {
   order: Order | null;
@@ -10,24 +11,8 @@ interface OrderDetailModalProps {
   onPay?: (order: Order) => void;   // 依訂單狀態走正路付款（付訂金 or 賣貨便尾款）
 }
 
-// --- 📅 1. 計算剩餘天數 (輕盈色塊版) ---
-const getStorageStatus = (dateStr?: string) => {
-  if (!dateStr) return null;
-  const arrival = new Date(dateStr);
-  const today = new Date();
-  const diffTime = today.getTime() - arrival.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  const LIMIT_DAYS = 25;
-  const daysLeft = LIMIT_DAYS - diffDays;
-
-  if (daysLeft < 0) {
-    return { label: `逾期 ${Math.abs(daysLeft)} 天`, className: 'bg-[#f8a3f4] text-white' };
-  } else if (daysLeft <= 5) {
-    return { label: `剩 ${daysLeft} 天過期`, className: 'bg-[#fff170] text-black' };
-  } else {
-    return { label: `剩 ${daysLeft} 天可併單`, className: 'bg-[#3ac0bf] text-white' };
-  }
-};
+// 倉儲倒數／倉儲費：算式統一在 services/storage.ts
+const getStorageStatus = (dateStr?: string) => getStorageInfo(dateStr);
 
 const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onClose, onPay }) => {
   if (!isOpen || !order) return null;
@@ -169,34 +154,74 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                   <span className="font-[900] text-black text-xl">${order.productTotal.toLocaleString()}</span>
                 </div>
               ) : null}
-              <div className="border-t-2 border-dashed border-gray-200"></div>
-              {/* 應付訂金 — 青綠、無負號、大字 */}
-              <div className="flex justify-between items-center">
-                <span className="font-[900] text-black text-lg tracking-widest">應付訂金</span>
-                <span className="font-[900] text-[#3ac0bf] text-3xl tracking-tighter">$ {order.depositAmount.toLocaleString()}</span>
-              </div>
-              {/* 有國際運費時：原尾款（= 合計 − 應付訂金、前端自算）+ 國際運費 */}
-              {order.internationalShipping && order.internationalShipping > 0 ? (
-                <>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 text-sm font-[900] tracking-widest">原尾款</span>
-                    <span className="font-[900] text-black">${(order.productTotal - order.depositAmount).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 text-sm font-[900] tracking-widest">國際運費</span>
-                    <span className="font-[900] text-black">+ ${order.internationalShipping.toLocaleString()}</span>
-                  </div>
-                </>
-              ) : null}
-              {/* 總尾款 / 尾款 — 粉、大字 */}
-              <div className="flex justify-between items-center">
-                <span className="font-[900] text-black text-lg tracking-widest">
-                  {order.internationalShipping && order.internationalShipping > 0 ? '總尾款' : '尾款'}（抵台時賣貨便下單）
-                </span>
-                <span className={`font-[900] text-3xl tracking-tighter whitespace-nowrap ${order.balanceDue > 0 ? 'text-[#4c59a1]' : 'text-gray-300'}`}>
-                  $ {order.balanceDue.toLocaleString()}
-                </span>
-              </div>
+              {/* 帳單式：商品金額 → 扣掉應付訂金 → 尾款（＋國際運費）→ 追加倉儲費 → 總尾款 */}
+              {(() => {
+                const intl = order.internationalShipping && order.internationalShipping > 0 ? order.internationalShipping : 0;
+                const baseBalance = order.productTotal - order.depositAmount;           // 純尾款（每團預留 100）
+                const fee = storageInfo && !order.isShipped ? storageInfo.fee : 0;
+                const hasExtra = intl > 0 || fee > 0;
+                const total = balanceWithFee(order);
+                return (
+                  <>
+                    {isPending ? (
+                      /* 待付款：商品金額 → 扣掉預留尾款 → 線 → 應付訂金（大字） */
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 text-sm font-[900] tracking-widest">預留尾款</span>
+                          <span className="font-[900] text-black">− $ {baseBalance.toLocaleString()}</span>
+                        </div>
+                        <div className="border-t-2 border-dashed border-gray-200"></div>
+                        <div className="flex justify-between items-center">
+                          <span className="font-[900] text-black text-lg tracking-widest">應付訂金</span>
+                          <span className="font-[900] text-[#3ac0bf] text-3xl tracking-tighter">$ {order.depositAmount.toLocaleString()}</span>
+                        </div>
+                      </>
+                    ) : (
+                      /* 已付訂金：商品金額 → 扣掉已付訂金 → 線 → 尾款（＋追加）→ 總尾款 */
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 text-sm font-[900] tracking-widest">已付訂金</span>
+                          <span className="font-[900] text-[#3ac0bf]">− $ {order.depositAmount.toLocaleString()}</span>
+                        </div>
+                        <div className="border-t-2 border-dashed border-gray-200"></div>
+                        <div className="flex justify-between items-center">
+                          <span className={`font-[900] tracking-widest ${hasExtra ? 'text-gray-500 text-sm' : 'text-black text-lg'}`}>尾款</span>
+                          <span className={`font-[900] whitespace-nowrap ${hasExtra ? 'text-black' : 'text-[#4c59a1] text-3xl tracking-tighter'}`}>$ {baseBalance.toLocaleString()}</span>
+                        </div>
+                      </>
+                    )}
+                    {!isPending && intl > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-500 text-sm font-[900] tracking-widest">追加國際運費</span>
+                        <span className="font-[900] text-black">+ $ {intl.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {!isPending && fee > 0 && storageInfo && (
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-gray-500 text-sm font-[900] tracking-widest">追加倉儲費</div>
+                          <div className="text-[11px] text-gray-400 font-bold leading-snug mt-0.5">
+                            {storageInfo.arrival.getMonth() + 1}/{storageInfo.arrival.getDate()} 抵台・免費保管至 {storageInfo.freeUntil.getMonth() + 1}/{storageInfo.freeUntil.getDate()}・逾期 {storageInfo.overdueDays} 天 × $5
+                          </div>
+                        </div>
+                        <span className="font-[900] text-[#f8a3f4] whitespace-nowrap">+ $ {fee.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {!isPending && hasExtra && (
+                      <>
+                        <div className="border-t-2 border-dashed border-gray-200"></div>
+                        <div className="flex justify-between items-center">
+                          <span className="font-[900] text-black text-lg tracking-widest">總尾款</span>
+                          <span className="font-[900] text-3xl tracking-tighter whitespace-nowrap text-[#4c59a1]">$ {total.toLocaleString()}</span>
+                        </div>
+                      </>
+                    )}
+                    {storageInfo && !order.isShipped && fee === 0 && (
+                      <p className="text-[11px] text-gray-500 font-bold leading-relaxed">{storageInfo.detail}</p>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
 

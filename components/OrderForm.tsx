@@ -228,7 +228,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           <p className="text-[#4c59a1]/75 text-xs font-bold leading-relaxed max-w-xs">本金額未包含可能需要二補的國際運費或境內運費，實際金額以結單後訂單狀態查詢顯示為主！</p>
           <div className="bg-white text-[#4c59a1] font-bold rounded-2xl px-5 py-3 max-w-sm text-sm leading-relaxed shadow-sm flex items-start gap-2 text-left">
             <AlertTriangle className="w-5 h-5 shrink-0 text-[#f43f5e] stroke-[2.5px] mt-0.5" />
-            <span>結單並按讚留言後才會查詢到訂單！請記得去貼文留言「已填單」！</span>
+            <span>結單後收到訂購付款通知才查得到訂單！請記得去貼文留言「已填單」！</span>
           </div>
           <div className="flex gap-3 mt-2">
             <button onClick={() => onPreview?.(nick.trim())} className="bg-white border-[3px] border-black text-[#4c59a1] font-[900] px-5 py-3 rounded-full shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition flex items-center gap-2">

@@ -15,35 +15,18 @@ import AboutSection from './components/AboutSection';
 import GroupOrderList from './components/GroupOrderList';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
+import GuideSection from './components/GuideSection';
 import OrderForm from './components/OrderForm';
 import OrderLookup from './components/OrderLookup';
 import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM } from './services/groupOrderService';
+import { getStorageInfo, balanceWithFee } from './services/storage';
 
 // --- 類型定義 ---
-type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'closing';
+type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
-// --- 📅 倉儲倒數計算核心邏輯 (Soft Pop 無黑框撞色進化版) ---
-const getStorageStatus = (dateStr?: string) => {
-  if (!dateStr) return null;
-  const arrival = new Date(dateStr);
-  const today = new Date();
-  const diffTime = today.getTime() - arrival.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  const LIMIT_DAYS = 25;
-  const daysLeft = LIMIT_DAYS - diffDays;
-
-  if (daysLeft < 0) {
-    // 逾期：粉紅底 `#f8a3f4` 配白字 (緊急！)
-    return { label: `逾期 ${Math.abs(daysLeft)} 天`, className: 'bg-[#f8a3f4] text-white' };
-  } else if (daysLeft <= 5) {
-    // 警告：亮黃底 `#fff170` 配黑字 (請盡快)
-    return { label: `剩 ${daysLeft} 天過期`, className: 'bg-[#fff170] text-black' };
-  } else {
-    // 良好：薄荷綠底 `#3ac0bf` 配白字 (可併單)
-    return { label: `剩 ${daysLeft} 天可併單`, className: 'bg-[#3ac0bf] text-white' };
-  }
-};
+// --- 📅 倉儲倒數／倉儲費：算式統一在 services/storage.ts（30 天免費、之後每天 $5、收費 90 天後視為放棄） ---
+const getStorageStatus = (dateStr?: string) => getStorageInfo(dateStr);
 
 // --- 篩選選項 ---
 const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '轉送中', '已抵台'];
@@ -231,9 +214,12 @@ const App: React.FC = () => {
       }
       const p = window.location.pathname;
       if (p.startsWith('/closing')) { setMainView('closing'); setSelectedTeamCode(null); return; }
+      if (p.startsWith('/faq')) { setMainView('faq'); setSelectedTeamCode(null); return; }
+      if (p.startsWith('/guide')) { setMainView('guide'); setSelectedTeamCode(null); return; }
+      if (p.startsWith('/about')) { setMainView('about'); setSelectedTeamCode(null); return; }
       const m = p.match(/^\/order(?:\/([^/?]+))?/);
       if (m) { setMainView('order'); setSelectedTeamCode(m[1] ? decodeURIComponent(m[1]) : null); }
-      else { setMainView((mv) => (mv === 'order' || mv === 'closing' ? 'query' : mv)); setSelectedTeamCode(null); }
+      else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' ? 'query' : mv)); setSelectedTeamCode(null); }
     };
     applyPath();
     window.addEventListener('popstate', applyPath);   // 瀏覽器上一頁／下一頁
@@ -298,7 +284,7 @@ const App: React.FC = () => {
       const h = window.location.hash || '';
       const p = window.location.pathname || '';
       const isOrderOrClosing =
-        p.indexOf('/order') === 0 || p.indexOf('/closing') === 0 ||
+        p.indexOf('/order') === 0 || p.indexOf('/closing') === 0 || p.indexOf('/faq') === 0 || p.indexOf('/guide') === 0 || p.indexOf('/about') === 0 ||
         h.indexOf('#/order') === 0 || h.indexOf('#/closing') === 0;
 
       // 填單頁／即將結單頁本來就不會自動查單 → 連 liff.init 都不要跑。
@@ -388,7 +374,7 @@ const App: React.FC = () => {
   const selectedOrdersData = useMemo(() => filteredOrders.filter(o => selectedOrderIds.has(o.id)), [filteredOrders, selectedOrderIds]);
   const totalSelectedAmount = useMemo(() => {
     if (activeTab === 'deposit') return selectedOrdersData.reduce((sum, o) => sum + o.depositAmount, 0);
-    if (activeTab === 'balance') return selectedOrdersData.reduce((sum, o) => sum + o.balanceDue, 0);
+    if (activeTab === 'balance') return selectedOrdersData.reduce((sum, o) => sum + balanceWithFee(o), 0);   // 尾款＋倉儲費
     return 0;
   }, [selectedOrdersData, activeTab]);
 
@@ -443,7 +429,7 @@ const App: React.FC = () => {
   const payOneOrder = (order: Order) => {
     const isPending = order.status !== OrderStatus.PAID;
     setPayingOrders([order]);
-    setPayingTotal(isPending ? order.depositAmount : order.balanceDue);
+    setPayingTotal(isPending ? order.depositAmount : balanceWithFee(order));
     setModalType(isPending ? 'deposit' : 'shipping');
     setIsDetailModalOpen(false);
     setIsPaymentModalOpen(true);
@@ -501,7 +487,7 @@ const App: React.FC = () => {
         </div>
       )}
       {/* 🎯 2. 左上角 MENU 按鈕 (💡 聽老闆的：只有在「未搜尋」的首頁才顯示，不擋路！) */}
-      {!hasSearched && mainView !== 'order' && mainView !== 'faq' && mainView !== 'about' && mainView !== 'closing' && (
+      {!hasSearched && mainView !== 'order' && mainView !== 'faq' && mainView !== 'guide' && mainView !== 'about' && mainView !== 'closing' && (
         <button
           onClick={() => setIsMenuOpen(true)}
           className="fixed top-6 left-6 z-40 bg-[#3ac0bf] border-2 border-[#3be4d6] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-transform active:scale-95 hover:bg-[#34adab]"
@@ -537,8 +523,9 @@ const App: React.FC = () => {
               setIsMenuOpen(false);
               setTimeout(() => document.getElementById('sns-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
             }} className="hover:scale-110 active:scale-95 transition-transform">連結專區</button>
-            <button onClick={() => { setMainView('about'); setIsMenuOpen(false); }} className="hover:scale-110 active:scale-95 transition-transform">關於我們</button>
-            <button onClick={() => { setMainView('faq'); setIsMenuOpen(false); window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">常見問題</button>
+            <button onClick={() => { setMainView('about'); setIsMenuOpen(false); nav('/about'); }} className="hover:scale-110 active:scale-95 transition-transform">關於我們</button>
+            <button onClick={() => { setMainView('guide'); setIsMenuOpen(false); nav('/guide'); window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">購物流程</button>
+            <button onClick={() => { setMainView('faq'); setIsMenuOpen(false); nav('/faq'); window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">常見問題</button>
           </div>
         </div>
       )}
@@ -927,7 +914,7 @@ const App: React.FC = () => {
                                     <span className="text-[10px] text-gray-600 font-[900] mb-0.5">{activeTab === 'deposit' ? '應付訂金' : activeTab === 'balance' ? '應付餘款' : '商品總額'}</span>
                                     {/* 🎯 拔掉黑邊框的粉紫色金額 #f8a3f4 */}
                                     <span className="text-4xl font-[900] text-[#4c59a1] tracking-tighter leading-none">
-                                      ${(activeTab === 'deposit' ? order.depositAmount : activeTab === 'balance' ? order.balanceDue : order.productTotal).toLocaleString()}
+                                      ${(activeTab === 'deposit' ? order.depositAmount : activeTab === 'balance' ? balanceWithFee(order) : order.productTotal).toLocaleString()}
                                     </span>
                                   </div>
                                 </div>
@@ -963,11 +950,15 @@ const App: React.FC = () => {
             <></>
           ) : mainView === 'about' ? (
             <div className="flex flex-col">
-              <AboutSection onBack={() => setMainView('query')} />
+              <AboutSection onBack={() => { setMainView('query'); nav('/'); }} />
             </div>
           ) : mainView === 'faq' ? (
             <div className="flex flex-col pt-4">
-              <FaqSection onBack={() => setMainView('query')} />
+              <FaqSection onBack={() => { setMainView('query'); nav('/'); }} onGuide={() => { setMainView('guide'); nav('/guide'); window.scrollTo(0, 0); }} />
+            </div>
+          ) : mainView === 'guide' ? (
+            <div className="flex flex-col pt-4">
+              <GuideSection onBack={() => { setMainView('query'); nav('/'); }} onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }} />
             </div>
           ) : mainView === 'closing' ? (
             <ClosingList teams={teams} products={groupProducts} loading={teamsLoading} onSelect={goOrderTeam} onBack={exitOrderToQuery} onAll={goOrderList} onRefresh={refreshNow} />

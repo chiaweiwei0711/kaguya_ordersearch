@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Sparkles, CheckCircle, Truck, ArrowRight, Copy, MessageCircle, CreditCard, Building, ChevronLeft } from 'lucide-react';
 import { Order } from '../types';
 import { APP_CONFIG } from '../config';
+import { balanceWithFee } from '../services/storage';
 
 const transferBanks = [
   { name: '中信', code: '822', account: '0000783540394603' },
@@ -194,7 +195,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
                     <div key={index} className="flex justify-between items-center bg-white p-3.5 rounded-xl shadow-[0_4px_0px_rgba(0,0,0,0.10)]">
                       <span className="text-black font-[900] text-sm truncate pl-1">{order.groupName}</span>
                       <span className="font-[900] text-base text-[#4c59a1] pr-1">
-                        ${(isShipping ? order.balanceDue : order.depositAmount).toLocaleString()}
+                        ${(isShipping ? balanceWithFee(order) : order.depositAmount).toLocaleString()}
                       </span>
                     </div>
                   ))}
