@@ -4,6 +4,7 @@ import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
 import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, fetchTeamStat, fetchMySubmissions, itemKey } from "../services/groupOrderService";
 import type { TeamStat } from "../services/groupOrderService";
 import { APP_CONFIG } from "../config";
+import { getLineIdentity } from "../services/lineIdentity";
 import { usePullToRefresh } from "./usePullToRefresh";
 import ProductCarousel from "./ProductCarousel";
 
@@ -62,6 +63,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const [bypass, setBypass] = useState(false);             // 客人自己確認「我有綁定」→ 這次放行
   const nickRef = useRef<HTMLInputElement>(null);
   const nickSeq = useRef(0);
+  const [autoNick, setAutoNick] = useState(false);   // 暱稱是 LINE 身分自動帶入的（不是客人自己打的）
+  const nickTouched = useRef(false);                 // 客人只要動過這格，就不再被自動帶入蓋掉
   // 人數／件數／各品項已訂件數／狀態／結單時間：一次跟 GAS 拿（teamStat），進頁抓、送單成功再抓、下拉重整抓、從 LINE 切回來也抓。
   // 拿不到＝null → 畫面顯示「更新中」而不是舊數字或 0（2026-09-15 她回報客人從 LINE 點進來看到舊人數，以為沒喊到）
   const [stat, setStat] = useState<TeamStat | null>(null);
@@ -98,6 +101,17 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const [zoomP, setZoomP] = useState<GroupProduct | null>(null);
   const [zoomIdx, setZoomIdx] = useState(0);
   const zStart = useRef({ x: 0, y: 0 });
+
+  // 在 LINE 裡開填單頁 → 直接用他綁定的暱稱，不用再打一次（拿不到就安靜維持手打，見 lineIdentity.ts）
+  useEffect(() => {
+    let alive = true;
+    getLineIdentity().then((id) => {
+      if (!alive || !id?.nickname || nickTouched.current) return;
+      setNick(id.nickname);
+      setAutoNick(true);
+    });
+    return () => { alive = false; };
+  }, []);
 
   // 暱稱綁定即時檢查：停手 0.5 秒才問，打錯當場就會變 ❌，改對了自己變 ✅、送出鈕自動解鎖
   useEffect(() => {
@@ -337,7 +351,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           <input
             ref={nickRef}
             value={nick}
-            onChange={(e) => setNick(e.target.value)}
+            onChange={(e) => { nickTouched.current = true; setAutoNick(false); setNick(e.target.value); }}
             placeholder="請輸入您的社群暱稱"
             className={`w-full px-4 py-3 pr-12 rounded-xl bg-white text-[#4c59a1] font-bold outline-none placeholder-gray-400 ring-2 transition ${
               nickState === "ok" ? "ring-[#3ac0bf]" : nickState === "unbound" ? "ring-[#f43f5e]" : "ring-transparent focus:ring-[#3ac0bf]"
@@ -360,7 +374,17 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
         </div>
 
         {nickState === "ok" ? (
-          <p className="text-[#3ac0bf] text-xs font-[900] mt-2 mb-5">已綁定，可以填單囉！</p>
+          <p className="text-[#3ac0bf] text-xs font-[900] mt-2 mb-5">
+            {autoNick ? "已帶入你在官賴綁定的暱稱，可以填單囉！" : "已綁定，可以填單囉！"}
+            {autoNick && (
+              <button
+                onClick={() => { nickTouched.current = true; setAutoNick(false); setNick(""); setTimeout(() => nickRef.current?.focus(), 50); }}
+                className="ml-2 text-[#4c59a1]/60 underline underline-offset-2 font-bold"
+              >
+                不是我？改用手打
+              </button>
+            )}
+          </p>
         ) : nickState === "unbound" ? (
           <p className="text-[#f43f5e] text-xs font-[900] mt-2 mb-5">查無此暱稱！請確認有沒有打錯，或先到官賴綁定。</p>
         ) : (
