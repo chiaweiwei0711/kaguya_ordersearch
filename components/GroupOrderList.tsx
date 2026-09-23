@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag, Tag, SlidersHorizontal, Flame } from "lucide-react";
+import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag, Tag, SlidersHorizontal, Flame, LayoutGrid, Rows3 } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
 import { daysLeft, isOpen, fmtYMD } from "../services/groupOrderService";
 import { buildTagIndex } from "../services/ipTags";
@@ -43,6 +43,11 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   const [sortOpen, setSortOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
   const [pickedTags, setPickedTags] = useState<string[]>([]);
+  // 檢視方式：方塊（大圖好逛）／條列（一次看多團）；記住客人上次的選擇
+  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
+    try { return localStorage.getItem("kgy_order_view") === "list" ? "list" : "grid"; } catch { return "grid"; }
+  });
+  useEffect(() => { try { localStorage.setItem("kgy_order_view", viewMode); } catch {} }, [viewMode]);
 
   // 作品標籤（後台「標籤」欄優先，沒填就從團名／品名推導）
   const tagIndex = useMemo(() => buildTagIndex(teams, products || []), [teams, products]);
@@ -108,6 +113,15 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
     return out;
   }, [pageCount, curPage]);
 
+  // 換頁：回到最上面再看下一批（列表頁是自己捲的容器，不是整個視窗）
+  const goPage = (n: number) => {
+    setPage(n);
+    requestAnimationFrame(() => {
+      ptrRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  };
+
   // 狀態勾選藥丸（玩具風：勾起＝填色＋✓，未勾＝白底淡字）
   const chip = (on: boolean, kind: "open" | "closed") =>
     `flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
@@ -162,7 +176,25 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
       {/* 列表頁專屬：團務查找（標題＋搜尋＋排序＋狀態勾選） */}
       {!preview && (
         <div className="mb-5">
-          <h3 className="text-[#4c59a1] font-[900] text-lg tracking-widest mb-2 pl-1">團務查找</h3>
+          <div className="flex items-end mb-2 pl-1 gap-2">
+            <h3 className="text-[#4c59a1] font-[900] text-lg tracking-widest">團務查找</h3>
+            {/* 檢視方式：方塊（大圖好逛）／條列（一次看多團） */}
+            <div className="ml-auto flex items-center gap-1 bg-white border-[3px] border-black rounded-full shadow-[2px_2px_0px_#000] p-1">
+              {([["grid", "方塊", LayoutGrid], ["list", "條列", Rows3]] as const).map(([mode, label, Icon]) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  aria-pressed={viewMode === mode}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[13px] font-[900] transition-all ${
+                    viewMode === mode ? "bg-[#4c59a1] text-white" : "text-[#4c59a1]/45"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 stroke-[3px]" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           {/* 搜尋框 ＋ 右邊一顆排序鈕：排序不需要一直佔一整排的寬度 */}
           <div className="flex items-center gap-2.5">
             <div className="flex-1 min-w-0 bg-white rounded-full p-1.5 pl-4 flex items-center gap-2 border-[3px] border-black shadow-[3px_3px_0px_#000]">
@@ -295,6 +327,52 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
         <p className="text-center text-[#4c59a1]/70 font-bold py-8">{!preview && q ? `找不到符合「${q}」的團` : "目前沒有開團"}</p>
       )}
 
+      {/* 方塊檢視：封面大圖一眼看出在賣什麼（列表頁限定） */}
+      {!preview && viewMode === "grid" ? (
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          {shown.map((t) => {
+            const open = isOpen(t);
+            const left = daysLeft(t.closeAt);
+            const cover = coverOf(t);
+            // 綜合團可能同時屬於好幾部作品：列前兩部，多的用「…」帶過
+            const ips = tagIndex.byTeam[t.code] || [];
+            const ip = ips.length > 2 ? ips.slice(0, 2).join("、") + "…" : ips.join("、");
+            return (
+              <button
+                key={t.code}
+                onClick={() => onSelect(t.code)}
+                className={`text-left rounded-2xl overflow-hidden flex flex-col border-2 border-transparent transition-all ${
+                  open
+                    ? "bg-white shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none"
+                    : "bg-gray-100 opacity-80 active:scale-[0.98]"
+                }`}
+              >
+                <div className={`relative aspect-square ${open ? "bg-[#eef0fa]" : "bg-gray-200"}`}>
+                  {cover
+                    ? <img src={cover} alt="" referrerPolicy="no-referrer" loading="lazy" className={`w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
+                    : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-[#4c59a1]/25 stroke-[2px]" /></div>}
+                  <span className={`absolute top-2 left-2 text-[12px] font-[900] px-3 py-1 rounded-full shadow-[0_2px_0px_rgba(0,0,0,0.15)] ${
+                    open ? "bg-[#3ac0bf] text-white" : "bg-[#2b2b2b] text-white"
+                  }`}>
+                    {open ? "開團中" : "已結單"}
+                  </span>
+                </div>
+                <div className="p-3 flex flex-col gap-1.5 flex-1">
+                  <div className={`font-[900] text-[13.5px] leading-tight line-clamp-3 ${open ? "text-[#4c59a1]" : "text-gray-400"}`}>{t.name}</div>
+                  {ip && <span className={`text-[12px] font-[900] leading-none ${open ? "text-[#3ac0bf]" : "text-gray-400"}`}>{ip}</span>}
+                  <div className="mt-auto pt-1 flex flex-wrap gap-1.5">
+                    {open && <span className="text-[11px] font-[900] text-white bg-[#f43f5e] px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>}
+                    {(t.joinPeople ?? 0) > 0 && (
+                      <span className={`text-[11px] font-[900] px-2.5 py-0.5 rounded-full ${open ? "bg-[#3ac0bf] text-white" : "bg-gray-300 text-gray-600"}`}>{t.joinPeople} 人跟團</span>
+                    )}
+                  </div>
+                  {t.openAt && <span className={`text-[12px] font-bold ${open ? "text-black/65" : "text-gray-400"}`}>開團日期：{fmtYMD(t.openAt)}</span>}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
       <div className="space-y-3">
         {shown.map((t) => {
           const open = isOpen(t);
@@ -327,18 +405,23 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                 <span className={`text-sm font-[900] px-4 py-1.5 rounded-full ${open ? "bg-[#3ac0bf] text-white" : "bg-[#2b2b2b] text-white"}`}>
                   {open ? "開團中" : "已結單"}
                 </span>
-                {t.openAt && <span className="text-black font-bold text-sm">{fmtYMD(t.openAt)}</span>}
+                {t.openAt && (
+                  <span className="text-black font-bold text-[13px] leading-tight text-right">
+                    <span className="text-black/55">開團日期</span><br />{fmtYMD(t.openAt)}
+                  </span>
+                )}
               </div>
             </button>
           );
         })}
       </div>
+      )}
 
       {/* 分頁（每 30 團一頁；目前頁＝薄荷綠圓，其餘白底，全用 Soft Pop 配色） */}
       {!preview && pageCount > 1 && (
         <div className="flex justify-center items-center flex-wrap gap-2 mt-8">
           <button
-            onClick={() => setPage(curPage - 1)}
+            onClick={() => goPage(curPage - 1)}
             disabled={curPage === 1}
             aria-label="上一頁"
             className="w-10 h-10 rounded-full bg-white border-[3px] border-black text-[#4c59a1] flex items-center justify-center shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition disabled:opacity-30"
@@ -351,7 +434,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
             ) : (
               <button
                 key={it}
-                onClick={() => setPage(it)}
+                onClick={() => goPage(it)}
                 aria-label={`第 ${it} 頁`}
                 aria-current={it === curPage ? "page" : undefined}
                 className={`w-10 h-10 rounded-full border-[3px] border-black font-[900] flex items-center justify-center shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition ${
@@ -363,7 +446,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
             )
           )}
           <button
-            onClick={() => setPage(curPage + 1)}
+            onClick={() => goPage(curPage + 1)}
             disabled={curPage === pageCount}
             aria-label="下一頁"
             className="w-10 h-10 rounded-full bg-white border-[3px] border-black text-[#4c59a1] flex items-center justify-center shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition disabled:opacity-30"
