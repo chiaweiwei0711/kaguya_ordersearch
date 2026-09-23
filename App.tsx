@@ -551,7 +551,7 @@ const App: React.FC = () => {
                   {/* 第一屏：品牌列 ＋ 查訂單（不再是整屏的查單系統，首頁要先看到能買什麼） */}
                   <div className="w-full flex flex-col items-center pb-4 pt-2">
 
-                    <div className="w-full max-w-lg flex items-center gap-3 mb-4">
+                    <div className="w-full max-w-lg flex items-center gap-3 mb-4 mt-14">
                       <div className="min-w-0">
                         <div className="text-white font-[900] text-3xl tracking-widest leading-none drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">KAGUYA</div>
                         <div className="text-white/80 font-[900] text-[13px] tracking-widest mt-1">日本動漫周邊專業代購</div>
