@@ -148,8 +148,8 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
       {tags.length > 0 && (
         <>
           <div className="px-4 sm:px-0 mb-2 flex items-baseline">
-            <h2 className="text-white font-[900] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">動漫類別</h2>
-            <span className="ml-auto text-white/70 font-[900] text-xs">選作品看該作品的團</span>
+            <h2 className="text-white font-[900] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">作品類別</h2>
+            <button onClick={() => onSelectTag("")} className="ml-auto text-white/80 font-[900] text-xs underline underline-offset-2 active:opacity-60">看全部作品</button>
           </div>
           <div className="flex gap-3.5 overflow-x-auto px-4 sm:px-0 pb-2" style={{ scrollbarWidth: "none" }}>
             {tags.map((t) => (
@@ -171,6 +171,16 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                 <span className="font-[900] text-white text-[11px] leading-tight text-center line-clamp-2">{t.name}</span>
               </button>
             ))}
+            {/* 最後一顆：看全部作品 */}
+            <button
+              onClick={() => onSelectTag("")}
+              className="shrink-0 w-[72px] flex flex-col items-center gap-1.5 active:translate-y-0.5 transition-transform"
+            >
+              <span className="w-[68px] h-[68px] rounded-full bg-white/15 border-2 border-dashed border-white/60 flex items-center justify-center">
+                <ChevronRight className="w-7 h-7 text-white stroke-[3px]" />
+              </span>
+              <span className="font-[900] text-white text-[11px] leading-tight text-center">全部作品</span>
+            </button>
           </div>
         </>
       )}
