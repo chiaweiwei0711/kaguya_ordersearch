@@ -18,8 +18,9 @@ const AUTO_MS = 4500;
 // 首頁的櫥窗：大輪播（開團中的團）＋ 動漫類別。
 // 客人一進站先看到「現在能買什麼」，不是先看到查單框。
 const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onSelectTag }) => {
+  // 熱門＝開團中、跟團人數多的在前（人數要等 live 回來才有，還沒回來前就是原本的最新開團順序）
   const openTeams = useMemo(
-    () => teams.filter(isOpen).slice(0, 8),
+    () => teams.filter(isOpen).slice().sort((a, b) => (b.joinPeople ?? 0) - (a.joinPeople ?? 0)).slice(0, 8),
     [teams]
   );
   const tagIndex = useMemo(() => buildTagIndex(teams, products), [teams, products]);
@@ -70,7 +71,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
     <div className="w-full max-w-lg mx-auto">
       {/* ── 大輪播：開團中的團 ── */}
       <div className="px-4 sm:px-0 mb-2 flex items-baseline">
-        <h2 className="text-white font-[900] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">開團中</h2>
+        <h2 className="text-white font-[900] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">熱門開團商品</h2>
         {openTeams.length > 1 && <span className="ml-auto text-white/70 font-[900] text-xs">左右滑看更多</span>}
       </div>
 
