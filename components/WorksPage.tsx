@@ -49,11 +49,16 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
     const rest = works.filter((w) => w.open === 0);
     const zh = rest.filter((w) => !isLatin(w.name)).sort((a, b) => strokeCmp(a.name, b.name));
     const en = rest.filter((w) => isLatin(w.name)).sort((a, b) => a.name.localeCompare(b.name, "en"));
-    return [
-      { key: "open", title: "開團中", items: open },
-      { key: "zh", title: "中文作品（照筆畫）", items: zh },
-      { key: "en", title: "英文・數字", items: en },
-    ].filter((g) => g.items.length > 0);
+    const out: { key: string; title: string; items: typeof works }[] = [];
+    if (open.length) out.push({ key: "open", title: "開團中", items: open });
+    // 中文照筆畫排好後切段，每段用「第一個字～最後一個字」當索引標籤（不用筆畫字典也能分）
+    const SEG = 24;
+    for (let i = 0; i < zh.length; i += SEG) {
+      const part = zh.slice(i, i + SEG);
+      out.push({ key: `zh${i}`, title: `${part[0].name[0]} ～ ${part[part.length - 1].name[0]}`, items: part });
+    }
+    if (en.length) out.push({ key: "en", title: "英文・數字", items: en });
+    return out;
   }, [works, strokeCmp]);
 
   return (
@@ -81,13 +86,32 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
           )}
         </div>
 
+        {/* 索引列：點了直接滑到那一區（像日本電商的 あ／か／さ 行） */}
+        {!loading && groups.length > 1 && (
+          <div className="sticky top-0 z-10 -mx-5 sm:-mx-7 px-5 sm:px-7 py-2 bg-[#fff170]/95 backdrop-blur mb-4">
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+              {groups.map((g) => (
+                <button
+                  key={g.key}
+                  onClick={() => document.getElementById(`works-${g.key}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
+                    g.key === "open" ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
+                  }`}
+                >
+                  {g.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <p className="text-center text-[#4c59a1]/60 font-bold py-10">載入中…</p>
         ) : works.length === 0 ? (
           <p className="text-center text-[#4c59a1]/70 font-bold py-10">找不到符合「{q}」的作品</p>
         ) : (
           groups.map((g) => (
-          <div key={g.key} className="mb-8">
+          <div key={g.key} id={`works-${g.key}`} className="mb-8 scroll-mt-16">
             <h3 className="text-[#4c59a1] font-[900] text-base tracking-widest mb-3 pl-1">{g.title}<span className="text-[#4c59a1]/45 ml-2 text-sm">{g.items.length}</span></h3>
             <div className="grid grid-cols-3 gap-4">
             {g.items.map((w) => (
