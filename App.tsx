@@ -14,6 +14,7 @@ import Aurora from './components/Aurora';
 import AboutSection from './components/AboutSection';
 import GroupOrderList from './components/GroupOrderList';
 import HomeHero from './components/HomeHero';
+import WorksPage from './components/WorksPage';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
@@ -23,7 +24,7 @@ import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM } from './services/gro
 import { getStorageInfo, balanceWithFee } from './services/storage';
 
 // --- 類型定義 ---
-type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing';
+type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing' | 'works';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
 // --- 📅 倉儲倒數／倉儲費：算式統一在 services/storage.ts（30 天免費、之後每天 $5、收費 90 天後視為放棄） ---
@@ -219,9 +220,10 @@ const App: React.FC = () => {
       if (p.startsWith('/faq')) { setMainView('faq'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/guide')) { setMainView('guide'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/about')) { setMainView('about'); setSelectedTeamCode(null); return; }
+      if (p.startsWith('/works')) { setMainView('works'); setSelectedTeamCode(null); return; }
       const m = p.match(/^\/order(?:\/([^/?]+))?/);
       if (m) { setMainView('order'); setSelectedTeamCode(m[1] ? decodeURIComponent(m[1]) : null); }
-      else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' ? 'query' : mv)); setSelectedTeamCode(null); }
+      else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' || mv === 'works' ? 'query' : mv)); setSelectedTeamCode(null); }
     };
     applyPath();
     window.addEventListener('popstate', applyPath);   // 瀏覽器上一頁／下一頁
@@ -240,9 +242,9 @@ const App: React.FC = () => {
   const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/order'); window.scrollTo(0, 0); };
   // ⚠️ setMainView 一定要留著：pushState 不像改 hash 會觸發事件，
   //    少了這行就只換網址不換畫面（從主頁的「即將結單」卡片點下去會沒反應）
-  const [tagPanelOpen, setTagPanelOpen] = useState(false);
-  // 首頁「作品類別」：點某部作品＝直接篩該作品；點「全部作品」（空字串）＝進去把作品面板打開
-  const goOrderTag = (tag: string) => { setOrderTag(tag ? [tag] : []); setTagPanelOpen(!tag); goOrderList(); };
+  const goWorks = () => { setMainView('works'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/works'); window.scrollTo(0, 0); };
+  // 首頁作品類別：點某部作品＝直接進填單專區篩該作品；點「全部作品」（空字串）＝進作品類別頁
+  const goOrderTag = (tag: string) => { if (!tag) { goWorks(); return; } setOrderTag([tag]); goOrderList(); };
   const goOrderTeam = (code: string) => { setMainView('order'); setSelectedTeamCode(code); nav('/order/' + encodeURIComponent(code)); window.scrollTo(0, 0); };
   const goClosing = () => { setMainView('closing'); nav('/closing'); window.scrollTo(0, 0); };
   const exitOrderToQuery = () => { setSelectedTeamCode(null); setMainView('query'); setHasSearched(false); nav('/'); window.scrollTo(0, 0); };
@@ -972,6 +974,8 @@ const App: React.FC = () => {
             <div className="flex flex-col pt-4">
               <GuideSection onBack={() => { setMainView('query'); nav('/'); }} onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }} />
             </div>
+          ) : mainView === 'works' ? (
+            <WorksPage teams={teams} products={groupProducts} loading={teamsLoading} onBack={exitOrderToQuery} onSelect={(tag) => { setOrderTag([tag]); goOrderList(); }} />
           ) : mainView === 'closing' ? (
             <ClosingList teams={teams} products={groupProducts} loading={teamsLoading} onSelect={goOrderTeam} onBack={exitOrderToQuery} onAll={goOrderList} onRefresh={refreshNow} />
           ) : (
@@ -980,7 +984,7 @@ const App: React.FC = () => {
                 const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
                 return t
                   ? <OrderForm team={t} products={teamItems} loadingItems={teamItemsLoading} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} onRefresh={refreshNow} />
-                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} onRefresh={refreshNow} initialTags={orderTag} openTagPanel={tagPanelOpen} />;
+                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} onRefresh={refreshNow} initialTags={orderTag} />;
               })()}
             </div>
           )}

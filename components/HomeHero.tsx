@@ -31,12 +31,16 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
     const openCount: Record<string, number> = {};
     const cover: Record<string, string> = {};
     // 圓圈裡的圖：該作品最近一團的封面（開團中的優先）
-    [...teams.filter(isOpen), ...teams].forEach((t) => {
-      (tagIndex.byTeam[t.code] || []).forEach((x) => {
-        if (isOpen(t)) openCount[x] = (openCount[x] || 0) + 1;
-        if (!cover[x]) { const c = coverOf(t); if (c) cover[x] = c; }
-      });
+    // 先數開團中的團
+    teams.filter(isOpen).forEach((t) => (tagIndex.byTeam[t.code] || []).forEach((x) => { openCount[x] = (openCount[x] || 0) + 1; }));
+    // 圓圈裡的圖：優先用「只屬於這一部作品」的團封面，避免綜合團的圖被每部作品拿去用（文豪野犬掛我英圖那種）
+    const pick = (only: boolean) => [...teams.filter(isOpen), ...teams].forEach((t) => {
+      const ips = tagIndex.byTeam[t.code] || [];
+      if (only && ips.length !== 1) return;
+      ips.forEach((x) => { if (!cover[x]) { const c = coverOf(t); if (c) cover[x] = c; } });
     });
+    pick(true);   // 單一作品團優先
+    pick(false);  // 還沒圖的才退回綜合團
     return tagIndex.all
       .map((name) => ({ name, open: openCount[name] || 0, total: tagIndex.counts[name] || 0, cover: cover[name] || "", logo: logoOf(name) }))
       .sort((a, b) => b.open - a.open || b.total - a.total)
