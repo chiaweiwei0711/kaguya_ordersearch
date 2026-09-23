@@ -110,6 +110,11 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                     <div className="absolute inset-x-0 bottom-0 p-4">
                       {ip && <div className="text-[#fff170] font-[900] text-[13px] leading-none mb-1.5">{ip}</div>}
                       <div className="text-white font-[900] text-lg leading-tight line-clamp-2">{t.name}</div>
+                      {(t.joinPeople ?? 0) > 0 && (
+                        <span className="inline-block mt-2 bg-[#3ac0bf] text-white text-[12px] font-[900] px-3 py-1 rounded-full shadow-[0_2px_0px_rgba(0,0,0,0.2)]">
+                          {t.joinPeople} 人填單{(t.joinQty ?? 0) > 0 ? ` · ${t.joinQty} 件` : ""}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center px-4 py-3">
