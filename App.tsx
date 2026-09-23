@@ -147,7 +147,8 @@ const App: React.FC = () => {
   // ── 開團訂購 ──
   const [teams, setTeams] = useState<GroupTeam[]>([]);
   const [groupProducts, setGroupProducts] = useState<GroupProduct[]>([]);
-  const [orderTag, setOrderTag] = useState<string[]>([]);   // 首頁「動漫類別」點進填單專區時帶的作品篩選
+  const [orderTag, setOrderTag] = useState<string[]>([]);
+  const [showQuerySearch, setShowQuerySearch] = useState(false);   // 首頁的查訂單：點了才展開搜尋框   // 首頁「動漫類別」點進填單專區時帶的作品篩選
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
   const [teamsLoading, setTeamsLoading] = useState(true);
   const [showLookup, setShowLookup] = useState(false); // 填單明細查詢
@@ -547,18 +548,24 @@ const App: React.FC = () => {
                 // --- 🎯 首頁未搜尋狀態 ---
                 <div className="flex flex-col items-center animate-fade-in-up w-full">
 
-                  {/* 第一屏 (🎯 解決手機版捲動跳動 Bug，鎖死在螢幕下方) */}
-                  <div className="w-full flex flex-col items-center min-h-[88svh] md:min-h-[85vh] pb-8 pt-4 justify-between">
+                  {/* 第一屏：品牌列 ＋ 查訂單（不再是整屏的查單系統，首頁要先看到能買什麼） */}
+                  <div className="w-full flex flex-col items-center pb-4 pt-2">
 
-                    {/* 上半部：Logo 圖片 */}
-                    <img
-                      src="https://i.imgur.com/OVkii3R.png" alt="Kaguya 自助查詢系統" referrerPolicy="no-referrer"
-                      className="w-[95%] max-w-sm h-auto object-contain mx-auto mt-8 filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
-                    />
+                    <div className="w-full max-w-lg flex items-center gap-3 mb-4">
+                      <div className="min-w-0">
+                        <div className="text-white font-[900] text-3xl tracking-widest leading-none drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">KAGUYA</div>
+                        <div className="text-white/80 font-[900] text-[13px] tracking-widest mt-1">日本動漫周邊專業代購</div>
+                      </div>
+                      <button
+                        onClick={() => setShowQuerySearch((v) => !v)}
+                        className="ml-auto shrink-0 flex items-center gap-1.5 bg-white text-[#4c59a1] font-[900] text-sm px-4 py-2.5 rounded-full border-[3px] border-black shadow-[3px_3px_0px_#000] active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all"
+                      >
+                        <Search className="w-4 h-4 stroke-[3px]" />查訂單
+                      </button>
+                    </div>
 
-                    {/* 下半部：搜尋框 (🎯 mt-auto 把它硬推到這一個螢幕的最底端) */}
-                    <div className="w-full flex flex-col items-center mt-auto">
-                      <div className="text-[#3ac0bf] font-[900] text-5xl mb-6 animate-bounce [animation-duration:1.5s]">↓</div>
+                    {/* 查訂單：點了才展開，不佔首頁版面 */}
+                    <div className={`w-full flex flex-col items-center ${showQuerySearch ? '' : 'hidden'}`}>
                       <div className="w-full max-w-md px-4">
                         <div className="bg-[#ffffff] rounded-full p-2 flex items-center gap-2 shadow-[6px_6px_0px_#000] border-[3px] border-black mb-3 transition-transform focus-within:-translate-y-1">
                           <div className="relative flex-1 flex items-center pl-1">
@@ -602,9 +609,7 @@ const App: React.FC = () => {
                             即將結單
                             <ChevronRight className="w-4 h-4 stroke-[3px]" />
                           </button>
-                          {closingTeams.length > 2 && (
-                            <span className="text-white/80 font-[900] text-[11px] tracking-widest">左右滑動看今明日結單</span>
-                          )}
+
                         </div>
                         {teamsLoading ? (
                           <div className="px-4 md:px-1">

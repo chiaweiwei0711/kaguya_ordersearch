@@ -8,9 +8,9 @@
 const BASE = "https://cdn.jsdelivr.net/gh/chiaweiwei0711/kaguya-assets@main/ip/";
 
 export const IP_LOGOS: Record<string, string> = {
-  "我的英雄學院": BASE + "458.jpeg",     // ⚠️ 來源站只有劇場版那張（上半部是主 logo），之後可換成 TV 版主 logo
+  "我的英雄學院": BASE + "mha.png",       // 官方站 header logo（透明 PNG）
   "咒術迴戰": BASE + "1101.jpeg",
-  "進擊的巨人": BASE + "413.jpeg",
+  "進擊的巨人": BASE + "aot.png",       // 官方站 logo（透明 PNG）
   "排球少年": BASE + "445.jpeg",
   "鬼滅之刃": BASE + "448.jpeg",
   "入間同學入魔了": BASE + "2018.jpeg",
@@ -33,9 +33,20 @@ export const IP_LOGOS: Record<string, string> = {
   "守護甜心": BASE + "719.jpeg",
   "防風少年": BASE + "1487.jpeg",
   "死神": BASE + "1035.jpeg",
-  "航海王": BASE + "990.jpeg",
-  // 還沒有的：文豪野犬、魔法帽的工作室（來源擋下載 403）、冰之城牆、現在的是哪個多聞、獵人、黃泉使者、齊木楠雄（來源站沒有）
-  // ⚠️ 進擊的巨人那張是「進撃の巨人展 FINAL」的展覽 logo，我英是劇場版 logo——來源站只有這兩張，之後可換
+  "文豪野犬": BASE + "bsd.svg",        // 官方站深色版（白色版在白底看不見）
+  "魔法帽的工作室": BASE + "tongari.png",
+  "航海王": BASE + "onepiece.svg",
+  "JoJo的奇妙冒險": BASE + "jojo.png",
+  "現在的是哪個多聞": BASE + "tamon.png",
+  "藥師少女的獨語": BASE + "kusuriya.png",
+  "蠟筆小新": BASE + "shinchan.png",
+  "桃源暗鬼": BASE + "tougen.jpg",
+  "銀魂": BASE + "gintama.png",
+  "冰之城牆": BASE + "icewall.png",
+  "火影忍者": BASE + "naruto.svg",
+  "黃泉使者": BASE + "yomi.jpg",
+  "死亡筆記本": BASE + "deathnote.png",
+  // 還沒有的（先留空，會自動退回封面圖）：金牌得主、獵人、齊木楠雄等
 };
 
 export const logoOf = (ip: string): string => IP_LOGOS[ip] || "";

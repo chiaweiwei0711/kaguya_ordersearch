@@ -76,7 +76,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
       {/* ── 大輪播：開團中的團 ── */}
       <div className="px-4 sm:px-0 mb-2 flex items-baseline">
         <h2 className="text-white font-[900] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">熱門開團商品</h2>
-        {openTeams.length > 1 && <span className="ml-auto text-white/70 font-[900] text-xs">左右滑看更多</span>}
+        
       </div>
 
       {loading ? (
