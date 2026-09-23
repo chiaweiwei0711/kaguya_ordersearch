@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info, Check, Loader2, UserX } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info, Check, Loader2, UserX, UserCheck } from "lucide-react";
 import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
 import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, fetchTeamStat, fetchMySubmissions, itemKey } from "../services/groupOrderService";
 import type { TeamStat } from "../services/groupOrderService";
 import { APP_CONFIG } from "../config";
-import { getLineIdentity } from "../services/lineIdentity";
+import { getLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
+import type { LineIdentity } from "../services/lineIdentity";
 import { usePullToRefresh } from "./usePullToRefresh";
 import ProductCarousel from "./ProductCarousel";
 
@@ -65,6 +66,12 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const nickSeq = useRef(0);
   const [autoNick, setAutoNick] = useState(false);   // 暱稱是 LINE 身分自動帶入的（不是客人自己打的）
   const nickTouched = useRef(false);                 // 客人只要動過這格，就不再被自動帶入蓋掉
+  // 外面來的陌生人：商品全部看得到，按「送出填單」才要求 LINE 登入＋加官方帳號好友。
+  // 社群（OpenChat）點進來那群 LIFF 起不來（status=unavailable）＝一律放行，他們本來就是社群裡綁定過的人。
+  const [lineId, setLineId] = useState<LineIdentity | null>(null);
+  const [isFriend, setIsFriend] = useState<boolean | null>(null);   // null＝查不到，當作不擋
+  const [showLineGate, setShowLineGate] = useState(false);
+  const [friendRechecking, setFriendRechecking] = useState(false);
   // 人數／件數／各品項已訂件數／狀態／結單時間：一次跟 GAS 拿（teamStat），進頁抓、送單成功再抓、下拉重整抓、從 LINE 切回來也抓。
   // 拿不到＝null → 畫面顯示「更新中」而不是舊數字或 0（2026-09-15 她回報客人從 LINE 點進來看到舊人數，以為沒喊到）
   const [stat, setStat] = useState<TeamStat | null>(null);
@@ -105,10 +112,14 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   // 在 LINE 裡開填單頁 → 直接用他綁定的暱稱，不用再打一次（拿不到就安靜維持手打，見 lineIdentity.ts）
   useEffect(() => {
     let alive = true;
-    getLineIdentity().then((id) => {
-      if (!alive || !id?.nickname || nickTouched.current) return;
-      setNick(id.nickname);
-      setAutoNick(true);
+    getLineIdentity().then(async (id) => {
+      if (!alive) return;
+      setLineId(id);
+      if (id.nickname && !nickTouched.current) { setNick(id.nickname); setAutoNick(true); }
+      if (id.status === "ready") {
+        const f = await checkFriendship();
+        if (alive) setIsFriend(f);
+      }
     });
     return () => { alive = false; };
   }, []);
@@ -168,6 +179,14 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
 
   const openConfirm = () => {
     if (!isOpen(liveTeam)) { alert("本團已結單，無法再下單囉"); return; }
+    // 外面來的人：送出前要有 LINE 身分＋是官方帳號好友。
+    // 在 LINE App 裡開的（社群／官賴點進來）一律放行——他們本來就是社群裡綁定過的客人，
+    // 不能因為 LIFF 在 OpenChat 裡拿不到登入狀態，就把最大宗的老客人擋在送出鍵前面。
+    const outsider = !lineId?.inClient && lineId?.status !== "unavailable";
+    if (outsider && (lineId?.status === "can-login" || (lineId?.status === "ready" && isFriend === false))) {
+      setShowLineGate(true);
+      return;
+    }
     if (!nick.trim()) { alert("請先填社群暱稱"); return; }
     // 查無此暱稱 → 跳小視窗（查不到綁定表本身時 nickState 是 unknown，一律放行）
     if (nickState === "unbound" && !bypass) { setShowUnbound(true); return; }
@@ -501,6 +520,65 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           <div className="mt-6 pt-4 border-t-2 border-[#4c59a1]/15 text-center text-gray-500 font-[900]">本團已結單，無法再下單</div>
         )}
       </div>
+
+      {/* 外面來的人送出前的一道門：先登入，再確認是官方帳號好友（商品本身完全公開，不擋看） */}
+      {showLineGate && (
+        <div className="fixed inset-0 z-[105] bg-black/40 flex items-end sm:items-center justify-center p-3">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 border-[3px] border-black shadow-[6px_6px_0px_#000]">
+            <div className="w-14 h-14 rounded-full bg-[#3ac0bf] flex items-center justify-center mx-auto mb-3">
+              <UserCheck className="w-8 h-8 stroke-[2.5px] text-white" />
+            </div>
+            {lineId?.status === "can-login" ? (
+              <>
+                <div className="font-[900] text-[#4c59a1] text-xl text-center mb-1.5">用 LINE 登入就能送單</div>
+                <div className="text-center text-sm font-bold text-[#4c59a1]/70 mb-5 leading-relaxed">
+                  登入才認得出你是誰，到貨和收款通知也才找得到你。<br />同時會邀請你加入官方帳號，一次完成。
+                </div>
+                <button
+                  onClick={loginWithLine}
+                  className="block w-full text-center bg-[#3ac0bf] text-white font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition mb-2.5"
+                >
+                  用 LINE 登入
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="font-[900] text-[#4c59a1] text-xl text-center mb-1.5">還差一步：加入官方帳號</div>
+                <div className="text-center text-sm font-bold text-[#4c59a1]/70 mb-5 leading-relaxed">
+                  到貨、收款、出貨都是透過官方帳號通知你，<br />沒加入的話我們聯絡不到你喔。
+                </div>
+                <a
+                  href={APP_CONFIG.LINE_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block w-full text-center bg-[#3ac0bf] text-white font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition mb-2.5"
+                >
+                  加入官方帳號
+                </a>
+                <button
+                  disabled={friendRechecking}
+                  onClick={async () => {
+                    setFriendRechecking(true);
+                    const f = await checkFriendship();
+                    setFriendRechecking(false);
+                    setIsFriend(f);
+                    if (f !== false) { setShowLineGate(false); openConfirm(); }   // 加好了就直接接回送出流程
+                  }}
+                  className="w-full bg-white text-[#4c59a1] font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition disabled:opacity-50"
+                >
+                  {friendRechecking ? "確認中…" : "我加好了，重新確認"}
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => setShowLineGate(false)}
+              className="w-full text-center text-[#4c59a1]/45 text-xs font-bold mt-4 underline underline-offset-2"
+            >
+              先回去看商品
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 暱稱尚未綁定：擋在送出前，但留一條「我確定有綁定」的路（客人改過 LINE 暱稱時不會被鎖死） */}
       {showUnbound && (
