@@ -23,7 +23,7 @@ import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
 import OrderForm from './components/OrderForm';
 import OrderLookup from './components/OrderLookup';
-import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM, fetchMySubmissions } from './services/groupOrderService';
+import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM, fetchMySubmissions, isOpen } from './services/groupOrderService';
 import { getStorageInfo, balanceWithFee } from './services/storage';
 
 // --- 類型定義 ---
@@ -125,11 +125,25 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
   const [mySubs, setMySubs] = useState<MySubmission[]>([]);   // 同一個暱稱送出的填單
-  // 還沒變成訂單的填單：同暱稱同團名已經有訂單了就不重複顯示（訂單是後面的階段，蓋過填單）
+  const [openSub, setOpenSub] = useState<string | null>(null);   // 展開明細的那一筆填單
+  // 「尚未結單」＝團還開著、而且還沒變成訂單的填單。兩道過濾：
+  //  1) 已經有訂單的不重複顯示——但兩邊團名字串常常對不起來（訂單那邊是「MH #megahouse…」、
+  //     填單是「MH megahouse…」），所以比對前先把空白、#、括號、連字號這些通通拿掉
+  //  2) 團已經結單的也不算：那時是等她打單的空窗期，寫「尚未結單」會誤導客人以為還能加單
   const pendingSubs = useMemo(() => {
-    const ordered = new Set(foundOrders.map((o) => (o.groupName || '').trim()));
-    return mySubs.filter((s) => s.teamName && !ordered.has(s.teamName.trim()));
-  }, [mySubs, foundOrders]);
+    const norm = (v: string) => (v || '').replace(/[\s#＃（）()【】\[\]・･\-—–~〜_]/g, '').toLowerCase();
+    const ordered = new Set(foundOrders.map((o) => norm(o.groupName)));
+    return mySubs.filter((s) => {
+      if (!s.teamName) return false;
+      const n = norm(s.teamName);
+      if (!n) return false;
+      // 完全相同、或其中一邊包含另一邊（團名有時會多／少後綴）都算同一團
+      for (const o of ordered) { if (o === n || o.includes(n) || n.includes(o)) return false; }
+      const t = teams.find((x) => x.code === s.team);
+      if (t && !isOpen(t)) return false;
+      return true;
+    });
+  }, [mySubs, foundOrders, teams]);
   const [news, setNews] = useState<Announcement[]>([]);
   const [selectedNews, setSelectedNews] = useState<Announcement | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -910,26 +924,65 @@ const App: React.FC = () => {
                       </div>
                     )}
 
-                    {/* 尚未結單：這一格顯示的是「填單」不是訂單——它還沒成立，只是登記 */}
+                    {/* 尚未結單：這一格顯示的是「填單」不是訂單——它還沒成立，只是登記。
+                        卡片做成跟訂單卡同一套（白卡＋黑框＋硬陰影），點一下展開自己填了什麼 */}
                     {activeTab === 'pending' && (
-                      <div className="w-full max-w-md space-y-3">
+                      <div className="w-full max-w-md space-y-4">
                         <p className="text-white/85 font-bold text-[12.5px] leading-relaxed px-1">
-                          這些是你送出、但團還沒結單的填單。結單後我們會推播「訂購付款通知」，那時才會變成下面的訂單。
+                          這些是你送出、但團還沒結單的填單。結單後我們會推播「訂購付款通知」，那時才會變成訂單。
                         </p>
-                        {pendingSubs.map((sub, i) => (
-                          <button
-                            key={sub.team + i}
-                            onClick={() => goOrderTeam(sub.team)}
-                            className="w-full text-left bg-white rounded-2xl px-4 py-3.5 shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all"
-                          >
-                            <div className="font-[900] text-[#4c59a1] text-[15px] leading-snug line-clamp-2">{sub.teamName}</div>
-                            <div className="flex items-center gap-2 mt-2 flex-wrap">
-                              <span className="text-[11px] font-[900] text-white bg-[#3ac0bf] px-2.5 py-0.5 rounded-full">{sub.items.length} 項・約 ${sub.subtotal}</span>
-                              <span className="text-[11px] font-bold text-[#4c59a1]/55">{fmtMDHM(sub.time)} 填單</span>
-                              <span className="ml-auto text-[12px] font-[900] text-[#4c59a1]">看這團 ›</span>
+                        {pendingSubs.map((sub, i) => {
+                          const key = sub.team + '_' + i;
+                          const open = openSub === key;
+                          return (
+                            <div
+                              key={key}
+                              onClick={() => setOpenSub(open ? null : key)}
+                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden ${open ? '-translate-y-1 shadow-[6px_6px_0px_#3ac0bf] border-[#3ac0bf]' : 'shadow-[4px_4px_0px_#000] hover:-translate-y-1 hover:shadow-[6px_6px_0px_#000] active:translate-y-0 active:shadow-[2px_2px_0px_#000]'}`}
+                            >
+                              <div className="flex flex-wrap gap-2 mb-3">
+                                <span className="bg-[#f8a3f4] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未結單</span>
+                                <span className="bg-[#fff170] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">{fmtMDHM(sub.time)} 填單</span>
+                              </div>
+
+                              <h3 className="text-xl font-[900] text-black leading-snug mb-4">{sub.teamName}</h3>
+
+                              <div className="flex justify-between items-end">
+                                <span className="text-black text-[11px] font-[900] bg-white border-2 border-black px-3 py-1.5 rounded-full leading-none">
+                                  共 {sub.items.reduce((n, it) => n + it.qty, 0)} 件
+                                </span>
+                                <div className="text-right">
+                                  <div className="text-[11px] font-[900] text-[#4c59a1]/55 leading-none mb-1">填單金額</div>
+                                  <div className="text-2xl font-[900] text-[#4c59a1] leading-none">${sub.subtotal}</div>
+                                </div>
+                              </div>
+
+                              {/* 點開才看到自己填了什麼 */}
+                              {open && (
+                                <div className="mt-4 pt-4 border-t-2 border-dashed border-black/15">
+                                  <div className="space-y-2">
+                                    {sub.items.map((it, k) => (
+                                      <div key={k} className="flex items-baseline gap-2 text-[13.5px]">
+                                        <span className="font-[900] text-[#4c59a1] flex-1 leading-snug">{it.type ? it.type + ' ' : ''}{it.label}</span>
+                                        <span className="font-[900] text-black/55 shrink-0">×{it.qty}</span>
+                                        <span className="font-[900] text-black shrink-0 w-16 text-right">${it.qty * it.price}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <p className="text-[11.5px] font-bold text-[#4c59a1]/55 mt-3 leading-relaxed">
+                                    金額是填單當下的商品小計，不含境內運費與倉儲費；正式金額以結單後的訂購付款通知為準。
+                                  </p>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); goOrderTeam(sub.team); }}
+                                    className="mt-3 w-full bg-[#3ac0bf] text-white font-[900] py-3 rounded-full border-[2.5px] border-black shadow-[3px_3px_0px_#000] active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all"
+                                  >
+                                    去這團的填單頁（可以加單）
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                          </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
 
