@@ -3,6 +3,7 @@ import { ChevronRight, ShoppingBag } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
 import { isOpen, daysLeft } from "../services/groupOrderService";
 import { buildTagIndex } from "../services/ipTags";
+import { logoOf } from "../services/ipLogos";
 
 interface Props {
   teams: GroupTeam[];
@@ -36,7 +37,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
       });
     });
     return tagIndex.all
-      .map((name) => ({ name, open: openCount[name] || 0, total: tagIndex.counts[name] || 0, cover: cover[name] || "" }))
+      .map((name) => ({ name, open: openCount[name] || 0, total: tagIndex.counts[name] || 0, cover: cover[name] || "", logo: logoOf(name) }))
       .sort((a, b) => b.open - a.open || b.total - a.total)
       .slice(0, 12);
   }, [teams, tagIndex, products]);
@@ -74,7 +75,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
       </div>
 
       {loading ? (
-        <div className="mx-4 sm:mx-0 h-52 rounded-[28px] bg-white/70 border-[3px] border-black shadow-[5px_5px_0px_#000] flex items-center justify-center text-[#4c59a1]/60 font-[900]">
+        <div className="mx-4 sm:mx-0 h-52 rounded-[28px] bg-white/70 shadow-[0_10px_24px_rgba(0,0,0,0.18)] flex items-center justify-center text-[#4c59a1]/60 font-[900]">
           載入中…
         </div>
       ) : (
@@ -95,7 +96,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                   key={t.code}
                   onClick={() => onSelectTeam(t.code)}
                   onFocus={() => setIdx(i)}
-                  className="snap-center shrink-0 w-full text-left rounded-[28px] overflow-hidden bg-white border-[3px] border-black shadow-[5px_5px_0px_#000] active:translate-y-1 active:shadow-[2px_2px_0px_#000] transition-all"
+                  className="snap-center shrink-0 w-full text-left rounded-[28px] overflow-hidden bg-white shadow-[0_10px_24px_rgba(0,0,0,0.22)] active:scale-[0.985] transition-transform"
                 >
                   <div className="relative w-full aspect-[4/3] bg-[#eef0fa]">
                     {cover
@@ -151,12 +152,14 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                 onClick={() => onSelectTag(t.name)}
                 className="shrink-0 w-[72px] flex flex-col items-center gap-1.5 active:translate-y-0.5 transition-transform"
               >
-                <span className="relative w-[68px] h-[68px] rounded-full overflow-hidden bg-[#eef0fa] border-[3px] border-black shadow-[3px_3px_0px_#000] flex items-center justify-center">
-                  {t.cover
-                    ? <img src={t.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-full h-full object-cover" />
-                    : <ShoppingBag className="w-7 h-7 text-[#4c59a1]/25 stroke-[2px]" />}
+                <span className="relative w-[68px] h-[68px] rounded-full overflow-hidden bg-white shadow-[0_4px_12px_rgba(0,0,0,0.18)] flex items-center justify-center">
+                  {t.logo
+                    ? <img src={t.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[78%] h-[78%] object-contain" />
+                    : t.cover
+                      ? <img src={t.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-full h-full object-cover" />
+                      : <ShoppingBag className="w-7 h-7 text-[#4c59a1]/25 stroke-[2px]" />}
                   {t.open > 0 && (
-                    <span className="absolute -bottom-0.5 inset-x-0 bg-[#3ac0bf] text-white text-[10px] font-[900] text-center py-0.5">{t.open} 團</span>
+                    <span className="absolute inset-x-0 bottom-0 bg-[#3ac0bf]/95 text-white text-[10px] font-[900] text-center py-0.5">{t.open} 團</span>
                   )}
                 </span>
                 <span className="font-[900] text-white text-[11px] leading-tight text-center line-clamp-2">{t.name}</span>
