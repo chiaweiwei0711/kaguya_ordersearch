@@ -15,6 +15,7 @@ interface Props {
   onBack?: () => void;   // 列表頁返回首頁
   onLookup?: () => void; // 列表頁開「填單明細查詢」
   onRefresh?: () => Promise<any> | any; // 下拉重整：重抓團表（列表頁專用）
+  initialTags?: string[];               // 從首頁「動漫類別」點進來時，一進來就套用該作品篩選
 }
 
 type SortKey = "default" | "close_asc" | "close_desc" | "people_desc";
@@ -29,7 +30,7 @@ const PER_PAGE = 30;
 // 結單時間轉毫秒（無法解析＝最遠 Infinity）
 const closeMs = (t: GroupTeam) => { const ms = new Date(t.closeAt).getTime(); return isNaN(ms) ? Infinity : ms; };
 
-const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, preview, onMore, onBack, onLookup, onRefresh }) => {
+const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, preview, onMore, onBack, onLookup, onRefresh, initialTags }) => {
   // 下拉重整只掛在整頁的列表（首頁預覽那張黃卡不是自己捲的容器）
   const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(preview ? undefined : onRefresh);
   const [query, setQuery] = useState("");
@@ -42,12 +43,14 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   const [page, setPage] = useState(1);
   const [sortOpen, setSortOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
-  const [pickedTags, setPickedTags] = useState<string[]>([]);
+  const [pickedTags, setPickedTags] = useState<string[]>(initialTags || []);
   // 檢視方式：方塊（大圖好逛）／條列（一次看多團）；記住客人上次的選擇
   const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
     try { return localStorage.getItem("kgy_order_view") === "list" ? "list" : "grid"; } catch { return "grid"; }
   });
   useEffect(() => { try { localStorage.setItem("kgy_order_view", viewMode); } catch {} }, [viewMode]);
+
+  useEffect(() => { if (initialTags && initialTags.length) setPickedTags(initialTags); }, [initialTags]);
 
   // 作品標籤（後台「標籤」欄優先，沒填就從團名／品名推導）
   const tagIndex = useMemo(() => buildTagIndex(teams, products || []), [teams, products]);

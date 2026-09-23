@@ -13,6 +13,7 @@ import { APP_CONFIG } from './config';
 import Aurora from './components/Aurora';
 import AboutSection from './components/AboutSection';
 import GroupOrderList from './components/GroupOrderList';
+import HomeHero from './components/HomeHero';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
@@ -145,6 +146,7 @@ const App: React.FC = () => {
   // ── 開團訂購 ──
   const [teams, setTeams] = useState<GroupTeam[]>([]);
   const [groupProducts, setGroupProducts] = useState<GroupProduct[]>([]);
+  const [orderTag, setOrderTag] = useState<string[]>([]);   // 首頁「動漫類別」點進填單專區時帶的作品篩選
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
   const [teamsLoading, setTeamsLoading] = useState(true);
   const [showLookup, setShowLookup] = useState(false); // 填單明細查詢
@@ -238,6 +240,7 @@ const App: React.FC = () => {
   const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/order'); window.scrollTo(0, 0); };
   // ⚠️ setMainView 一定要留著：pushState 不像改 hash 會觸發事件，
   //    少了這行就只換網址不換畫面（從主頁的「即將結單」卡片點下去會沒反應）
+  const goOrderTag = (tag: string) => { setOrderTag([tag]); goOrderList(); };
   const goOrderTeam = (code: string) => { setMainView('order'); setSelectedTeamCode(code); nav('/order/' + encodeURIComponent(code)); window.scrollTo(0, 0); };
   const goClosing = () => { setMainView('closing'); nav('/closing'); window.scrollTo(0, 0); };
   const exitOrderToQuery = () => { setSelectedTeamCode(null); setMainView('query'); setHasSearched(false); nav('/'); window.scrollTo(0, 0); };
@@ -577,8 +580,15 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 第二屏：NEWS 與 SNS 區塊 */}
+                  {/* 第二屏：櫥窗（輪播＋動漫類別）→ 即將結單 → 開團方塊 → NEWS → SNS */}
                   <div className="w-full space-y-10 flex flex-col items-center pt-10">
+                    <HomeHero
+                      teams={teams}
+                      products={groupProducts}
+                      loading={teamsLoading}
+                      onSelectTeam={goOrderTeam}
+                      onSelectTag={goOrderTag}
+                    />
                     {/* 明日結單區塊：固定存在（載入中／明日沒團也保留，不忽隱忽現） */}
                     <div className="w-full max-w-lg">
                         {/* 窄條標題：紅膠囊（可點，進 #/closing 明日結單頁）＋滑動提示 */}
@@ -968,7 +978,7 @@ const App: React.FC = () => {
                 const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
                 return t
                   ? <OrderForm team={t} products={teamItems} loadingItems={teamItemsLoading} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} onRefresh={refreshNow} />
-                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} onRefresh={refreshNow} />;
+                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onLookup={() => { setLookupInitialNick(''); setShowLookup(true); }} onRefresh={refreshNow} initialTags={orderTag} />;
               })()}
             </div>
           )}
