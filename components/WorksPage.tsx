@@ -35,9 +35,26 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
     const kw = q.trim().toLowerCase();
     return tagIndex.all
       .map((name) => ({ name, open: openCount[name] || 0, total: tagIndex.counts[name] || 0, cover: cover[name] || "", logo: logoOf(name) }))
-      .filter((w) => !kw || w.name.toLowerCase().includes(kw))
-      .sort((a, b) => b.open - a.open || b.total - a.total);
+      .filter((w) => !kw || w.name.toLowerCase().includes(kw));
   }, [teams, products, tagIndex, q]);
+
+  // 中文照筆畫（Intl 的 stroke 排序），英文／數字開頭的另成一區照 A-Z
+  const isLatin = (s: string) => /^[A-Za-z0-9]/.test(s.trim());
+  const strokeCmp = useMemo(() => {
+    try { return new Intl.Collator("zh-Hant-u-co-stroke").compare; }
+    catch { return new Intl.Collator("zh-Hant").compare; }
+  }, []);
+  const groups = useMemo(() => {
+    const open = works.filter((w) => w.open > 0).sort((a, b) => b.open - a.open || b.total - a.total);
+    const rest = works.filter((w) => w.open === 0);
+    const zh = rest.filter((w) => !isLatin(w.name)).sort((a, b) => strokeCmp(a.name, b.name));
+    const en = rest.filter((w) => isLatin(w.name)).sort((a, b) => a.name.localeCompare(b.name, "en"));
+    return [
+      { key: "open", title: "開團中", items: open },
+      { key: "zh", title: "中文作品（照筆畫）", items: zh },
+      { key: "en", title: "英文・數字", items: en },
+    ].filter((g) => g.items.length > 0);
+  }, [works, strokeCmp]);
 
   return (
     <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
@@ -47,7 +64,6 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
         </button>
 
         <h2 className="text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-2 mt-8">作品類別</h2>
-        <p className="text-center text-[#4c59a1]/70 font-[900] text-sm mb-6">選一部作品，看它所有的團</p>
 
         {/* 作品多，給個搜尋比較快找到 */}
         <div className="bg-white rounded-full p-2 flex items-center gap-2 shadow-[4px_4px_0px_#000] border-[3px] border-black mb-6">
@@ -70,8 +86,11 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
         ) : works.length === 0 ? (
           <p className="text-center text-[#4c59a1]/70 font-bold py-10">找不到符合「{q}」的作品</p>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
-            {works.map((w) => (
+          groups.map((g) => (
+          <div key={g.key} className="mb-8">
+            <h3 className="text-[#4c59a1] font-[900] text-base tracking-widest mb-3 pl-1">{g.title}<span className="text-[#4c59a1]/45 ml-2 text-sm">{g.items.length}</span></h3>
+            <div className="grid grid-cols-3 gap-4">
+            {g.items.map((w) => (
               <button
                 key={w.name}
                 onClick={() => onSelect(w.name)}
@@ -91,7 +110,9 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
                 <span className="font-[900] text-[#4c59a1]/45 text-[11px] -mt-1.5">{w.total} 團</span>
               </button>
             ))}
+            </div>
           </div>
+          ))
         )}
       </div>
     </div>
