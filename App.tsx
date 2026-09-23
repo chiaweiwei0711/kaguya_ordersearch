@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock } from 'lucide-react';
+import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock, User } from 'lucide-react';
 import { Order, OrderStatus, Announcement, GroupTeam, GroupProduct } from './types';
 import PaymentModal from './components/PaymentModal';
 import OrderDetailModal from './components/OrderDetailModal';
@@ -15,6 +15,8 @@ import AboutSection from './components/AboutSection';
 import GroupOrderList from './components/GroupOrderList';
 import HomeHero from './components/HomeHero';
 import WorksPage from './components/WorksPage';
+import OrdersPage from './components/OrdersPage';
+import { getLineIdentity } from './services/lineIdentity';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
@@ -24,7 +26,7 @@ import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM } from './services/gro
 import { getStorageInfo, balanceWithFee } from './services/storage';
 
 // --- 類型定義 ---
-type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing' | 'works';
+type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing' | 'works' | 'orders';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all';
 
 // --- 📅 倉儲倒數／倉儲費：算式統一在 services/storage.ts（30 天免費、之後每天 $5、收費 90 天後視為放棄） ---
@@ -148,7 +150,7 @@ const App: React.FC = () => {
   const [teams, setTeams] = useState<GroupTeam[]>([]);
   const [groupProducts, setGroupProducts] = useState<GroupProduct[]>([]);
   const [orderTag, setOrderTag] = useState<string[]>([]);
-  const [showQuerySearch, setShowQuerySearch] = useState(false);   // 首頁的查訂單：點了才展開搜尋框   // 首頁「動漫類別」點進填單專區時帶的作品篩選
+  const [boundNick, setBoundNick] = useState<string | null>(null);   // LINE 認出來的綁定暱稱（我的訂單頁顯示）   // 首頁「動漫類別」點進填單專區時帶的作品篩選
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
   const [teamsLoading, setTeamsLoading] = useState(true);
   const [showLookup, setShowLookup] = useState(false); // 填單明細查詢
@@ -206,6 +208,8 @@ const App: React.FC = () => {
     await Promise.all(jobs);
   }, [loadTeams, selectedTeamCode]);
 
+  useEffect(() => { getLineIdentity().then((id) => setBoundNick(id.nickname || null)).catch(() => {}); }, []);
+
   // 路由：/order = 列表、/order/<團代號> = 填單、/closing = 即將結單
   // ⚠️ 舊的 #/order/xxx 連結已經貼在社群裡了，永遠要能開 —— 所以進站先把 hash 換算成路徑。
   //    hash 不會送到伺服器，客人點舊連結一樣會拿到網站，程式再自己轉成新網址。
@@ -222,9 +226,10 @@ const App: React.FC = () => {
       if (p.startsWith('/guide')) { setMainView('guide'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/about')) { setMainView('about'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/works')) { setMainView('works'); setSelectedTeamCode(null); return; }
+      if (p.startsWith('/orders')) { setMainView('orders'); setSelectedTeamCode(null); return; }   // ⚠️ 要排在 /order 之前，不然會被填單頁的規則吃掉
       const m = p.match(/^\/order(?:\/([^/?]+))?/);
       if (m) { setMainView('order'); setSelectedTeamCode(m[1] ? decodeURIComponent(m[1]) : null); }
-      else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' || mv === 'works' ? 'query' : mv)); setSelectedTeamCode(null); }
+      else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' || mv === 'works' || mv === 'orders' ? 'query' : mv)); setSelectedTeamCode(null); }
     };
     applyPath();
     window.addEventListener('popstate', applyPath);   // 瀏覽器上一頁／下一頁
@@ -243,6 +248,7 @@ const App: React.FC = () => {
   const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/order'); window.scrollTo(0, 0); };
   // ⚠️ setMainView 一定要留著：pushState 不像改 hash 會觸發事件，
   //    少了這行就只換網址不換畫面（從主頁的「即將結單」卡片點下去會沒反應）
+  const goOrders = () => { setMainView('orders'); setSelectedTeamCode(null); setIsMenuOpen(false); setHasSearched(false); nav('/orders'); window.scrollTo(0, 0); };
   const goWorks = () => { setMainView('works'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/works'); window.scrollTo(0, 0); };
   // 首頁作品類別：點某部作品＝直接進填單專區篩該作品；點「全部作品」（空字串）＝進作品類別頁
   const goOrderTag = (tag: string) => { if (!tag) { goWorks(); return; } setOrderTag([tag]); goOrderList(); };
@@ -542,7 +548,18 @@ const App: React.FC = () => {
       <div className="w-full max-w-2xl min-h-screen relative flex flex-col pt-8 z-0 mx-auto px-6 md:px-12">
 
         <div className="w-full flex-1 relative z-10 flex flex-col items-center">
-          {mainView === 'query' ? (
+          {mainView === 'orders' && !hasSearched ? (
+            <OrdersPage
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              onSearch={() => handleSearch()}
+              searchNotice={searchNotice}
+              boundNick={boundNick}
+              onGuide={() => { setMainView('guide'); nav('/guide'); window.scrollTo(0, 0); }}
+              onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }}
+              onAbout={() => { setMainView('about'); nav('/about'); }}
+            />
+          ) : (mainView === 'query' || mainView === 'orders') ? (
             <>
               {!hasSearched ? (
                 // --- 🎯 首頁未搜尋狀態 ---
@@ -557,15 +574,15 @@ const App: React.FC = () => {
                         <div className="text-white/80 font-[900] text-[13px] tracking-widest mt-1">日本動漫周邊專業代購</div>
                       </div>
                       <button
-                        onClick={() => setShowQuerySearch((v) => !v)}
+                        onClick={goOrders}
                         className="ml-auto shrink-0 flex items-center gap-1.5 bg-white text-[#4c59a1] font-[900] text-sm px-4 py-2.5 rounded-full border-[3px] border-black shadow-[3px_3px_0px_#000] active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all"
                       >
-                        <Search className="w-4 h-4 stroke-[3px]" />查訂單
+                        <User className="w-4 h-4 stroke-[3px]" />我的訂單
                       </button>
                     </div>
 
-                    {/* 查訂單：點了才展開，不佔首頁版面 */}
-                    <div className={`w-full flex flex-col items-center ${showQuerySearch ? '' : 'hidden'}`}>
+                    {/* 查單已經搬到「我的訂單」頁（/orders），首頁不再內嵌 */}
+                    <div className="hidden">
                       <div className="w-full max-w-md px-4">
                         <div className="bg-[#ffffff] rounded-full p-2 flex items-center gap-2 shadow-[6px_6px_0px_#000] border-[3px] border-black mb-3 transition-transform focus-within:-translate-y-1">
                           <div className="relative flex-1 flex items-center pl-1">
