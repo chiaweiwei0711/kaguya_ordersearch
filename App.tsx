@@ -23,7 +23,7 @@ import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
 import OrderForm from './components/OrderForm';
 import OrderLookup from './components/OrderLookup';
-import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM } from './services/groupOrderService';
+import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM, fetchMySubmissions } from './services/groupOrderService';
 import { getStorageInfo, balanceWithFee } from './services/storage';
 
 // --- 類型定義 ---
@@ -124,6 +124,7 @@ const App: React.FC = () => {
   const [mainView, setMainView] = useState<MainView>('query');
   const [searchQuery, setSearchQuery] = useState('');
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
+  const [mySubs, setMySubs] = useState<MySubmission[]>([]);   // 同一個暱稱送出的填單（還沒變成訂單的那些）
   const [news, setNews] = useState<Announcement[]>([]);
   const [selectedNews, setSelectedNews] = useState<Announcement | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -397,11 +398,13 @@ const App: React.FC = () => {
   const executeSearch = async (queryToSearch: string) => {
     if (!queryToSearch) return;
     setIsLoading(true); setSearchNotice('');
-    setFoundOrders([]); setSelectedOrderIds(new Set()); setCargoFilters([]); setDeliveryFilter(null);
+    setFoundOrders([]); setMySubs([]); setSelectedOrderIds(new Set()); setCargoFilters([]); setDeliveryFilter(null);
     setSubQuery(''); setSortBy('default');
     try {
       const results = await fetchOrdersFromSheet(queryToSearch);
       setFoundOrders(results);
+      // 填單明細一起帶回來：查單和查填單本來是兩個入口，客人得查兩次才知道自己的東西在哪
+      fetchMySubmissions(queryToSearch).then(setMySubs).catch(() => setMySubs([]));
       setHasSearched(true);
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -763,6 +766,40 @@ const App: React.FC = () => {
                         <X className="stroke-[3px]" />
                       </button>
                     </div>
+
+                    {/* 尚未結單的填單：跟訂單併在同一頁看，不用再去填單專區查一次。
+                        已經變成訂單的那些就不重複顯示（同暱稱同團名＝同一筆） */}
+                    {(() => {
+                      const ordered = new Set(foundOrders.map(o => (o.groupName || '').trim()));
+                      const pending = mySubs.filter(s => s.teamName && !ordered.has(s.teamName.trim()));
+                      if (!pending.length) return null;
+                      return (
+                        <div className="w-full max-w-md bg-[#fff170] rounded-3xl p-4 mb-1">
+                          <div className="flex items-baseline mb-2.5 px-1">
+                            <h3 className="text-[#4c59a1] font-[900] text-base tracking-widest">尚未結單的填單</h3>
+                            <span className="ml-auto text-[#4c59a1]/55 font-[900] text-xs">{pending.length} 筆</span>
+                          </div>
+                          <div className="space-y-2">
+                            {pending.map((sub, i) => (
+                              <button
+                                key={sub.team + i}
+                                onClick={() => goOrderTeam(sub.team)}
+                                className="w-full text-left bg-white rounded-2xl px-4 py-3 shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all"
+                              >
+                                <div className="font-[900] text-[#4c59a1] text-sm leading-snug line-clamp-2">{sub.teamName}</div>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                  <span className="text-[11px] font-[900] text-white bg-[#3ac0bf] px-2.5 py-0.5 rounded-full">{sub.items.length} 項・約 ${sub.subtotal}</span>
+                                  <span className="text-[11px] font-bold text-[#4c59a1]/55">{fmtMDHM(sub.time)} 填單</span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-[#4c59a1]/60 font-bold text-[11px] mt-3 px-1 leading-relaxed">
+                            這些是你已經送出、但還沒結單的填單。結單後我們會推播「訂購付款通知」，那時才會出現在下面的訂單裡。
+                          </p>
+                        </div>
+                      );
+                    })()}
 
                     {/* 2. 分頁標籤 */}
                     <div className="flex justify-start sm:justify-center gap-3 overflow-x-auto w-full max-w-md no-scrollbar pb-1">
