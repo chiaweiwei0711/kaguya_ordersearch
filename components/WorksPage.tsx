@@ -4,6 +4,7 @@ import { GroupTeam, GroupProduct } from "../types";
 import { isOpen } from "../services/groupOrderService";
 import { buildTagIndex } from "../services/ipTags";
 import { logoOf } from "../services/ipLogos";
+import { zhuyinOf, ZHUYIN_ORDER, OTHER } from "../services/zhuyin";
 
 interface Props {
   teams: GroupTeam[];
@@ -46,18 +47,19 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
   }, []);
   const groups = useMemo(() => {
     const open = works.filter((w) => w.open > 0).sort((a, b) => b.open - a.open || b.total - a.total);
-    const rest = works.filter((w) => w.open === 0);
-    const zh = rest.filter((w) => !isLatin(w.name)).sort((a, b) => strokeCmp(a.name, b.name));
-    const en = rest.filter((w) => isLatin(w.name)).sort((a, b) => a.name.localeCompare(b.name, "en"));
+    // 注音／英文區收錄「全部」作品——開團中那區只是置頂的快捷區，
+    // 不能把它們從索引抽走，否則客人在 ㄅ 找不到正在開團的「冰之城牆」
+    const zh = works.filter((w) => !isLatin(w.name)).sort((a, b) => strokeCmp(a.name, b.name));
+    const en = works.filter((w) => isLatin(w.name)).sort((a, b) => a.name.localeCompare(b.name, "en"));
     const out: { key: string; title: string; items: typeof works }[] = [];
     if (open.length) out.push({ key: "open", title: "開團中", items: open });
-    // 中文照筆畫排好後切段，每段用「第一個字～最後一個字」當索引標籤（不用筆畫字典也能分）
-    const SEG = 24;
-    for (let i = 0; i < zh.length; i += SEG) {
-      const part = zh.slice(i, i + SEG);
-      out.push({ key: `zh${i}`, title: `${part[0].name[0]} ～ ${part[part.length - 1].name[0]}`, items: part });
-    }
-    if (en.length) out.push({ key: "en", title: "英文・數字", items: en });
+    // 中文照注音分組（ㄅㄆㄇ…），組內照筆畫排
+    const byZhuyin: Record<string, typeof works> = {};
+    zh.forEach((w) => { const k = zhuyinOf(w.name); (byZhuyin[k] = byZhuyin[k] || []).push(w); });
+    [...ZHUYIN_ORDER, OTHER].forEach((k) => {
+      if (byZhuyin[k]?.length) out.push({ key: `zy-${k}`, title: k, items: byZhuyin[k] });
+    });
+    if (en.length) out.push({ key: "en", title: "英文", items: en });
     return out;
   }, [works, strokeCmp]);
 

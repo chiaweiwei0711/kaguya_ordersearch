@@ -105,7 +105,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const curPage = Math.min(page, pageCount);
-  const shown = preview ? filtered.slice(0, 3) : filtered.slice((curPage - 1) * PER_PAGE, curPage * PER_PAGE);
+  const shown = preview ? filtered.slice(0, 4) : filtered.slice((curPage - 1) * PER_PAGE, curPage * PER_PAGE);
   const q = query.trim();
 
   // 頁碼（>7 頁才用 … 省略：永遠顯示 1 / 最後 / 目前±1）
@@ -333,7 +333,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
       )}
 
       {/* 方塊檢視：封面大圖一眼看出在賣什麼（列表頁限定） */}
-      {!preview && viewMode === "grid" ? (
+      {(preview || viewMode === "grid") ? (
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {shown.map((t) => {
             const open = isOpen(t);
