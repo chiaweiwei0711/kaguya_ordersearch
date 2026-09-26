@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { SectionHead } from "./Section";
 import { ChevronLeft, ChevronDown, ArrowRight } from "lucide-react";
 
 interface Props {
@@ -70,10 +71,7 @@ const FaqSection: React.FC<Props> = ({ onBack, onGuide }) => {
     <div className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto">
       {/* 限寬置中 → 桌機也維持窄欄、跟手機一樣好看 */}
       <div className="w-full max-w-xl mx-auto px-5 sm:px-7 pt-20 pb-8">
-        <div className="text-center mb-8">
-          <h2 className="text-[#f6f9f9] font-[900] text-4xl sm:text-5xl tracking-widest">FAQ</h2>
-          <p className="text-white font-[900] text-sm tracking-[0.4em] mt-2">常見問題</p>
-        </div>
+        <div className="mb-7"><SectionHead en="FAQ" title="常見問題" /></div>
 
         <button onClick={onGuide} className="w-full mb-6 flex items-center justify-between gap-3 px-6 py-4 rounded-[24px] bg-white text-[#1a1a1a] font-[900] active:scale-[0.99] transition text-left">
           <span>第一次跟團？先看購物流程</span>
@@ -116,7 +114,7 @@ const FaqSection: React.FC<Props> = ({ onBack, onGuide }) => {
           })}
         </div>
 
-        <p className="text-center text-white/90 font-bold text-xs mt-8 leading-relaxed">
+        <p className="text-center text-[#283d3e]/65 font-bold text-xs mt-8 leading-relaxed">
           還有其他問題嗎？歡迎私訊官方 LINE，我們會儘速協助你！
         </p>
       </div>

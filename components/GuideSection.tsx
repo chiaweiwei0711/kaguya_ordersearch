@@ -1,4 +1,5 @@
 import React from "react";
+import { SectionHead } from "./Section";
 import { ChevronLeft, ArrowRight } from "lucide-react";
 
 interface Props {
@@ -19,10 +20,7 @@ const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
   return (
     <div className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto">
       <div className="w-full max-w-xl mx-auto px-5 sm:px-7 pt-20 pb-8">
-        <div className="text-center mb-8">
-          <h2 className="text-[#283d3e] font-[900] text-4xl sm:text-5xl tracking-widest pl-[0.1em]">購物流程</h2>
-          <p className="text-[#283d3e] font-[900] text-sm tracking-[0.4em] pl-[0.4em] mt-2">五步驟一次懂</p>
-        </div>
+        <div className="mb-7"><SectionHead en="HOW IT WORKS" title="購物流程" /></div>
 
         <ol className="space-y-4">
           {STEPS.map((st, i) => (
@@ -49,7 +47,7 @@ const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
           完整規則與常見問題
           <ArrowRight className="w-5 h-5 stroke-[3px]" />
         </button>
-        <p className="text-center text-white/90 font-bold text-xs mt-5 leading-relaxed">有問題直接私訊官賴，我們會儘速協助你！</p>
+        <p className="text-center text-[#283d3e]/65 font-bold text-xs mt-5 leading-relaxed">有問題直接私訊官賴，我們會儘速協助你！</p>
       </div>
     </div>
   );

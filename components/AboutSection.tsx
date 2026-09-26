@@ -1,4 +1,5 @@
 import React from 'react';
+import { SectionHead } from "./Section";
 import { ChevronLeft } from 'lucide-react';
 
 interface Props {
@@ -43,8 +44,7 @@ const AboutSection: React.FC<Props> = ({ onBack }) => {
     <div className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto">
       <div className="w-full max-w-xl mx-auto px-5 sm:px-7 pt-20 pb-8">
         <div className="text-center mb-6">
-          <h2 className="text-[#f6f9f9] font-[900] text-4xl sm:text-5xl tracking-widest">ABOUT</h2>
-          <p className="text-white font-[900] text-sm tracking-[0.4em] mt-2">關於 KAGUYA</p>
+          <SectionHead en="ABOUT" title="關於 KAGUYA" />
         </div>
 
         <div className="flex justify-center mb-6">
@@ -80,7 +80,7 @@ const AboutSection: React.FC<Props> = ({ onBack }) => {
           </div>
         </div>
 
-        <p className="text-center text-white/90 font-bold text-xs mt-7 leading-relaxed">
+        <p className="text-center text-[#283d3e]/65 font-bold text-xs mt-7 leading-relaxed">
           把喜歡的東西，完好無缺地送到你手裡。
         </p>
       </div>

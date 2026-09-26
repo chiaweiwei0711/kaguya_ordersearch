@@ -147,7 +147,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
 
       {/* 首頁預覽：最新 ↔ 熱銷。只是換排序，不多佔一塊版面 */}
       {preview && (
-        <div className="flex gap-2 mb-5 px-4 sm:px-0">
+        <div className="flex gap-2 mb-5">
           {([[false, "最新開團"], [true, "熱銷"]] as [boolean, string][]).map(([val, label]) => {
             const on = hot === val;
             return (
@@ -486,7 +486,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   if (preview) {
     return (
       <div className="w-full max-w-lg mx-auto">
-        <div className="bg-[#f6f9f9] rounded-[40px] px-5 sm:px-7 py-8 relative">{inner}</div>
+        <div className="px-4 sm:px-0 relative">{inner}</div>
       </div>
     );
   }

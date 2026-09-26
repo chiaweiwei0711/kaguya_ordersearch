@@ -75,7 +75,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
   return (
     <div className="w-full max-w-lg mx-auto text-[#283d3e]">
       {/* ── 大輪播：開團中的團 ── */}
-      <SectionHead en="PICK UP" title="熱門開團商品" />
+      <div className="px-4 sm:px-0"><SectionHead en="PICK UP" title="熱門開團商品" /></div>
 
       {loading ? (
         <div className="mx-4 sm:mx-0 h-52 rounded-[28px] bg-white/70 shadow-[0_10px_24px_rgba(0,0,0,0.18)] flex items-center justify-center text-[#283d3e]/60 font-[900]">
@@ -149,7 +149,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
       {/* ── 動漫類別 ── */}
       {tags.length > 0 && (
         <>
-          <SectionHead en="WORKS" title="作品類別" />
+          <div className="px-4 sm:px-0"><SectionHead en="WORKS" title="作品類別" /></div>
           <div className="grid grid-cols-3 gap-3 px-4 sm:px-0">
             {tags.slice(0, 6).map((t) => (
               <button
@@ -172,7 +172,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
               </button>
             ))}
           </div>
-          <MoreButton label="看全部作品" onClick={() => onSelectTag("")} />
+          <div className="px-4 sm:px-0"><MoreButton label="看全部作品" onClick={() => onSelectTag("")} /></div>
         </>
       )}
     </div>

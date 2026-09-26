@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import Footer from "./components/Footer";
 import { SectionHead, MoreButton } from "./components/Section";
 import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock, User } from 'lucide-react';
 import { Order, OrderStatus, Announcement, GroupTeam, GroupProduct } from './types';
@@ -698,18 +699,18 @@ const App: React.FC = () => {
                       onSelectTag={goOrderTag}
                     />
                     {/* 明日結單區塊：固定存在（載入中／明日沒團也保留，不忽隱忽現） */}
-                    <div className="w-full max-w-lg text-[#283d3e]">
+                    <div className="w-full max-w-lg text-[#283d3e] px-4 sm:px-0">
                         <SectionHead en="CLOSING SOON" title="即將結單" />
                         {teamsLoading ? (
-                          <div className="px-4 md:px-1">
+                          <div className="">
                             <div className="bg-white rounded-2xl px-5 py-4 text-[#283d3e]/60 font-[900] text-sm text-center">載入中…</div>
                           </div>
                         ) : closingTeams.length === 0 ? (
-                          <div className="px-4 md:px-1">
+                          <div className="">
                             <div className="bg-white rounded-2xl px-5 py-4 text-[#283d3e]/70 font-[900] text-sm text-center">明日沒有結單的團</div>
                           </div>
                         ) : (
-                        <div className="flex gap-3 overflow-x-auto pb-3 px-4 md:px-1 snap-x" style={{ scrollbarWidth: 'none' }}>
+                        <div className="flex gap-3 overflow-x-auto pb-3  snap-x" style={{ scrollbarWidth: 'none' }}>
                           {closingTeams.map(({ team, when }) => {
                             const img = groupProducts.find((p) => p.team === team.code && p.img)?.img;
                             return (
@@ -796,10 +797,12 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <footer className="pt-16 pb-32 text-center text-[#49d5df] text-[11px] font-[900] space-y-2">
-                    <div className="opacity-80">本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
-                    <p className="mt-2 opacity-80">© {new Date().getFullYear()} All Rights Reserved.</p>
-                  </footer>
+                  <Footer
+                    onGuide={() => { setMainView('guide'); nav('/guide'); window.scrollTo(0, 0); }}
+                    onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }}
+                    onAbout={() => { setMainView('about'); nav('/about'); window.scrollTo(0, 0); }}
+                    onNews={() => { setMainView('info'); nav('/news'); window.scrollTo(0, 0); }}
+                  />
                 </div>
               ) : (
                 // --- 🎯 搜尋結果頁面開始 (佔滿剩餘高度) ---
