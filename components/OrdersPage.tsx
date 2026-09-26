@@ -20,7 +20,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
   const row = "flex items-center gap-3 px-5 py-4 border-t-2 border-[#4c59a1]/10 font-[900] text-[#4c59a1] text-[15px] active:bg-[#eef0fa] transition";
 
   return (
-    <div className="flex flex-col items-center w-full animate-fade-in-up pt-14 pb-4">
+    <div className="flex flex-col items-center w-full animate-fade-in-up pt-20 pb-4">
       <img
         src="https://i.imgur.com/OVkii3R.png"
         alt="KAGUYA 自助查詢訂單系統"

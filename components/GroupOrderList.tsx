@@ -42,8 +42,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   const [showOpen, setShowOpen] = useState(true);
   const [showClosed, setShowClosed] = useState(true);
   const [page, setPage] = useState(1);
-  const [sortOpen, setSortOpen] = useState(false);
-  const [tagOpen, setTagOpen] = useState(!!openTagPanel);
+  const [filterOpen, setFilterOpen] = useState(!!openTagPanel);   // 篩選面板（狀態／排序／檢視／作品都在裡面）
   const [pickedTags, setPickedTags] = useState<string[]>(initialTags || []);
   // 檢視方式：方塊（大圖好逛）／條列（一次看多團）；記住客人上次的選擇
   const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
@@ -52,7 +51,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   useEffect(() => { try { localStorage.setItem("kgy_order_view", viewMode); } catch {} }, [viewMode]);
 
   useEffect(() => { if (initialTags && initialTags.length) setPickedTags(initialTags); }, [initialTags]);
-  useEffect(() => { if (openTagPanel) setTagOpen(true); }, [openTagPanel]);
+  useEffect(() => { if (openTagPanel) setFilterOpen(true); }, [openTagPanel]);
 
   // 作品標籤（後台「標籤」欄優先，沒填就從團名／品名推導）
   const tagIndex = useMemo(() => buildTagIndex(teams, products || []), [teams, products]);
@@ -97,6 +96,8 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
     return arr;
   }, [teams, effSort, query, showOpen, showClosed, preview, prodIndex, pickedTags, tagIndex]);
 
+  const filterCount = pickedTags.length + (sortBy !== "default" ? 1 : 0) + (showOpen && showClosed ? 0 : 1);
+
   // 封面圖：後台「封面圖」欄優先（可放自己做的主題圖），沒填就退回該團第一張商品圖
   const coverOf = (t: GroupTeam) => t.cover || (products || []).find((p) => p.team === t.code && p.img)?.img || "";
 
@@ -137,15 +138,11 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
 
   const inner = (
     <>
-      {!preview && onBack && (
-        <button onClick={onBack} aria-label="返回" className="absolute top-6 left-6 w-11 h-11 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shadow-md active:scale-90 transition">
-          <ChevronLeft className="w-6 h-6 stroke-[3px]" />
-        </button>
+      {preview && (
+        <h2 className="text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-4">
+          預購填單專區
+        </h2>
       )}
-
-      <h2 className={`text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center ${preview ? "mb-4" : "mb-6"} ${!preview && onBack ? "mt-8" : ""}`}>
-        預購填單專區
-      </h2>
 
       {/* 首頁預覽：最新 ↔ 熱銷。只是換排序，不多佔一塊版面 */}
       {preview && (
@@ -178,36 +175,17 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
         </button>
       )}
 
-      {/* 列表頁專屬：團務查找（標題＋搜尋＋排序＋狀態勾選） */}
+      {/* 列表頁：主畫面只留搜尋 ＋ 一顆篩選；狀態／作品／排序／檢視全部收進底部面板，
+          不然這裡會同時擠著六種控制項，客人第一眼看不出哪個才是重點 */}
       {!preview && (
         <div className="mb-5">
-          <div className="flex items-end mb-2 pl-1 gap-2">
-            <h3 className="text-[#4c59a1] font-[900] text-lg tracking-widest">團務查找</h3>
-            {/* 檢視方式：方塊（大圖好逛）／條列（一次看多團） */}
-            <div className="ml-auto flex items-center gap-1 bg-white border-[3px] border-black rounded-full shadow-[2px_2px_0px_#000] p-1">
-              {([["grid", "方塊", LayoutGrid], ["list", "條列", Rows3]] as const).map(([mode, label, Icon]) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  aria-pressed={viewMode === mode}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[13px] font-[900] transition-all ${
-                    viewMode === mode ? "bg-[#4c59a1] text-white" : "text-[#4c59a1]/45"
-                  }`}
-                >
-                  <Icon className="w-4 h-4 stroke-[3px]" />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* 搜尋框 ＋ 右邊一顆排序鈕：排序不需要一直佔一整排的寬度 */}
           <div className="flex items-center gap-2.5">
             <div className="flex-1 min-w-0 bg-white rounded-full p-1.5 pl-4 flex items-center gap-2 border-[3px] border-black shadow-[3px_3px_0px_#000]">
               <Search className="w-5 h-5 text-[#f8a3f4] stroke-[3px] shrink-0" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="搜作品名、商品名等關鍵字"
+                placeholder="搜團名、商品名"
                 className="w-full bg-transparent outline-none text-base font-[900] text-[#4c59a1] placeholder-gray-400 py-1.5"
               />
               {q && (
@@ -217,113 +195,149 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               )}
             </div>
             <button
-              onClick={() => setSortOpen((v) => !v)}
-              aria-label="排序方式"
-              className={`relative w-[52px] h-[52px] shrink-0 rounded-full border-[3px] border-black shadow-[3px_3px_0px_#000] flex items-center justify-center active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all ${
-                sortOpen ? "bg-[#4c59a1] text-white" : "bg-white text-[#4c59a1]"
-              }`}
+              onClick={() => setFilterOpen(true)}
+              className="shrink-0 flex items-center gap-1.5 h-[52px] px-4 rounded-full border-[3px] border-black shadow-[3px_3px_0px_#000] bg-white text-[#4c59a1] font-[900] text-sm active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all"
             >
               <SlidersHorizontal className="w-5 h-5 stroke-[2.5px]" />
-              {/* 不是預設排序時點一個記號，不然客人不知道現在是照什麼排 */}
-              {sortBy !== "default" && (
-                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#f8a3f4] border-2 border-black" />
+              篩選
+              {filterCount > 0 && (
+                <span className="ml-0.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#f8a3f4] text-white text-[12px] flex items-center justify-center">{filterCount}</span>
               )}
             </button>
           </div>
 
-          {/* 排序選單：點右邊那顆才展開 */}
-          {sortOpen && (
-            <div className="mt-2.5 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_#000] p-1.5">
-              {SORT_OPTS.map(([val, label]) => {
-                const on = sortBy === val;
-                return (
-                  <button
-                    key={val}
-                    onClick={() => { setSortBy(val); setSortOpen(false); }}
-                    className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-[900] transition-all ${
-                      on ? "bg-[#4c59a1] text-white" : "text-[#4c59a1] active:bg-[#eef0fa]"
-                    }`}
-                  >
-                    {on ? <Check className="w-4 h-4 stroke-[4px] shrink-0" /> : <span className="w-4 shrink-0" />}
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* 篩選一排：不換行，窄螢幕就橫向滑，不會再折成參差的兩塊 */}
-          <div className="-mx-5 sm:-mx-7 px-5 sm:px-7 mt-2.5 overflow-x-auto no-scrollbar">
-            <div className="flex items-center gap-2.5 w-max pb-1">
-            <button onClick={() => setShowOpen((v) => !v)} className={chip(showOpen, "open")}>
-              {showOpen && <Check className="w-4 h-4 stroke-[4px]" />}開團中
-            </button>
-            <button onClick={() => setShowClosed((v) => !v)} className={chip(showClosed, "closed")}>
-              {showClosed && <Check className="w-4 h-4 stroke-[4px]" />}已結單
-            </button>
-            {tagIndex.all.length > 0 && (
-              <button
-                onClick={() => setTagOpen((v) => !v)}
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
-                  pickedTags.length ? "bg-[#f8a3f4] text-white" : "bg-white text-[#4c59a1]/70"
-                }`}
-              >
-                <Tag className="w-4 h-4 stroke-[3px]" />
-                作品{pickedTags.length > 0 && ` ${pickedTags.length}`}
-              </button>
-            )}
-            </div>
-          </div>
-
-          {/* 作品標籤面板：可複選，選了幾部就列出屬於任一部的團 */}
-          {tagOpen && tagIndex.all.length > 0 && (
-            <div className="mt-3 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_#000] p-3">
-              <div className="flex items-center mb-2 px-1">
-                <span className="text-[#4c59a1] font-[900] text-sm">選作品（可複選）</span>
-                <button onClick={() => setTagOpen(false)} aria-label="收起" className="ml-auto w-7 h-7 rounded-full bg-[#eef0fa] text-[#4c59a1] flex items-center justify-center active:scale-90 transition">
-                  <X className="w-4 h-4 stroke-[3px]" />
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto">
-                {tagIndex.all.map((t) => {
-                  const on = pickedTags.includes(t);
-                  return (
-                    <button
-                      key={t}
-                      onClick={() => toggleTag(t)}
-                      className={`px-3 py-1.5 rounded-full text-[13px] font-[900] border-2 border-black transition-all active:translate-y-0.5 ${
-                        on ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
-                      }`}
-                    >
-                      {t}
-                      <span className={on ? "text-white/80 ml-1" : "text-[#4c59a1]/45 ml-1"}>{tagIndex.counts[t]}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {pickedTags.length > 0 && (
-                <button onClick={() => setPickedTags([])} className="mt-3 w-full py-2 rounded-full bg-[#eef0fa] text-[#4c59a1] font-[900] text-sm active:scale-[0.98] transition">
-                  清除全部（已選 {pickedTags.length}）
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* 已選的作品：可以單獨 × 掉 */}
-          {pickedTags.length > 0 && !tagOpen && (
+          {/* 目前套用的條件：一眼看得到，也能單獨拿掉 */}
+          {(pickedTags.length > 0 || !showOpen || !showClosed || sortBy !== "default") && (
             <div className="flex flex-wrap gap-2 mt-3">
-              {pickedTags.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => toggleTag(t)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#3ac0bf] text-white text-[13px] font-[900] border-2 border-black active:translate-y-0.5 transition-all"
-                >
-                  {t}
+              {sortBy !== "default" && (
+                <button onClick={() => setSortBy("default")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#4c59a1] text-white text-[13px] font-[900] border-2 border-black active:translate-y-0.5 transition-all">
+                  {SORT_OPTS.find(([v]) => v === sortBy)?.[1]}
                   <X className="w-3.5 h-3.5 stroke-[3px]" />
+                </button>
+              )}
+              {!showClosed && showOpen && (
+                <button onClick={() => setShowClosed(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#3ac0bf] text-white text-[13px] font-[900] border-2 border-black active:translate-y-0.5 transition-all">
+                  開團中<X className="w-3.5 h-3.5 stroke-[3px]" />
+                </button>
+              )}
+              {!showOpen && showClosed && (
+                <button onClick={() => setShowOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2b2b2b] text-white text-[13px] font-[900] border-2 border-black active:translate-y-0.5 transition-all">
+                  已結單<X className="w-3.5 h-3.5 stroke-[3px]" />
+                </button>
+              )}
+              {pickedTags.map((t) => (
+                <button key={t} onClick={() => toggleTag(t)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f8a3f4] text-white text-[13px] font-[900] border-2 border-black active:translate-y-0.5 transition-all">
+                  {t}<X className="w-3.5 h-3.5 stroke-[3px]" />
                 </button>
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* 篩選面板：從底部滑出，一次把狀態／排序／檢視／作品都設完 */}
+      {!preview && filterOpen && (
+        <div className="fixed inset-0 z-[90] flex items-end justify-center" onClick={() => setFilterOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg bg-[#fff170] rounded-t-[32px] border-t-[3px] border-x-[3px] border-black max-h-[86vh] overflow-y-auto animate-fade-in-up"
+            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+          >
+            <div className="sticky top-0 bg-[#fff170] px-5 pt-4 pb-3 flex items-center border-b-2 border-black/10">
+              <h3 className="text-[#4c59a1] font-[900] text-xl tracking-widest">篩選</h3>
+              <button onClick={() => setFilterOpen(false)} aria-label="關閉" className="ml-auto w-9 h-9 rounded-full bg-white border-[3px] border-black flex items-center justify-center active:scale-90 transition">
+                <X className="w-4 h-4 stroke-[3px] text-[#4c59a1]" />
+              </button>
+            </div>
+
+            <div className="px-5 py-4 space-y-5">
+              <div>
+                <div className="font-[900] text-[#4c59a1]/60 text-[13px] tracking-widest mb-2">狀態</div>
+                <div className="flex gap-2.5">
+                  <button onClick={() => setShowOpen((v) => !v)} className={chip(showOpen, "open")}>
+                    {showOpen && <Check className="w-4 h-4 stroke-[4px]" />}開團中
+                  </button>
+                  <button onClick={() => setShowClosed((v) => !v)} className={chip(showClosed, "closed")}>
+                    {showClosed && <Check className="w-4 h-4 stroke-[4px]" />}已結單
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <div className="font-[900] text-[#4c59a1]/60 text-[13px] tracking-widest mb-2">排序</div>
+                <div className="flex flex-wrap gap-2">
+                  {SORT_OPTS.map(([val, label]) => (
+                    <button
+                      key={val}
+                      onClick={() => setSortBy(val)}
+                      className={`px-4 py-2 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
+                        sortBy === val ? "bg-[#4c59a1] text-white" : "bg-white text-[#4c59a1]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="font-[900] text-[#4c59a1]/60 text-[13px] tracking-widest mb-2">檢視方式</div>
+                <div className="flex gap-2">
+                  {([["grid", "方塊", LayoutGrid], ["list", "條列", Rows3]] as const).map(([mode, label, Icon]) => (
+                    <button
+                      key={mode}
+                      onClick={() => setViewMode(mode)}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
+                        viewMode === mode ? "bg-[#4c59a1] text-white" : "bg-white text-[#4c59a1]"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 stroke-[3px]" />{label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {tagIndex.all.length > 0 && (
+                <div>
+                  <div className="font-[900] text-[#4c59a1]/60 text-[13px] tracking-widest mb-2">
+                    作品{pickedTags.length > 0 && <span className="text-[#f8a3f4]">（已選 {pickedTags.length}）</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto">
+                    {tagIndex.all.map((t) => {
+                      const on = pickedTags.includes(t);
+                      return (
+                        <button
+                          key={t}
+                          onClick={() => toggleTag(t)}
+                          className={`px-3 py-1.5 rounded-full text-[13px] font-[900] border-2 border-black transition-all active:translate-y-0.5 ${
+                            on ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
+                          }`}
+                        >
+                          {t}<span className={on ? "text-white/80 ml-1" : "text-[#4c59a1]/45 ml-1"}>{tagIndex.counts[t]}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-[#fff170] px-5 py-3 flex gap-2.5 border-t-2 border-black/10">
+              <button
+                onClick={() => { setPickedTags([]); setSortBy("default"); setShowOpen(true); setShowClosed(true); }}
+                className="px-5 py-3 rounded-full bg-white text-[#4c59a1] font-[900] border-[3px] border-black shadow-[3px_3px_0px_#000] active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all"
+              >
+                重設
+              </button>
+              <button
+                onClick={() => setFilterOpen(false)}
+                className="flex-1 py-3 rounded-full bg-[#4c59a1] text-white font-[900] border-[3px] border-black shadow-[3px_3px_0px_#000] active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all"
+              >
+                看 {filtered.length} 個團
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -482,9 +496,9 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   }
   // 列表頁：整頁鋪滿黃色
   return (
-    <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#f8a3f4] overflow-y-auto overscroll-y-contain">
+    <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
       {ptrIndicator}
-      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-8 relative">{inner}</div>
+      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-8 relative">{inner}</div>
     </div>
   );
 };

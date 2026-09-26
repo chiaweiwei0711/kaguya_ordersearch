@@ -65,13 +65,7 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
 
   return (
     <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
-      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-8 relative">
-        <button onClick={onBack} aria-label="返回" className="absolute top-6 left-5 w-11 h-11 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shadow-md active:scale-90 transition">
-          <ChevronLeft className="w-6 h-6 stroke-[3px]" />
-        </button>
-
-        <h2 className="text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-2 mt-8">作品類別</h2>
-
+      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-8 relative">
         {/* 作品多，給個搜尋比較快找到 */}
         <div className="bg-white rounded-full p-2 flex items-center gap-2 shadow-[4px_4px_0px_#000] border-[3px] border-black mb-6">
           <Search className="ml-3 text-[#f8a3f4] w-5 h-5 stroke-[3px] shrink-0" />
@@ -90,7 +84,7 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
 
         {/* 索引列：點了直接滑到那一區（像日本電商的 あ／か／さ 行） */}
         {!loading && groups.length > 1 && (
-          <div className="sticky top-0 z-10 -mx-5 sm:-mx-7 px-5 sm:px-7 py-2 bg-[#fff170]/95 backdrop-blur mb-4">
+          <div className="sticky top-14 z-10 -mx-5 sm:-mx-7 px-5 sm:px-7 py-2 bg-[#fff170]/95 backdrop-blur mb-4">
             <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
               {groups.map((g) => (
                 <button

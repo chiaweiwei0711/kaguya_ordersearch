@@ -16,6 +16,7 @@ import GroupOrderList from './components/GroupOrderList';
 import HomeHero from './components/HomeHero';
 import WorksPage from './components/WorksPage';
 import OrdersPage from './components/OrdersPage';
+import TopBar from './components/TopBar';
 import { getLineIdentity } from './services/lineIdentity';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
@@ -231,6 +232,27 @@ const App: React.FC = () => {
   }, [loadTeams, selectedTeamCode]);
 
   useEffect(() => { getLineIdentity().then((id) => setBoundNick(id.nickname || null)).catch(() => {}); }, []);
+
+  // 從左邊緣往右滑＝返回上一頁（iOS 的習慣手勢）。
+  // LINE 內建瀏覽器沒有原生的邊緣手勢，客人只能按底部返回鍵，很多人不知道；自己補一個。
+  // 只認「左邊 28px 起手」，免得跟輪播、標籤列那些橫向捲動打架；首頁不啟用（往回會離開網站）。
+  useEffect(() => {
+    let sx = 0, sy = 0, edge = false;
+    const start = (e: TouchEvent) => {
+      const t = e.touches[0];
+      edge = t.clientX < 28 && window.location.pathname !== '/';
+      sx = t.clientX; sy = t.clientY;
+    };
+    const end = (e: TouchEvent) => {
+      if (!edge) return;
+      edge = false;
+      const t = e.changedTouches[0];
+      if (t.clientX - sx > 70 && Math.abs(t.clientY - sy) < 60) window.history.back();
+    };
+    document.addEventListener('touchstart', start, { passive: true });
+    document.addEventListener('touchend', end, { passive: true });
+    return () => { document.removeEventListener('touchstart', start); document.removeEventListener('touchend', end); };
+  }, []);
 
   // 路由：/order = 列表、/order/<團代號> = 填單、/closing = 即將結單
   // ⚠️ 舊的 #/order/xxx 連結已經貼在社群裡了，永遠要能開 —— 所以進站先把 hash 換算成路徑。
@@ -489,7 +511,7 @@ const App: React.FC = () => {
         // 一頁一色：首頁紫／作品黃／填單粉／我的訂單薄荷
         backgroundColor:
           mainView === 'works' ? '#fff170'
-          : mainView === 'order' && !selectedTeamCode ? '#f8a3f4'
+          : mainView === 'order' && !selectedTeamCode ? '#fff170'
           : mainView === 'orders' && !hasSearched ? '#3ac0bf'
           : '#4c59a1',
         transitionTimingFunction: 'cubic-bezier(.32,.72,0,1)',
@@ -536,54 +558,77 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 左上角 MENU：導覽回到漢堡選單——底部浮動列會跟 LINE 內建瀏覽器的工具列疊在一起 */}
+
+
+      {/* 一直都在的頂部列：左品牌回首頁、右選單 */}
       {!isMenuOpen && (
-        <button
-          onClick={() => setIsMenuOpen(true)}
-          className="fixed top-6 left-6 z-[70] bg-[#3ac0bf] border-2 border-[#3be4d6] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-transform active:scale-95 hover:bg-[#34adab]"
-        >
-          MENU
-        </button>
+        <TopBar
+          title={
+            mainView === 'works' ? '作品類別'
+            : mainView === 'order' ? (selectedTeamCode ? '填單' : '預購填單專區')
+            : mainView === 'orders' ? '我的訂單'
+            : mainView === 'faq' ? '常見問題'
+            : mainView === 'guide' ? '購物流程'
+            : mainView === 'about' ? '關於我們'
+            : mainView === 'closing' ? '即將結單'
+            : hasSearched ? '我的訂單'
+            : 'KAGUYA'
+          }
+          onHome={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); nav('/'); window.scrollTo(0, 0); }}
+          onMenu={() => setIsMenuOpen(true)}
+        />
       )}
 
       {/* 全新全螢幕 MENU */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[100] bg-[#c3ccfd] flex flex-col items-center justify-center animate-fade-in">
+        <div className="fixed inset-0 z-[100] bg-[#c3ccfd] flex flex-col items-center animate-fade-in overflow-y-auto pt-24 pb-10">
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="absolute top-8 left-8 bg-[#3ac0bf] text-white font-[900] text-xl tracking-widest px-6 py-2 rounded-full shadow-md active:scale-95 transition-transform hover:bg-[#34adab]"
+            className="fixed top-6 right-6 bg-[#3ac0bf] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-md active:scale-95 transition-transform hover:bg-[#34adab]"
           >
             CLOSE
           </button>
 
-          <div className="flex flex-col items-center gap-6 text-[#4c59a1] font-[900] text-3xl tracking-widest">
-            <button onClick={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/'); window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">首頁</button>
-            <button onClick={goWorks} className="hover:scale-110 active:scale-95 transition-transform">作品類別</button>
-            <button onClick={goOrderList} className="hover:scale-110 active:scale-95 transition-transform">預購填單</button>
-            <button onClick={goOrders} className="hover:scale-110 active:scale-95 transition-transform">我的訂單</button>
-            {/* 🎯 錨點：滑動到首頁 NEWS 區塊 */}
-            <button onClick={() => {
-              setMainView('query');
-              setHasSearched(false);
-              setIsMenuOpen(false);
-              setTimeout(() => document.getElementById('news-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
-            }} className="hover:scale-110 active:scale-95 transition-transform">最新公告</button>
-            {/* 🎯 錨點：滑動到首頁 SNS 區塊 */}
-            <button onClick={() => {
-              setMainView('query');
-              setHasSearched(false);
-              setIsMenuOpen(false);
-              setTimeout(() => document.getElementById('sns-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
-            }} className="hover:scale-110 active:scale-95 transition-transform">連結專區</button>
-            <button onClick={() => { setMainView('about'); setIsMenuOpen(false); nav('/about'); }} className="hover:scale-110 active:scale-95 transition-transform">關於我們</button>
-            <button onClick={() => { setMainView('guide'); setIsMenuOpen(false); nav('/guide'); window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">購物流程</button>
-            <button onClick={() => { setMainView('faq'); setIsMenuOpen(false); nav('/faq'); window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">常見問題</button>
+          <div className="w-full max-w-xs px-6 space-y-7 text-[#4c59a1]">
+            {/* 分成四組：逛的、我的、看說明的、對外連結 */}
+            <div>
+              <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">逛商品</div>
+              <div className="flex flex-col gap-3.5 font-[900] text-2xl tracking-widest">
+                <button onClick={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/'); window.scrollTo(0, 0); }} className="text-left active:scale-95 transition-transform">首頁</button>
+                <button onClick={goWorks} className="text-left active:scale-95 transition-transform">作品類別</button>
+                <button onClick={goOrderList} className="text-left active:scale-95 transition-transform">預購填單</button>
+              </div>
+            </div>
+
+            <div>
+              <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">我的</div>
+              <div className="flex flex-col gap-3.5 font-[900] text-2xl tracking-widest">
+                <button onClick={goOrders} className="text-left active:scale-95 transition-transform">我的訂單</button>
+              </div>
+            </div>
+
+            <div>
+              <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">購物說明</div>
+              <div className="flex flex-col gap-3.5 font-[900] text-2xl tracking-widest">
+                <button onClick={() => { setMainView('guide'); setIsMenuOpen(false); nav('/guide'); window.scrollTo(0, 0); }} className="text-left active:scale-95 transition-transform">購物流程</button>
+                <button onClick={() => { setMainView('faq'); setIsMenuOpen(false); nav('/faq'); window.scrollTo(0, 0); }} className="text-left active:scale-95 transition-transform">常見問題</button>
+                <button onClick={() => { setMainView('about'); setIsMenuOpen(false); nav('/about'); }} className="text-left active:scale-95 transition-transform">關於我們</button>
+              </div>
+            </div>
+
+            <div>
+              <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">其他</div>
+              <div className="flex flex-col gap-3.5 font-[900] text-2xl tracking-widest">
+                <button onClick={() => { setMainView('query'); setHasSearched(false); setIsMenuOpen(false); setTimeout(() => document.getElementById('news-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="text-left active:scale-95 transition-transform">最新公告</button>
+                <button onClick={() => { setMainView('query'); setHasSearched(false); setIsMenuOpen(false); setTimeout(() => document.getElementById('sns-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="text-left active:scale-95 transition-transform">連結專區</button>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* 主內容容器 */}
-      <div className="w-full max-w-2xl min-h-screen relative flex flex-col pt-8 z-0 mx-auto px-6 md:px-12">
+      <div className="w-full max-w-2xl min-h-screen relative flex flex-col pt-16 z-0 mx-auto px-6 md:px-12">
 
         <div className="w-full flex-1 relative z-10 flex flex-col items-center">
           {mainView === 'orders' && !hasSearched ? (
@@ -606,7 +651,7 @@ const App: React.FC = () => {
                   {/* 第一屏：品牌列 ＋ 查訂單（不再是整屏的查單系統，首頁要先看到能買什麼） */}
                   <div className="w-full flex flex-col items-center pb-4 pt-2">
 
-                    <div className="w-full max-w-lg flex items-center gap-3 mb-4 mt-14">
+                    <div className="w-full max-w-lg flex items-center gap-3 mb-4 mt-6">
                       <div className="min-w-0">
                         <div className="text-white font-[900] text-3xl tracking-widest leading-none drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">KAGUYA</div>
                         <div className="text-white/80 font-[900] text-[13px] tracking-widest mt-1">日本動漫周邊專業代購</div>
