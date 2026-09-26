@@ -835,12 +835,22 @@ const App: React.FC = () => {
                         <div className="font-[900] text-[17px] text-[#283d3e] truncate">{searchQuery || 'Guest'}</div>
                       </div>
                       {quietLoading && <Loader2 className="w-4 h-4 animate-spin stroke-[3px] text-[#283d3e]/35 shrink-0" />}
-                      <button
-                        onClick={() => { if (boundNick) { if (window.confirm("要換一個 LINE 帳號嗎？\n這會把你從這個網站登出，下次要重新登入。")) logoutLine(); } else setHasSearched(false); }}
-                        className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60"
-                      >
-                        {boundNick ? '不是我' : '換一個'}
-                      </button>
+                      {/* 文字照實際行為寫：看自己的單→按了是登出；員工在看別人的單→是換一個人查 */}
+                      {boundNick && searchQuery === boundNick ? (
+                        <button
+                          onClick={() => { if (window.confirm("確定要登出嗎？\n下次進來要重新用 LINE 登入。")) logoutLine(); }}
+                          className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60"
+                        >
+                          登出
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => { setShowAllOrders(false); setHasSearched(false); }}
+                          className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60"
+                        >
+                          換一個
+                        </button>
+                      )}
                     </div>
 
                     {/* 狀態分頁：底線式（蝦皮／momo 的訂單頁都是這種），
@@ -937,14 +947,15 @@ const App: React.FC = () => {
                     )}
 
                     {/* 🎯 3. 剛剛被妳罵我弄丟的：貨況與出貨篩選面板 (智商上線精緻版) */}
-                    {/* 套用：白底、黑粗框、立體陰影、圓角藥丸樣式，完美搭配米色底色！ */}
+                    {/* 篩選面板：原本外層一個黑框、裡面每顆選項又一個黑框＝兩層框疊起來，
+                        躺在一堆白卡中間特別重。外層改成一般白卡，重量交給選項自己表達 */}
                     {activeTab === 'all' && (
-                      <div className="w-full max-w-md bg-white border-2 border-black rounded-[30px] p-6 mb-8">
+                      <div className="w-full max-w-md bg-white rounded-3xl p-5 mb-6">
 
                         {/* 貨況篩選：使用粉紫色標題 */}
                         <div className="mb-6">
-                          <h4 className="text-[#283d3e] font-[900] text-sm md:text-base mb-4 flex items-center gap-2 tracking-widest uppercase">
-                            <Box className="w-6 h-6 stroke-[3px] text-[#e868a0]" /> 貨況篩選
+                          <h4 className="text-[#283d3e] font-[900] text-[13px] mb-3 flex items-center gap-2 tracking-widest">
+                            <Box className="w-4 h-4 stroke-[2.6px] text-[#e868a0]" /> 貨況篩選
                           </h4>
                           <div className="flex flex-wrap gap-2.5">
                             {ITEM_STATUS_OPTIONS.map(status => {
@@ -954,9 +965,9 @@ const App: React.FC = () => {
                                   key={status}
                                   onClick={() => toggleCargoFilter(status)}
                                   // 🎯 圓角藥丸、撞色風格 (選中是粉色solid，未選是米色+黑框)
-                                  className={`px-4 py-2 rounded-full text-xs font-[900] tracking-widest border-2 border-black transition-all flex items-center gap-2 active:scale-95 ${isSelected
-                                    ? 'bg-[#e868a0] text-[#283d3e] shadow-none'
-                                    : 'bg-[#f6f9f9] text-black hover:-translate-y-1'
+                                  className={`px-3.5 py-2 rounded-full text-[12.5px] font-[900] border transition flex items-center gap-1.5 active:opacity-60 ${isSelected
+                                    ? 'bg-[#e868a0] border-[#e868a0] text-[#283d3e]'
+                                    : 'bg-white border-[#283d3e]/15 text-[#283d3e]/70'
                                     }`}
                                 >
                                   {isSelected ? <CheckSquare size={16} strokeWidth={3} /> : <Square size={16} strokeWidth={3} />}
@@ -969,7 +980,7 @@ const App: React.FC = () => {
 
                         {/* 出貨篩選：使用薄荷綠標題 */}
                         <div>
-                          <h4 className="text-[#283d3e] font-[900] text-sm md:text-base mb-4 flex items-center gap-2 tracking-widest uppercase">
+                          <h4 className="text-[#283d3e] font-[900] text-[13px] mb-3 flex items-center gap-2 tracking-widest">
                             <Truck className="w-6 h-6 stroke-[3px] text-[#49d5df]" /> 出貨篩選
                           </h4>
                           <div className="flex flex-wrap gap-2.5">
@@ -980,9 +991,9 @@ const App: React.FC = () => {
                                   key={status}
                                   onClick={() => toggleDeliveryFilter(status)}
                                   // 🎯 圓角藥丸、撞色風格 (選中是薄荷綠solid，未選是米色+黑框)
-                                  className={`px-4 py-2 rounded-full text-xs font-[900] tracking-widest border-2 border-black transition-all flex items-center gap-2 active:scale-95 ${isSelected
-                                    ? 'bg-[#49d5df] text-[#283d3e] shadow-none'
-                                    : 'bg-[#f6f9f9] text-black hover:-translate-y-1'
+                                  className={`px-3.5 py-2 rounded-full text-[12.5px] font-[900] border transition flex items-center gap-1.5 active:opacity-60 ${isSelected
+                                    ? 'bg-[#49d5df] border-[#49d5df] text-[#283d3e]'
+                                    : 'bg-white border-[#283d3e]/15 text-[#283d3e]/70'
                                     }`}
                                 >
                                   {isSelected ? <CheckCircle2 size={16} strokeWidth={3} /> : <Circle size={16} strokeWidth={3} />}

@@ -70,12 +70,24 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                 </button>
               </div>
             )}
-            <button
-              onClick={() => { if (window.confirm("要換一個 LINE 帳號嗎？\n這會把你從這個網站登出，下次要重新登入。")) logoutLine(); }}
-              className="mt-3 w-full h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[12.5px] text-[#283d3e]/60 active:opacity-60 transition"
-            >
-              不是我？換 LINE 帳號
-            </button>
+            {/* 綁錯暱稱也要有路可走：原本只有「沒綁定」有按鈕，
+                登入後發現綁的不是自己的暱稱會不知道該怎麼辦 */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <a
+                href={APP_CONFIG.LINE_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[12.5px] text-[#283d3e]/60 flex items-center justify-center active:opacity-60 transition"
+              >
+                綁錯暱稱？去改
+              </a>
+              <button
+                onClick={() => { if (window.confirm("確定要登出嗎？\n下次進來要重新用 LINE 登入。")) logoutLine(); }}
+                className="h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[12.5px] text-[#283d3e]/60 active:opacity-60 transition"
+              >
+                登出
+              </button>
+            </div>
           </div>
         ) : lineState === "loading" ? (
           <div className="bg-white rounded-3xl px-5 py-6 flex items-center justify-center gap-2 font-[900] text-[#283d3e]/50">
