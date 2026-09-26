@@ -451,7 +451,10 @@ const App: React.FC = () => {
   // 直接開 /orders 網址、或從 LINE 連結進來的人也要能自動查到。
   const autoQueried = useRef<string>("");
   useEffect(() => {
-    if (mainView !== 'orders' || !boundNick || hasSearched) return;
+    // 離開訂單頁就把保險清掉——不然下次再進來會被自己擋住而不查，
+    // 畫面就會停在入口頁什麼都沒有（goOrders 會把 hasSearched 重設成 false）
+    if (mainView !== 'orders') { autoQueried.current = ""; return; }
+    if (!boundNick || hasSearched) return;
     if (autoQueried.current === boundNick) return;
     autoQueried.current = boundNick;
     setSearchQuery(boundNick);

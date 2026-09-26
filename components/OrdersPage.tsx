@@ -54,6 +54,16 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                 <Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />正在載入你的訂單…
               </div>
             )}
+            {/* 查詢失敗一定要講：原本錯誤訊息只寫在「手打暱稱」那個分支，
+                已登入的人查詢逾時會看到一片空白，完全不知道發生什麼事 */}
+            {!quietLoading && searchNotice && (
+              <div className="mt-3 text-center">
+                <p className="font-[900] text-[13px] text-[#e46b58]">{searchNotice}</p>
+                <button onClick={onSearch} className="mt-2 h-10 px-5 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[13px] active:opacity-60 transition">
+                  再查一次
+                </button>
+              </div>
+            )}
             <button
               onClick={() => { if (window.confirm("要換一個 LINE 帳號嗎？\n這會把你從這個網站登出，下次要重新登入。")) logoutLine(); }}
               className="mt-3 w-full h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[12.5px] text-[#283d3e]/60 active:opacity-60 transition"
