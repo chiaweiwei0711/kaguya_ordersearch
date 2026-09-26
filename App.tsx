@@ -16,7 +16,6 @@ import GroupOrderList from './components/GroupOrderList';
 import HomeHero from './components/HomeHero';
 import WorksPage from './components/WorksPage';
 import OrdersPage from './components/OrdersPage';
-import TabBar from './components/TabBar';
 import { getLineIdentity } from './services/lineIdentity';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
@@ -126,24 +125,6 @@ const App: React.FC = () => {
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
   const [mySubs, setMySubs] = useState<MySubmission[]>([]);   // 同一個暱稱送出的填單
   const [openSub, setOpenSub] = useState<string | null>(null);   // 展開明細的那一筆填單
-  // 「尚未結單」＝團還開著、而且還沒變成訂單的填單。兩道過濾：
-  //  1) 已經有訂單的不重複顯示——但兩邊團名字串常常對不起來（訂單那邊是「MH #megahouse…」、
-  //     填單是「MH megahouse…」），所以比對前先把空白、#、括號、連字號這些通通拿掉
-  //  2) 團已經結單的也不算：那時是等她打單的空窗期，寫「尚未結單」會誤導客人以為還能加單
-  const pendingSubs = useMemo(() => {
-    const norm = (v: string) => (v || '').replace(/[\s#＃（）()【】\[\]・･\-—–~〜_]/g, '').toLowerCase();
-    const ordered = new Set(foundOrders.map((o) => norm(o.groupName)));
-    return mySubs.filter((s) => {
-      if (!s.teamName) return false;
-      const n = norm(s.teamName);
-      if (!n) return false;
-      // 完全相同、或其中一邊包含另一邊（團名有時會多／少後綴）都算同一團
-      for (const o of ordered) { if (o === n || o.includes(n) || n.includes(o)) return false; }
-      const t = teams.find((x) => x.code === s.team);
-      if (t && !isOpen(t)) return false;
-      return true;
-    });
-  }, [mySubs, foundOrders, teams]);
   const [news, setNews] = useState<Announcement[]>([]);
   const [selectedNews, setSelectedNews] = useState<Announcement | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -174,6 +155,26 @@ const App: React.FC = () => {
   const [boundNick, setBoundNick] = useState<string | null>(null);   // LINE 認出來的綁定暱稱（我的訂單頁顯示）   // 首頁「動漫類別」點進填單專區時帶的作品篩選
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
   const [teamsLoading, setTeamsLoading] = useState(true);
+
+  // 「尚未結單」＝團還開著、而且還沒變成訂單的填單。兩道過濾：
+  //  1) 已經有訂單的不重複顯示——但兩邊團名字串常常對不起來（訂單那邊是「MH #megahouse…」、
+  //     填單是「MH megahouse…」），所以比對前先把空白、#、括號、連字號這些通通拿掉
+  //  2) 團已經結單的也不算：那時是等她打單的空窗期，寫「尚未結單」會誤導客人以為還能加單
+  const pendingSubs = useMemo(() => {
+    const norm = (v: string) => (v || '').replace(/[\s#＃（）()【】\[\]・･\-—–~〜_]/g, '').toLowerCase();
+    const ordered = new Set(foundOrders.map((o) => norm(o.groupName)));
+    return mySubs.filter((s) => {
+      if (!s.teamName) return false;
+      const n = norm(s.teamName);
+      if (!n) return false;
+      // 完全相同、或其中一邊包含另一邊（團名有時會多／少後綴）都算同一團
+      for (const o of ordered) { if (o === n || o.includes(n) || n.includes(o)) return false; }
+      const t = teams.find((x) => x.code === s.team);
+      if (t && !isOpen(t)) return false;
+      return true;
+    });
+  }, [mySubs, foundOrders, teams]);
+
   const [showLookup, setShowLookup] = useState(false); // 填單明細查詢
   const [lookupInitialNick, setLookupInitialNick] = useState(''); // 從填單成功頁帶入的暱稱
 
@@ -535,22 +536,15 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 底部導覽（Liquid Glass）：四個主頁之間切換 */}
-      <TabBar
-        active={
-          mainView === 'orders' ? 'orders'
-          : mainView === 'works' ? 'works'
-          : mainView === 'order' && !selectedTeamCode ? 'order'
-          : mainView === 'query' && !hasSearched ? 'home'
-          : null
-        }
-        onGo={(k) => {
-          if (k === 'home') { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); nav('/'); window.scrollTo(0, 0); }
-          else if (k === 'works') goWorks();
-          else if (k === 'order') goOrderList();
-          else goOrders();
-        }}
-      />
+      {/* 左上角 MENU：導覽回到漢堡選單——底部浮動列會跟 LINE 內建瀏覽器的工具列疊在一起 */}
+      {!isMenuOpen && (
+        <button
+          onClick={() => setIsMenuOpen(true)}
+          className="fixed top-6 left-6 z-[70] bg-[#3ac0bf] border-2 border-[#3be4d6] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-transform active:scale-95 hover:bg-[#34adab]"
+        >
+          MENU
+        </button>
+      )}
 
       {/* 全新全螢幕 MENU */}
       {isMenuOpen && (
@@ -562,9 +556,11 @@ const App: React.FC = () => {
             CLOSE
           </button>
 
-          <div className="flex flex-col items-center gap-10 text-[#4c59a1] font-[900] text-4xl tracking-widest">
-            <button onClick={() => { setMainView('query'); setHasSearched(false); setIsMenuOpen(false); if (window.location.hash) window.location.hash = ''; window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">訂單查詢</button>
+          <div className="flex flex-col items-center gap-6 text-[#4c59a1] font-[900] text-3xl tracking-widest">
+            <button onClick={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/'); window.scrollTo(0, 0); }} className="hover:scale-110 active:scale-95 transition-transform">首頁</button>
+            <button onClick={goWorks} className="hover:scale-110 active:scale-95 transition-transform">作品類別</button>
             <button onClick={goOrderList} className="hover:scale-110 active:scale-95 transition-transform">預購填單</button>
+            <button onClick={goOrders} className="hover:scale-110 active:scale-95 transition-transform">我的訂單</button>
             {/* 🎯 錨點：滑動到首頁 NEWS 區塊 */}
             <button onClick={() => {
               setMainView('query');
