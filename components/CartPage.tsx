@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Trash2, ShoppingCart, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Plus, Minus, X, UserCheck } from "lucide-react";
 import { GroupTeam, GroupCartItem, MySubmission } from "../types";
-import { submitGroupOrder, isOpen, daysLeft, checkNickBound, fetchMySubmissions, fmtMDHM, fetchItemStats } from "../services/groupOrderService";
+import { submitGroupOrder, isOpen, daysLeft, checkNickBound, checkNickOwner, fetchMySubmissions, fmtMDHM, fetchItemStats } from "../services/groupOrderService";
+import type { NickOwner } from "../services/groupOrderService";
 import { getLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
 import type { LineIdentity } from "../services/lineIdentity";
 import { cartTeams, removeTeam, removeTeams, cartTotal, subscribeCart, setItemQty, removeItem, stepOf, CartTeam } from "../services/cart";
+import { APP_CONFIG } from "../config";
 import { SectionHead } from "./Section";
 import { SlimFooter } from "./Footer";
 
@@ -44,6 +46,8 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
 
   const [nick, setNick] = useState(() => { try { return localStorage.getItem("kg_nick") || ""; } catch { return ""; } });
   const [nickState, setNickState] = useState<"idle" | "checking" | "ok" | "unbound" | "unknown">("idle");
+  const [nickOwner, setNickOwner] = useState<NickOwner | null>(null);   // 這個暱稱是不是綁在「你」身上
+  const [showUnbound, setShowUnbound] = useState(false);
   const nickSeq = useRef(0);
   const nickTouched = useRef(false);
   const [lineId, setLineId] = useState<LineIdentity | null>(null);
@@ -83,12 +87,13 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
     setNickState("checking");
     const my = ++nickSeq.current;
     const t = setTimeout(async () => {
-      const r = await checkNickBound(q);
+      const [r, own] = await Promise.all([checkNickBound(q), checkNickOwner(q, lineId?.userId)]);
       if (my !== nickSeq.current) return;
       setNickState(r === true ? "ok" : r === false ? "unbound" : "unknown");
+      setNickOwner(own);
     }, 500);
     return () => clearTimeout(t);
-  }, [nick]);
+  }, [nick, lineId?.userId]);
 
   // 每團的即時開關狀態：以團表為準（清單可能放了好幾天）
   const liveOf = (c: CartTeam) => teams.find((t) => t.code === c.code);
@@ -119,6 +124,10 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
     const outsider = !lineId?.inClient && lineId?.status !== "unavailable";
     if (outsider && (lineId?.status === "can-login" || (lineId?.status === "ready" && isFriend === false))) { setShowLineGate(true); return; }
     if (!nick.trim()) { alert("請先填社群暱稱"); return; }
+    // 未綁定不能下單 —— 跟填單頁同一套規則，這條路徑原本漏掉了
+    if (lineId?.userId) {
+      if (nickOwner && nickOwner !== "mine") { setShowUnbound(true); return; }
+    } else if (nickState === "unbound") { setShowUnbound(true); return; }
     if (!pay) { alert("請先選付款方式"); return; }
     if (!sendable.length) { alert("購物車裡沒有可以送出的團"); return; }
 
@@ -338,6 +347,26 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
             </button>
           </div>
           {progress && <div className="w-full max-w-lg mx-auto text-[11.5px] font-bold text-[#283d3e]/55 mt-1.5 text-center">{progress}　請不要關閉畫面</div>}
+        </div>
+      )}
+
+      {showUnbound && (
+        <div className="fixed inset-0 z-[105] bg-black/40 flex items-end sm:items-center justify-center p-3">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 text-center">
+            <div className="font-[900] text-[#283d3e] text-lg mb-1.5">
+              {nickOwner === "taken" ? "這個暱稱已經有人使用" : "要先綁定暱稱才能下單"}
+            </div>
+            <p className="font-bold text-[13px] text-[#283d3e]/65 leading-relaxed mb-5">
+              {nickOwner === "taken"
+                ? <>「<span className="text-[#e46b58] font-[900]">{nick.trim()}</span>」已經綁在另一個 LINE 帳號上。如果那是你，請私訊官賴協助處理。</>
+                : <>「<span className="text-[#e46b58] font-[900]">{nick.trim()}</span>」還沒綁定。綁定後付款提醒與到貨通知才會一對一推播給你。</>}
+            </p>
+            <a href={APP_CONFIG.LINE_URL} target="_blank" rel="noreferrer"
+               className="block w-full text-center bg-[#06C755] text-white font-[900] py-3.5 rounded-full active:opacity-60 transition mb-2.5">
+              {nickOwner === "taken" ? "私訊官賴處理" : "去官賴綁定暱稱"}
+            </a>
+            <button onClick={() => setShowUnbound(false)} className="w-full font-[900] text-[#283d3e]/50 py-3 active:opacity-60">關閉</button>
+          </div>
         </div>
       )}
 
