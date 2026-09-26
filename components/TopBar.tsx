@@ -6,17 +6,18 @@ interface Props {
   onHome: () => void;    // 回首頁
   onMenu: () => void;
   showBack?: boolean;    // 非首頁：左邊給一顆返回
+  tone: "light" | "dark";  // 頁面底色淺（黃）用深字、深（藍紫）用白字
 }
 
 // 一直都在的頂部列：大字寫著現在在哪一頁，右邊一顆選單。
 // 兩顆各自浮動的圓鈕會跟頁面左上的返回鍵疊在一起，收成一條就不會再打架，
 // 也順便解決「捲到一半不知道自己在哪一頁」。
-const TopBar: React.FC<Props> = ({ title, onHome, onMenu, showBack }) => {
+const TopBar: React.FC<Props> = ({ title, onHome, onMenu, showBack, tone }) => {
   return (
     <header
-      // 永遠同一個樣子（品牌紫色塊），只有標題會變——這樣每頁看起來是同一個系統，
-      // 又一眼知道自己在哪一頁。底色讓頁面自己去變，頂部這條不跟著換。
-      className="fixed top-0 inset-x-0 z-[80] h-16 flex items-center gap-3 px-5 bg-[#4c59a1] rounded-b-[22px] shadow-[0_4px_14px_rgba(20,24,60,0.22)]"
+      // 背景透出頁面自己的底色——固定一塊品牌色會跟黃底的頁面打架。
+      // 頁面間的一致感來自「同樣的排版＋同樣的黑框按鈕」，不是同一塊顏色。
+      className="fixed top-0 inset-x-0 z-[80] h-16 flex items-center gap-3 px-5 backdrop-blur-xl backdrop-saturate-150"
     >
       {/* 三欄：左返回、中標題、右選單。標題置中，左右兩顆一樣大，畫面才不會偏 */}
       <div className="w-11 shrink-0">
@@ -33,7 +34,7 @@ const TopBar: React.FC<Props> = ({ title, onHome, onMenu, showBack }) => {
 
       <button
         onClick={onHome}
-        className="flex-1 min-w-0 font-[900] text-[22px] leading-none tracking-widest truncate text-white text-center active:scale-95 transition-transform"
+        className={`flex-1 min-w-0 font-[900] text-[22px] leading-none tracking-widest truncate text-center active:scale-95 transition-transform ${tone === "dark" ? "text-white" : "text-[#4c59a1]"}`}
       >
         {title}
       </button>

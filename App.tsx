@@ -576,6 +576,7 @@ const App: React.FC = () => {
           onHome={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); nav('/'); window.scrollTo(0, 0); }}
           onMenu={() => setIsMenuOpen(true)}
           showBack={mainView !== 'query' || hasSearched}
+          tone={mainView === 'works' || mainView === 'order' ? 'light' : 'dark'}
         />
       )}
 
