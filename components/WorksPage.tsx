@@ -116,9 +116,9 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
                 onClick={() => onSelect(w.name)}
                 className="flex flex-col items-center gap-2 active:opacity-60 transition-transform"
               >
-                <span className="relative w-full aspect-square rounded-full overflow-hidden bg-white shadow-[0_4px_12px_rgba(0,0,0,0.18)] flex items-center justify-center">
+                <span className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-black/10 flex items-center justify-center">
                   {w.logo
-                    ? <img src={w.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[78%] h-[78%] object-contain" />
+                    ? <img src={w.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[86%] h-[72%] object-contain" />
                     : w.cover
                       ? <img src={w.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-full h-full object-cover" />
                       : <ShoppingBag className="w-8 h-8 text-[#4c59a1]/25 stroke-[2px]" />}

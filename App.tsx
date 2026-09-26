@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { SectionHead, MoreButton } from "./components/Section";
 import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock, User } from 'lucide-react';
 import { Order, OrderStatus, Announcement, GroupTeam, GroupProduct } from './types';
 import PaymentModal from './components/PaymentModal';
@@ -702,16 +703,8 @@ const App: React.FC = () => {
                       onSelectTag={goOrderTag}
                     />
                     {/* 明日結單區塊：固定存在（載入中／明日沒團也保留，不忽隱忽現） */}
-                    <div className="w-full max-w-lg">
-                        {/* 窄條標題：紅膠囊（可點，進 #/closing 明日結單頁）＋滑動提示 */}
-                        <div className="flex items-center gap-2.5 px-4 md:px-1 mb-3">
-                          <button onClick={goClosing} className="bg-[#f43f5e] text-white font-[900] text-sm pl-3.5 pr-2.5 py-1.5 rounded-full flex items-center gap-1.5 shrink-0 active:opacity-60 transition-all">
-                            <AlarmClock className="w-4 h-4 stroke-[3px]" />
-                            即將結單
-                            <ChevronRight className="w-4 h-4 stroke-[3px]" />
-                          </button>
-
-                        </div>
+                    <div className="w-full max-w-lg text-white">
+                        <SectionHead en="CLOSING SOON" title="即將結單" />
                         {teamsLoading ? (
                           <div className="px-4 md:px-1">
                             <div className="bg-white rounded-2xl px-5 py-4 text-[#4c59a1]/60 font-[900] text-sm text-center">載入中…</div>
@@ -751,6 +744,7 @@ const App: React.FC = () => {
                           })}
                         </div>
                         )}
+                        <MoreButton label="看全部即將結單" onClick={goClosing} />
                     </div>
                     {(teamsLoading || teams.length > 0) && (
                       <GroupOrderList teams={teams} products={groupProducts} preview loading={teamsLoading} onSelect={goOrderTeam} onMore={goOrderList} />

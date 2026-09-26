@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { SectionHead, MoreButton } from "./Section";
 import { ChevronLeft, ArrowRight, Search, ChevronRight, X, Check, ShoppingBag, Tag, SlidersHorizontal, Flame, LayoutGrid, Rows3 } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
 import { daysLeft, isOpen, fmtYMD } from "../services/groupOrderService";
@@ -139,14 +140,12 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   const inner = (
     <>
       {preview && (
-        <h2 className="text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-4">
-          預購填單專區
-        </h2>
+        <SectionHead en="PRE-ORDER" title="預購填單專區" />
       )}
 
       {/* 首頁預覽：最新 ↔ 熱銷。只是換排序，不多佔一塊版面 */}
       {preview && (
-        <div className="flex justify-center gap-2 mb-5">
+        <div className="flex gap-2 mb-5 px-4 sm:px-0">
           {([[false, "最新開團"], [true, "熱銷"]] as [boolean, string][]).map(([val, label]) => {
             const on = hot === val;
             return (
@@ -476,12 +475,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
       )}
 
       {preview && onMore && filtered.length > 0 && (
-        <button
-          onClick={onMore}
-          className="mt-6 ml-auto flex items-center text-[#4c59a1] font-[900] text-lg border-b-[3px] border-[#4c59a1] hover:opacity-70 active:translate-x-1 transition"
-        >
-          More... <ArrowRight className="ml-1 w-5 h-5 stroke-[3px]" />
-        </button>
+        <MoreButton label="看全部開團" onClick={onMore} />
       )}
     </>
   );

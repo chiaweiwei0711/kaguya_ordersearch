@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { ChevronRight, ShoppingBag } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
+import { SectionHead, MoreButton } from "./Section";
 import { isOpen, daysLeft } from "../services/groupOrderService";
 import { buildTagIndex } from "../services/ipTags";
 import { logoOf } from "../services/ipLogos";
@@ -72,12 +73,9 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
   if (!loading && openTeams.length === 0) return null;
 
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-lg mx-auto text-white">
       {/* ── 大輪播：開團中的團 ── */}
-      <div className="px-4 sm:px-0 mb-2 flex items-baseline">
-        <h2 className="text-white font-[900] text-xl tracking-widest drop-">熱門開團商品</h2>
-        
-      </div>
+      <SectionHead en="PICK UP" title="熱門開團商品" />
 
       {loading ? (
         <div className="mx-4 sm:mx-0 h-52 rounded-[28px] bg-white/70 shadow-[0_10px_24px_rgba(0,0,0,0.18)] flex items-center justify-center text-[#4c59a1]/60 font-[900]">
@@ -151,20 +149,18 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
       {/* ── 動漫類別 ── */}
       {tags.length > 0 && (
         <>
-          <div className="px-4 sm:px-0 mb-2 flex items-baseline">
-            <h2 className="text-white font-[900] text-xl tracking-widest drop-">作品類別</h2>
-            <button onClick={() => onSelectTag("")} className="ml-auto text-white/80 font-[900] text-xs underline underline-offset-2 active:opacity-60">看全部作品</button>
-          </div>
-          <div className="flex gap-3.5 overflow-x-auto px-4 sm:px-0 pb-2" style={{ scrollbarWidth: "none" }}>
-            {tags.map((t) => (
+          <SectionHead en="WORKS" title="作品類別" />
+          <div className="grid grid-cols-3 gap-3 px-4 sm:px-0">
+            {tags.slice(0, 6).map((t) => (
               <button
                 key={t.name}
                 onClick={() => onSelectTag(t.name)}
-                className="shrink-0 w-[72px] flex flex-col items-center gap-1.5 active:opacity-60 transition-transform"
+                className="flex flex-col items-center gap-1.5 active:opacity-60 transition"
               >
-                <span className="relative w-[68px] h-[68px] rounded-full overflow-hidden bg-white shadow-[0_4px_12px_rgba(0,0,0,0.18)] flex items-center justify-center">
+                {/* 方形不是圓形：官方 logo 幾乎都是橫長型，圓形會把左右裁掉、字縮到看不清（movic／ensky 都用方形） */}
+                <span className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-black/10 flex items-center justify-center">
                   {t.logo
-                    ? <img src={t.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[78%] h-[78%] object-contain" />
+                    ? <img src={t.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[86%] h-[72%] object-contain" />
                     : t.cover
                       ? <img src={t.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-full h-full object-cover" />
                       : <ShoppingBag className="w-7 h-7 text-[#4c59a1]/25 stroke-[2px]" />}
@@ -172,20 +168,11 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                     <span className="absolute inset-x-0 bottom-0 bg-[#3ac0bf]/95 text-white text-[10px] font-[900] text-center py-0.5">{t.open} 團</span>
                   )}
                 </span>
-                <span className="font-[900] text-white text-[11px] leading-tight text-center line-clamp-2">{t.name}</span>
+                <span className="font-[900] text-[11px] leading-tight text-center line-clamp-2">{t.name}</span>
               </button>
             ))}
-            {/* 最後一顆：看全部作品 */}
-            <button
-              onClick={() => onSelectTag("")}
-              className="shrink-0 w-[72px] flex flex-col items-center gap-1.5 active:opacity-60 transition-transform"
-            >
-              <span className="w-[68px] h-[68px] rounded-full bg-white/15 border-2 border-dashed border-white/60 flex items-center justify-center">
-                <ChevronRight className="w-7 h-7 text-white stroke-[3px]" />
-              </span>
-              <span className="font-[900] text-white text-[11px] leading-tight text-center">全部作品</span>
-            </button>
           </div>
+          <MoreButton label="看全部作品" onClick={() => onSelectTag("")} />
         </>
       )}
     </div>
