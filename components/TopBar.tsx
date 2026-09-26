@@ -19,12 +19,13 @@ const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders, onC
   const ICON = `w-10 h-10 shrink-0 flex items-center justify-center active:opacity-50 transition-opacity ${tone === "dark" ? "text-white" : "text-[#283d3e]"}`;
   return (
     <header
-      // 背景透出頁面自己的底色——固定一塊品牌色會跟黃底的頁面打架。
-      // 頁面間的一致感來自「同樣的排版＋同樣的黑框按鈕」，不是同一塊顏色。
-      className="fixed top-0 inset-x-0 z-[80] h-16 flex items-center px-2.5 backdrop-blur-xl backdrop-saturate-150"
+      // 背景透出頁面自己的底色——固定一塊品牌色會跟頁面打架。
+      // 一致感來自同樣的排版與圖示，不是同一塊顏色。
+      className="fixed top-0 inset-x-0 z-[80] h-16 flex items-center justify-between px-2.5 backdrop-blur-xl backdrop-saturate-150"
     >
-      {/* 三欄：左返回、中標題、右選單。標題置中，左右兩顆一樣大，畫面才不會偏 */}
-      <div className="w-[120px] shrink-0 flex">
+      {/* 品牌絕對置中——左右圖示數量會變（返回／購物車時有時無），
+          靠左右欄等寬去對齊一定會偏掉 */}
+      <div className="shrink-0 flex">
         {showBack && (
           <button
             onClick={() => window.history.back()}
@@ -38,13 +39,14 @@ const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders, onC
 
       <button
         onClick={onHome}
-        className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform ${tone === "dark" ? "text-white" : "text-[#49d5df]"}`}
+        className={`absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform ${tone === "dark" ? "text-white" : "text-[#49d5df]"}`}
       >
         {/* 日後有 logo icon 就放在文字左邊，這一行整組都是回首頁的按鈕 */}
         <span className="font-[900] text-[22px] leading-none tracking-widest" style={{ fontFamily: '"Zen Maru Gothic", "Noto Sans TC", sans-serif' }}>KAGUYA</span>
         <span className="font-[900] text-[10px] leading-none tracking-[0.18em] text-[#283d3e]/50">日本動漫周邊專業代購</span>
       </button>
 
+      <div className="shrink-0 flex items-center">
       {onCart && (
         <button onClick={onCart} aria-label="選購清單" className={`${ICON} relative`}>
           <ShoppingCart className="w-[21px] h-[21px] stroke-[2.2px]" />
@@ -69,6 +71,7 @@ const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders, onC
       >
         <Menu className="w-[22px] h-[22px] stroke-[2.2px]" />
       </button>
+      </div>
     </header>
   );
 };

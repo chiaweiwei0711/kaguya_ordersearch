@@ -106,11 +106,11 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                       ? <img src={cover} alt="" referrerPolicy="no-referrer" loading={i === 0 ? "eager" : "lazy"} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-12 h-12 text-[#283d3e]/25 stroke-[2px]" /></div>}
                     {/* 底部漸層讓白字看得清楚 */}
-                    <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/75 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
                     <span className="absolute top-3 left-3 text-[12px] font-[900] text-[#283d3e] before:bg-[#49d5df] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">開團中</span>
                     <span className="absolute top-3 right-3 text-[12px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">剩 {left} 天結單</span>
                     <div className="absolute inset-x-0 bottom-0 p-4">
-                      {ip && <div className="text-[#f6f9f9] font-[900] text-[13px] leading-none mb-1.5">{ip}</div>}
+                      {ip && <div className="text-[#49d5df] font-[900] text-[13px] leading-none mb-1.5">{ip}</div>}
                       <div className="text-white font-[900] text-lg leading-tight line-clamp-2">{t.name}</div>
                       {(t.joinPeople ?? 0) > 0 && (
                         <span className="mt-2 text-[12px] font-[900] text-[#283d3e] before:bg-[#e868a0] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">
