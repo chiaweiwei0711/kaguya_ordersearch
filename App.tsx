@@ -5,13 +5,12 @@ import { SlimFooter } from "./components/Footer";
 import Footer from "./components/Footer";
 import { SectionHead, MoreButton } from "./components/Section";
 import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock, User } from 'lucide-react';
-import { Order, OrderStatus, Announcement, GroupTeam, GroupProduct } from './types';
+import { Order, OrderStatus, Announcement, GroupTeam, GroupProduct, MySubmission } from './types';
 import PaymentModal from './components/PaymentModal';
 import OrderDetailModal from './components/OrderDetailModal';
 import AdminDashboard from './components/AdminDashboard';
 import NewsModal from './components/NewsModal';
 import { fetchOrdersFromSheet, fetchAnnouncements, fetchNicknameByLineId, incrementAnnouncementLike, SearchFailedError } from './services/googleSheetService';
-import liff from '@line/liff';
 import { APP_CONFIG } from './config';
 
 // 👇 1. 引入極光
@@ -354,57 +353,15 @@ const App: React.FC = () => {
 
   // LIFF 自動登入查單時的過場頁。只有「查單首頁＋真的登入了」才蓋，
   // 填單頁(#/order)、明日結單(#/closing)、或沒登入都不跳（不然客人點填單連結也被蓋、還是假的）
-  const [liffBoot, setLiffBoot] = useState(false);
 
   // 🌟 【核武器啟動】：LIFF 自動登入與初始化 (精準抓蟲版)
-  useEffect(() => {
-    const initApp = async () => {
-      fetchAnnouncements().then(setNews);
-
-      // 路由已改成乾淨路徑，但舊的 #/order 連結還在流通，兩種都要判斷
-      const h = window.location.hash || '';
-      const p = window.location.pathname || '';
-      const isOrderOrClosing =
-        p.indexOf('/order') === 0 || p.indexOf('/closing') === 0 || p.indexOf('/faq') === 0 || p.indexOf('/guide') === 0 || p.indexOf('/about') === 0 ||
-        h.indexOf('#/order') === 0 || h.indexOf('#/closing') === 0;
-
-      // 填單頁／即將結單頁本來就不會自動查單 → 連 liff.init 都不要跑。
-      // 原本不管在哪一頁都先 init 一次，等於做一件用不到、又可能失敗的事：
-      // 從社群(OpenChat)點連結進來時 init 會失敗，客人就被錯誤視窗擋在填單頁前面。
-      if (isOrderOrClosing) return;
-
-      try {
-        await liff.init({ liffId: LIFF_ID });
-
-        // 唯一該自動查單的情境：透過 LIFF（查訂單按鈕）進到查單首頁、且已登入
-        if (liff.isLoggedIn()) {
-          setLiffBoot(true);
-          const bootSafety = setTimeout(() => setLiffBoot(false), 15000); // LIFF 卡死的保險絲
-          try {
-            const profile = await liff.getProfile();
-            const nickname = await fetchNicknameByLineId(profile.userId);
-            if (nickname) {
-              setSearchQuery(nickname);
-              await executeSearch(nickname);
-            } else {
-              // 沒綁定的人本來就查不到暱稱，這是正常情況不是錯誤——安靜略過，讓他自己打暱稱查。
-              // （原本會 alert 出整串 LINE userId，客人看了只會嚇到）
-              console.warn('[LIFF] 這個 LINE 帳號還沒綁定暱稱', profile.userId);
-            }
-          } finally {
-            clearTimeout(bootSafety);
-            setLiffBoot(false);
-          }
-        }
-      } catch (err: any) {
-        // LIFF 只是「從官賴進來自動查單」的加值功能，失敗了網站照常能用。
-        // 絕對不要 alert 給客人看——他看不懂也幫不上忙，只會以為網站壞了。
-        console.warn('[LIFF] init 失敗，略過自動查單：', err && (err.message || String(err)));
-        setLiffBoot(false);
-      }
-    };
-    initApp();
-  }, []);
+  // 進站只做一件事：抓公告。
+  //
+  // 這裡原本還會「自己 liff.init → 已登入就全螢幕蓋住畫面 → 自動查訂單」。
+  // 那是網站還叫「自助查詢訂單系統」的時代留下來的：一進首頁就跳去查單。
+  // 現在首頁是商店，登入後被抓去訂單查詢很突兀；而且身分本來就由
+  // getLineIdentity() 統一處理，查單也改成「進到我的訂單才查」，這段是重複的。
+  useEffect(() => { fetchAnnouncements().then(setNews); }, []);
   const filteredOrders = useMemo(() => {
     let result = foundOrders.filter(order => {
       const isPending = order.status === OrderStatus.PENDING;
@@ -573,20 +530,6 @@ const App: React.FC = () => {
         </div>
       )}
       {isLoading && <LoadingOverlay />}
-
-      {/* LINE 內開啟的自動登入過場：蓋住 liff.init→查綁定→自動查單的空白期 */}
-      {liffBoot && (
-        <div className="fixed inset-0 z-[130] flex flex-col items-center justify-center bg-[#283d3e]">
-          <div className="flex items-center justify-center gap-2.5 h-16">
-            <div className="w-3 h-8 bg-[#e868a0] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-3 h-12 bg-[#49d5df] rounded-full animate-bounce" style={{ animationDelay: '100ms' }}></div>
-            <div className="w-3 h-6 bg-[#f6f9f9] rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
-            <div className="w-3 h-10 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-          </div>
-          <p className="text-white font-[900] text-lg tracking-widest mt-6">LINE 登入中</p>
-          <p className="text-[#f6f9f9]/70 font-[900] text-sm tracking-widest mt-2">正在確認你的身分，請稍候…</p>
-        </div>
-      )}
 
 
 
