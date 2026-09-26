@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import CartPage from "./components/CartPage";
-import { cartTeamCount, subscribeCart } from "./services/cart";
+import { cartItemCount, subscribeCart } from "./services/cart";
 import Footer from "./components/Footer";
 import { SectionHead, MoreButton } from "./components/Section";
 import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock, User } from 'lucide-react';
@@ -301,8 +301,8 @@ const App: React.FC = () => {
   const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/order'); window.scrollTo(0, 0); };
   // ⚠️ setMainView 一定要留著：pushState 不像改 hash 會觸發事件，
   //    少了這行就只換網址不換畫面（從主頁的「即將結單」卡片點下去會沒反應）
-  const [cartCount, setCartCount] = useState(cartTeamCount());
-  useEffect(() => subscribeCart(() => setCartCount(cartTeamCount())), []);
+  const [cartCount, setCartCount] = useState(cartItemCount());   // 徽章顯示件數（一般購物車的慣例），不是團數
+  useEffect(() => subscribeCart(() => setCartCount(cartItemCount())), []);
   const goCart = () => { setMainView('cart'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/cart'); window.scrollTo(0, 0); };
   const goOrders = () => { setMainView('orders'); setSelectedTeamCode(null); setIsMenuOpen(false); setHasSearched(false); nav('/orders'); window.scrollTo(0, 0); };
   const goWorks = () => { setMainView('works'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/works'); window.scrollTo(0, 0); };

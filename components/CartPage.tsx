@@ -189,7 +189,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
   return (
     <div className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto">
       <div className="w-full max-w-lg mx-auto px-4 sm:px-7 pt-20 pb-40">
-        <div className="text-[#283d3e]"><SectionHead en="CART" title="購物車" count={items.length} /></div>
+        <div className="text-[#283d3e]"><SectionHead en="CART" title="購物車" count={items.reduce((s2, c) => s2 + c.items.reduce((n, i) => n + i.qty, 0), 0)} /></div>
 
         {items.length === 0 ? (
           <div className="bg-white rounded-3xl px-6 py-12 text-center">
