@@ -634,7 +634,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                     added ? "bg-[#49d5df] border-[#49d5df] text-[#283d3e]" : "bg-white border-[#283d3e]/20 text-[#283d3e]"
                   }`}
                 >
-                  {added ? <><Check className="w-4 h-4 stroke-[3px]" />已加入</> : <><ShoppingCart className="w-4 h-4 stroke-[2.6px]" />加入清單</>}
+                  {added ? <><Check className="w-4 h-4 stroke-[3px]" />已加入</> : <><ShoppingCart className="w-4 h-4 stroke-[2.6px]" />加入購物車</>}
                 </button>
                 <button onClick={openConfirm} className="h-12 px-5 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[14px] active:opacity-60 transition">
                   直接送出
@@ -642,7 +642,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
               </div>
             </div>
             {teamInCart(liveTeam.code) && !added && (
-              <p className="text-[11.5px] font-bold text-[#283d3e]/45 mt-1.5">這團已在清單裡，再加入會整組覆蓋成現在選的品項</p>
+              <p className="text-[11.5px] font-bold text-[#283d3e]/45 mt-1.5">這團已在購物車裡，再加入會整組覆蓋成現在選的品項</p>
             )}
           </div>
         </div>

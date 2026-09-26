@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Trash2, ShoppingCart, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Plus, Minus, X } from "lucide-react";
+import { Trash2, ShoppingCart, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Plus, Minus, X, UserCheck } from "lucide-react";
 import { GroupTeam, GroupCartItem, MySubmission } from "../types";
-import { submitGroupOrder, isOpen, daysLeft, checkNickBound, fetchMySubmissions, fmtMDHM } from "../services/groupOrderService";
+import { submitGroupOrder, isOpen, daysLeft, checkNickBound, fetchMySubmissions, fmtMDHM, fetchItemStats } from "../services/groupOrderService";
 import { getLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
 import type { LineIdentity } from "../services/lineIdentity";
 import { cartTeams, removeTeam, removeTeams, cartTotal, subscribeCart, setItemQty, removeItem, stepOf, CartTeam } from "../services/cart";
@@ -16,7 +16,27 @@ interface Props {
 
 type Result = { code: string; name: string; ok: boolean; msg?: string };
 
-// 選購清單：跨團累積，一次送出，但**仍然一團一筆**寫進收單表（後端不動）。
+// 成團狀態：告訴他目前幾件、加上他的會變幾件、成團了沒。
+// 未送出時不能說「你是第 N 件」——那還沒算數，講了會誤導。
+const GroupState: React.FC<{ step: number; ordered: number | undefined; mine: number }> = ({ step, ordered, mine }) => {
+  if (step <= 1) return null;
+  if (ordered == null) return <div className="text-[11px] font-[900] text-[#283d3e]/35 mt-1">{step} 件成團 · 目前件數更新中</div>;
+  const after = ordered + mine;
+  const done = after > 0 && after % step === 0;
+  const need = done ? 0 : Math.ceil(after / step) * step - after;
+  return (
+    <div className="text-[11px] font-[900] mt-1 leading-relaxed">
+      <span className="text-[#283d3e]/45">目前 {ordered} 件</span>
+      <span className="text-[#283d3e]/25"> → </span>
+      <span className="text-[#283d3e]/70">加上你的 {mine} 件＝{after} 件</span>
+      {done
+        ? <span className="text-[#49d5df]"> · 已成團</span>
+        : <span className="text-[#e46b58]"> · 還差 {need} 件成團</span>}
+    </div>
+  );
+};
+
+// 購物車：跨團累積，一次送出，但**仍然一團一筆**寫進收單表（後端不動）。
 // 風險在「放著沒送出、團卻結單了」→ 所以每一團都掛自己的倒數，已結單的整組鎖住。
 const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
   const [items, setItems] = useState<CartTeam[]>(cartTeams());
@@ -29,6 +49,16 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
   const [lineId, setLineId] = useState<LineIdentity | null>(null);
   const [isFriend, setIsFriend] = useState<boolean | null>(null);
   const [showLineGate, setShowLineGate] = useState(false);
+
+  // 每團的即時已訂件數（itemKey → 件數）。購物車可能放了好幾天，要用最新的算成團
+  const [stats, setStats] = useState<Record<string, Record<string, number>>>({});
+  useEffect(() => {
+    let alive = true;
+    const codes = cartTeams().map((c) => c.code);
+    Promise.all(codes.map((c) => fetchItemStats(c).then((m) => [c, m] as const).catch(() => [c, {}] as const)))
+      .then((pairs) => { if (alive) setStats(Object.fromEntries(pairs)); });
+    return () => { alive = false; };
+  }, [items.length]);
 
   const [sending, setSending] = useState(false);
   const [progress, setProgress] = useState("");
@@ -88,7 +118,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
     const outsider = !lineId?.inClient && lineId?.status !== "unavailable";
     if (outsider && (lineId?.status === "can-login" || (lineId?.status === "ready" && isFriend === false))) { setShowLineGate(true); return; }
     if (!nick.trim()) { alert("請先填社群暱稱"); return; }
-    if (!sendable.length) { alert("清單裡沒有可以送出的團"); return; }
+    if (!sendable.length) { alert("購物車裡沒有可以送出的團"); return; }
 
     setSending(true);
     const out: Result[] = [];
@@ -157,12 +187,12 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
   return (
     <div className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto">
       <div className="w-full max-w-lg mx-auto px-4 sm:px-7 pt-20 pb-40">
-        <div className="text-[#283d3e]"><SectionHead en="CART" title="選購清單" count={items.length} /></div>
+        <div className="text-[#283d3e]"><SectionHead en="CART" title="購物車" count={items.length} /></div>
 
         {items.length === 0 ? (
           <div className="bg-white rounded-3xl px-6 py-12 text-center">
             <ShoppingCart className="w-10 h-10 mx-auto text-[#283d3e]/20 stroke-[2px]" />
-            <p className="font-[900] text-[#283d3e]/60 mt-3">清單還是空的</p>
+            <p className="font-[900] text-[#283d3e]/60 mt-3">購物車還是空的</p>
             <button onClick={onBrowse} className="mt-5 h-11 px-6 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-sm active:opacity-60 transition">
               去看開團中的團
             </button>
@@ -223,6 +253,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
                             {step > 1 && <span className="text-[11px] font-[900] text-[#e868a0]">{step} 件成團</span>}
                             <span className="ml-auto font-[900] text-[13.5px] text-[#283d3e] tabular-nums">${it.qty * it.price}</span>
                           </div>
+                          <GroupState step={step} ordered={stats[c.code]?.[`${it.type}|${it.label}`]} mine={it.qty} />
                         </div>
                       );
                     })}
@@ -240,7 +271,22 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
               </button>
             )}
 
-            {/* 暱稱只填一次 —— 這是一次送出最實在的好處（原本每團都要重打） */}
+            {/* 暱稱只填一次（原本每團都要重打）。
+                後台整套是用「社群暱稱」認人的——對帳單、賣貨便回饋資訊1、收單表、查單 API 都是，
+                LINE 給的 userId 是另一套，所以登入只能幫他「自動帶出」暱稱，不能取代暱稱。
+                已綁定的人不該再看到空白輸入框 → 直接顯示身分，要換人才點「不是我」。 */}
+            {lineId?.nickname && !nickTouched.current ? (
+              <div className="bg-white rounded-3xl px-5 py-4 mt-4 flex items-center gap-3">
+                <UserCheck className="w-5 h-5 stroke-[2.6px] text-[#49d5df] shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-bold text-[11.5px] text-[#283d3e]/50">以這個身分送出</div>
+                  <div className="font-[900] text-[15px] text-[#283d3e] truncate">{nick}</div>
+                </div>
+                <button onClick={() => { nickTouched.current = true; setNick(""); }} className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60">
+                  不是我
+                </button>
+              </div>
+            ) : (
             <div className="bg-white rounded-3xl px-5 py-4 mt-4">
               <div className="font-[900] text-[13px] text-[#283d3e] mb-2">社群暱稱</div>
               <input
@@ -255,6 +301,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
                 {nickState === "unbound" && <span className="text-[#e46b58]">查不到這個暱稱的綁定，送出前請先到官賴綁定</span>}
               </div>
             </div>
+            )}
             <SlimFooter />
           </>
         )}

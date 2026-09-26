@@ -6,7 +6,7 @@ interface Props {
   onMenu: () => void;
   showBack?: boolean;    // 非首頁：左邊給一顆返回
   onOrders: () => void;
-  onCart?: () => void;   // 選購清單
+  onCart?: () => void;   // 購物車
   cartCount?: number;    // 清單裡有幾團  // 我的訂單（七家電商都把它放頂部列，純圖示是通用慣例）
   tone: "light" | "dark";  // 頁面底色淺（黃）用深字、深（藍紫）用白字
 }
@@ -48,7 +48,7 @@ const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders, onC
 
       <div className="shrink-0 flex items-center">
       {onCart && (
-        <button onClick={onCart} aria-label="選購清單" className={`${ICON} relative`}>
+        <button onClick={onCart} aria-label="購物車" className={`${ICON} relative`}>
           <ShoppingCart className="w-[21px] h-[21px] stroke-[2.2px]" />
           {cartCount > 0 && (
             <span className="absolute top-1 right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-[#e46b58] text-[#283d3e] text-[10px] font-[900] flex items-center justify-center">{cartCount}</span>
