@@ -921,13 +921,17 @@ const App: React.FC = () => {
                         </div>
 
                         {/* 右側：智慧切換全選或數量 */}
+                        {/* 全選：純文字＋勾選圈，不要藥丸框；已選幾筆下面的結帳條會講，這裡不重複 */}
                         {(activeTab === 'deposit' || activeTab === 'balance') ? (
-                          <button
-                            onClick={handleSelectAll}
-                            className="flex items-center gap-2 text-[13px] font-[900] text-[#283d3e] bg-white border border-black/10 px-4 py-2 rounded-full active:opacity-60 transition"
-                          >
-                            {filteredOrders.every(o => selectedOrderIds.has(o.id)) ? <CheckSquare size={16} strokeWidth={3} /> : <Square size={16} strokeWidth={3} />}
-                            全選本頁 ({selectedOrderIds.size})
+                          <button onClick={handleSelectAll} className="flex items-center gap-2 text-[13px] font-[900] text-[#283d3e]/70 active:opacity-50 transition pr-1">
+                            <span className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition ${
+                              filteredOrders.length > 0 && filteredOrders.every(o => selectedOrderIds.has(o.id))
+                                ? 'bg-[#49d5df] border-[#49d5df] text-white'
+                                : 'bg-white border-[#283d3e]/25 text-transparent'
+                            }`}>
+                              <Check size={13} strokeWidth={4} />
+                            </span>
+                            {filteredOrders.length > 0 && filteredOrders.every(o => selectedOrderIds.has(o.id)) ? '取消全選' : '全選'}
                           </button>
                         ) : (
                           <span className="text-[#283d3e]/55 font-[900] tracking-widest text-[13px] pr-1">

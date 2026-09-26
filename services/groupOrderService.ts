@@ -315,6 +315,23 @@ export const checkNickBound = async (nick: string): Promise<boolean | null> => {
   } catch (_) { return null; }
 };
 
+// 暱稱的「歸屬」——帶著自己的 userId 去問，後端只回結論不回別人的 ID：
+//   mine    這個暱稱就綁在你身上        → 可以下單
+//   taken   已綁定，但綁在別人身上      → 冒名或打錯字，導去官賴
+//   unbound 名單裡有這個暱稱但沒人綁    → 還沒綁 LINE
+//   free    名單裡沒有這個暱稱          → 全新暱稱
+//   null    問不到（後端忙／沒帶 userId）→ 呼叫端自己決定要不要放行
+export type NickOwner = "mine" | "taken" | "unbound" | "free";
+export const checkNickOwner = async (nick: string, lineId?: string | null): Promise<NickOwner | null> => {
+  const q = String(nick || "").trim();
+  if (!q || !lineId) return null;
+  try {
+    const d = await gasGet("query", { type: "checkNick", nick: q, lineId }, { timeoutMs: 6000 });
+    if (d && d.status === "success" && typeof d.owner === "string") return d.owner as NickOwner;
+    return null;
+  } catch (_) { return null; }
+};
+
 // 查「我已送出的填單」(收單 GAS 的 ?type=pre-orderform&nick=...)
 // 回傳一筆 = 一次送出；品項可能存成 JSON 字串或陣列，兩種都吃
 // fresh=true：剛送完單回查自己那筆 → 繞過邊緣快取

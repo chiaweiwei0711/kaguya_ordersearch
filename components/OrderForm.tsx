@@ -2,7 +2,8 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { putTeam, teamInCart } from "../services/cart";
 import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info, Check, Loader2, UserX, UserCheck, ShoppingCart } from "lucide-react";
 import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
-import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, fetchTeamStat, fetchMySubmissions, itemKey } from "../services/groupOrderService";
+import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, checkNickOwner, fetchTeamStat, fetchMySubmissions, itemKey } from "../services/groupOrderService";
+import type { NickOwner } from "../services/groupOrderService";
 import type { TeamStat } from "../services/groupOrderService";
 import { APP_CONFIG } from "../config";
 import { getLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
@@ -62,6 +63,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const [nick, setNick] = useState(() => { try { return localStorage.getItem("kg_nick") || ""; } catch { return ""; } });
   const [nickState, setNickState] = useState<"idle" | "checking" | "ok" | "unbound" | "unknown">("idle");
   const [showUnbound, setShowUnbound] = useState(false);   // 「尚未綁定」小視窗
+  const [nickOwner, setNickOwner] = useState<NickOwner | null>(null);   // 這個暱稱是不是綁在「你」身上
   const [bypass, setBypass] = useState(false);             // 客人自己確認「我有綁定」→ 這次放行
   const nickRef = useRef<HTMLInputElement>(null);
   const nickSeq = useRef(0);
@@ -133,12 +135,13 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
     setNickState("checking");
     const my = ++nickSeq.current;
     const t = setTimeout(async () => {
-      const r = await checkNickBound(q);
+      const [r, own] = await Promise.all([checkNickBound(q), checkNickOwner(q, lineId?.userId)]);
       if (my !== nickSeq.current) return;      // 期間又打了新字 → 舊結果丟掉
       setNickState(r === true ? "ok" : r === false ? "unbound" : "unknown");
+      setNickOwner(own);
     }, 500);
     return () => clearTimeout(t);
-  }, [nick]);
+  }, [nick, lineId?.userId]);
 
   const grouped = useMemo(() => {
     const m = new Map<string, { p: GroupProduct; idx: number }[]>();
@@ -200,8 +203,12 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       return;
     }
     if (!nick.trim()) { alert("請先填社群暱稱"); return; }
-    // 查無此暱稱 → 跳小視窗（查不到綁定表本身時 nickState 是 unknown，一律放行）
-    if (nickState === "unbound" && !bypass) { setShowUnbound(true); return; }
+    // 未綁定不能下單（她的常見問題第一條就是這條規則，網站原本沒執行）。
+    // 已登入 → 用 userId 比對，暱稱必須綁在「你」身上；
+    // LIFF 起不來（拿不到 userId）→ 退回「這個暱稱有沒有綁定」，至少擋掉全新暱稱，不把人鎖死。
+    if (lineId?.userId) {
+      if (nickOwner && nickOwner !== "mine") { setShowUnbound(true); return; }
+    } else if (nickState === "unbound" && !bypass) { setShowUnbound(true); return; }
     if (!cart.length) { alert("還沒選任何商品"); return; }
     if (localStorage.getItem(`kaguya_order_done_${team.code}`)) {
       if (!window.confirm("本裝置已下單過一次，是否要繼續訂購？")) return;
@@ -565,34 +572,43 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       {/* 暱稱尚未綁定：擋在送出前，但留一條「我確定有綁定」的路（客人改過 LINE 暱稱時不會被鎖死） */}
       {showUnbound && (
         <div className="fixed inset-0 z-[105] bg-black/40 flex items-end sm:items-center justify-center p-3">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 border border-black">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6">
             <div className="w-14 h-14 rounded-full bg-[#e46b58] flex items-center justify-center mx-auto mb-3">
               <UserX className="w-8 h-8 stroke-[2.5px] text-white" />
             </div>
-            <div className="font-[900] text-[#283d3e] text-xl text-center mb-1.5">您的暱稱尚未綁定！</div>
-            <div className="text-center text-sm font-bold text-[#283d3e]/70 mb-5 leading-relaxed">
-              「<span className="text-[#e46b58] font-[900]">{nick.trim()}</span>」在官賴查不到綁定紀錄。<br />可能是打錯字，或還沒去官賴綁定。
-            </div>
+            {/* 訊息依「暱稱歸屬」而不同：綁在別人身上 vs 還沒綁，客人要做的事不一樣 */}
+            {nickOwner === "taken" ? (
+              <>
+                <div className="font-[900] text-[#283d3e] text-xl text-center mb-1.5">這個暱稱已經有人使用</div>
+                <div className="text-center text-sm font-bold text-[#283d3e]/70 mb-5 leading-relaxed">
+                  「<span className="text-[#e46b58] font-[900]">{nick.trim()}</span>」已經綁在另一個 LINE 帳號上。<br />
+                  如果那是你，請私訊官賴協助處理。
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="font-[900] text-[#283d3e] text-xl text-center mb-1.5">要先綁定暱稱才能下單</div>
+                <div className="text-center text-sm font-bold text-[#283d3e]/70 mb-5 leading-relaxed">
+                  「<span className="text-[#e46b58] font-[900]">{nick.trim()}</span>」還沒綁定。<br />
+                  綁定後付款提醒與到貨通知才會一對一推播給你。
+                </div>
+              </>
+            )}
             <a
               href={APP_CONFIG.LINE_URL}
               target="_blank"
               rel="noreferrer"
-              className="block w-full text-center bg-[#49d5df] text-[#283d3e] font-[900] py-3.5 rounded-full border border-black active:opacity-60 active:transition mb-2.5"
+              className="block w-full text-center bg-[#06C755] text-white font-[900] py-3.5 rounded-full active:opacity-60 transition mb-2.5"
             >
-              先去綁定
+              {nickOwner === "taken" ? "私訊官賴處理" : "去官賴綁定暱稱"}
             </a>
             <button
               onClick={() => { setShowUnbound(false); setTimeout(() => nickRef.current?.focus(), 50); }}
-              className="w-full bg-white text-[#283d3e] font-[900] py-3.5 rounded-full border border-black active:opacity-60 active:transition"
+              className="w-full bg-white text-[#283d3e] font-[900] py-3.5 rounded-full border border-[#283d3e]/15 active:opacity-60 transition"
             >
               重新填寫暱稱
             </button>
-            <button
-              onClick={() => { setBypass(true); setShowUnbound(false); setShowConfirm(true); }}
-              className="w-full text-center text-[#283d3e]/45 text-xs font-bold mt-4 underline underline-offset-2"
-            >
-              我確定已經綁定過了，仍要送出
-            </button>
+            {/* 沒有「仍要送出」的後門了：未綁定不能下單是規則，留後門等於沒有規則 */}
           </div>
         </div>
       )}
