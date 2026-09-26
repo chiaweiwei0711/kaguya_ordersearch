@@ -55,7 +55,7 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
               >
                 <div className="w-20 h-20 rounded-xl bg-[#e9f5f6] overflow-hidden shrink-0 flex items-center justify-center">
                   {img
-                    ? <img src={img} alt={t.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                    ? <img src={img} alt={t.name} referrerPolicy="no-referrer" className="absolute inset-0 w-full h-full object-cover" />
                     : <ShoppingBag className="w-8 h-8 text-[#283d3e]/30 stroke-[2px]" />}
                 </div>
                 <div className="min-w-0 flex-1">

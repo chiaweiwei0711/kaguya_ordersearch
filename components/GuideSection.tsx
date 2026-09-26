@@ -1,4 +1,5 @@
 import React from "react";
+import { SlimFooter } from "./Footer";
 import { SectionHead } from "./Section";
 import { ChevronLeft, ArrowRight } from "lucide-react";
 
@@ -48,6 +49,7 @@ const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
           <ArrowRight className="w-5 h-5 stroke-[3px]" />
         </button>
         <p className="text-center text-[#283d3e]/65 font-bold text-xs mt-5 leading-relaxed">有問題直接私訊官賴，我們會儘速協助你！</p>
+        <SlimFooter />
       </div>
     </div>
   );

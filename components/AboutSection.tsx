@@ -1,4 +1,5 @@
 import React from 'react';
+import { SlimFooter } from "./Footer";
 import { SectionHead } from "./Section";
 import { ChevronLeft } from 'lucide-react';
 
@@ -83,6 +84,7 @@ const AboutSection: React.FC<Props> = ({ onBack }) => {
         <p className="text-center text-[#283d3e]/65 font-bold text-xs mt-7 leading-relaxed">
           把喜歡的東西，完好無缺地送到你手裡。
         </p>
+        <SlimFooter />
       </div>
     </div>
   );

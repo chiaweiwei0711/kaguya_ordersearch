@@ -633,6 +633,13 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
             </div>
             <div className="text-[11px] text-gray-400 mt-1">實際金額以訂購完成之查詢表確認為準</div>
             <div className="bg-white border-2 border-[#e46b58] text-[#e46b58] font-bold text-xs rounded-xl px-3 py-2.5 mt-3 leading-relaxed flex items-start gap-2"><AlertTriangle className="w-4 h-4 shrink-0 stroke-[2.5px] mt-0.5" /><span>送出完成後，請務必至留言區回覆「已填單」！未回覆已填單者不會計算訂購！！</span></div>
+            {/* 告知義務：依通訊交易解除權合理例外情事適用準則，排除七天解除權必須「經企業經營者告知消費者」。
+                放在送出前的確認視窗，比藏在頁尾有效得多——這是客人真正會看到、也是真正做出承諾的那一刻。 */}
+            <div className="bg-[#f6f9f9] rounded-xl px-3 py-2.5 mt-3 text-[11.5px] leading-relaxed font-bold text-[#283d3e]/70">
+              本團為日本代購預購，結單後即向日本方下訂，<span className="text-[#e46b58]">送出後恕不接受取消</span>。
+              商品抵台後提供 30 天免費倉儲，逾期每件每天酌收 5 元。日方若砍單或缺貨，我們會主動通知並全額退還該品項款項。
+            </div>
+
             <div className="flex gap-3 mt-4">
               <button onClick={() => setShowConfirm(false)} disabled={submitting} className="flex-1 bg-white border-2 border-[#49d5df] text-[#283d3e] font-[900] py-3 rounded-full">修改訂單</button>
               <button onClick={doSend} disabled={submitting} className="flex-1 bg-[#49d5df] text-[#283d3e] font-[900] py-3 rounded-full active:scale-95 transition">{submitting ? "送出中…" : "確認送出"}</button>

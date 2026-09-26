@@ -103,7 +103,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                 >
                   <div className="relative w-full aspect-[4/3] bg-[#e9f5f6]">
                     {cover
-                      ? <img src={cover} alt="" referrerPolicy="no-referrer" loading={i === 0 ? "eager" : "lazy"} className="w-full h-full object-cover" />
+                      ? <img src={cover} alt="" referrerPolicy="no-referrer" loading={i === 0 ? "eager" : "lazy"} className="absolute inset-0 w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-12 h-12 text-[#283d3e]/25 stroke-[2px]" /></div>}
                     {/* 底部漸層讓白字看得清楚 */}
                     <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
@@ -162,7 +162,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                   {t.logo
                     ? <img src={t.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[86%] h-[72%] object-contain" />
                     : t.cover
-                      ? <img src={t.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-full h-full object-cover" />
+                      ? <img src={t.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                       : <ShoppingBag className="w-7 h-7 text-[#283d3e]/25 stroke-[2px]" />}
                   {t.open > 0 && (
                     <span className="absolute inset-x-0 bottom-0 bg-white/92 text-[#283d3e] text-[10px] font-[900] text-center py-0.5 border-t border-black/8">{t.open} 團</span>

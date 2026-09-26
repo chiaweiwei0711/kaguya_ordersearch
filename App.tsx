@@ -721,7 +721,7 @@ const App: React.FC = () => {
                               >
                                 <div className="w-full h-28 bg-[#e9f5f6] relative">
                                   {img ? (
-                                    <img src={img} alt={team.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                                    <img src={img} alt={team.name} referrerPolicy="no-referrer" className="absolute inset-0 w-full h-full object-cover" />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center text-[#283d3e]/40">
                                       <ShoppingBag className="w-9 h-9 stroke-[2px]" />

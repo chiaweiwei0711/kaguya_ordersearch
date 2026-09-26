@@ -122,7 +122,7 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
                   {w.logo
                     ? <img src={w.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[86%] h-[72%] object-contain" />
                     : w.cover
-                      ? <img src={w.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-full h-full object-cover" />
+                      ? <img src={w.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                       : <ShoppingBag className="w-8 h-8 text-[#283d3e]/25 stroke-[2px]" />}
                   {w.open > 0 && (
                     <span className="absolute inset-x-0 bottom-0 bg-[#49d5df]/95 text-[#283d3e] text-[10px] font-[900] text-center py-0.5">開團中 {w.open}</span>
