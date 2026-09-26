@@ -170,7 +170,11 @@ const App: React.FC = () => {
   const [orderTag, setOrderTag] = useState<string[]>([]);
   const [lineState, setLineState] = useState<'loading' | 'ready' | 'can-login' | 'unavailable'>('loading');
   const [boundNick, setBoundNick] = useState<string | null>(null);
-  const [lineProfile, setLineProfile] = useState<{ name?: string; picture?: string }>({});   // LINE 認出來的綁定暱稱（我的訂單頁顯示）   // 首頁「動漫類別」點進填單專區時帶的作品篩選
+  const [lineProfile, setLineProfile] = useState<{ name?: string; picture?: string }>({});
+  // 員工＝綁定暱稱在名單裡。客人只看得到自己的訂單（訂單有品項與金額，
+  // 而暱稱在社群裡是公開的，開放任意查等於任何人都能看別人買了什麼）。
+  const isStaff = !!boundNick && APP_CONFIG.STAFF_NICKS.includes(boundNick);
+   // LINE 認出來的綁定暱稱（我的訂單頁顯示）   // 首頁「動漫類別」點進填單專區時帶的作品篩選
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
   const [teamsLoading, setTeamsLoading] = useState(true);
 
@@ -619,7 +623,7 @@ const App: React.FC = () => {
             <OrdersPage
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              onSearch={() => handleSearch()}
+              onSearch={() => { handleSearch(); setShowAllOrders(true); }}
               searchNotice={searchNotice}
               boundNick={boundNick}
               lineState={lineState}
@@ -628,6 +632,7 @@ const App: React.FC = () => {
               previewOrders={previewOrders}
               totalOrders={foundOrders.length}
               onSeeAll={() => { setShowAllOrders(true); window.scrollTo(0, 0); }}
+              isStaff={isStaff}
               onOpenOrder={(o) => { setSelectedDetailOrder(o); setIsDetailModalOpen(true); }}
               onLogin={loginWithLine}
               onGuide={() => { setMainView('guide'); nav('/guide'); window.scrollTo(0, 0); }}

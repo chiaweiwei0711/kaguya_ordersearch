@@ -10,6 +10,12 @@ export const APP_CONFIG = {
   // 開團訂購「收單」GAS — 獨立後台，與上面查詢系統完全分開（listTeams 給資料 / submitGroupOrder 收單）
   ORDER_API_URL: "https://script.google.com/macros/s/AKfycbyHf4PKNb8GHBJKSmBkQUKr-3Oc1lilpg55eNQFmHQJmKhONdGNFj7R0C3GyUfL1Y_u-Q/exec",
 
+  // 員工：可以查任何人的訂單（客人不會用，常常要截圖給他們看）。
+  // 用「綁定暱稱」判斷就夠安全——boundNick 是伺服器拿 LINE userId 去會員表查回來的，
+  // 只有真正綁定這個暱稱的那個 LINE 帳號才拿得到，不是自己打字就能冒充。
+  // 要加人就把他的綁定暱稱加進來。
+  STAFF_NICKS: ["瓦多", "瓦多多的好幫手"],
+
   LINE_URL: "https://lin.ee/cfEklUi",
   LINE_COMMUNITY_URL: "https://line.me/ti/g2/RYAbF9YVD2z0vFRkvUjCtPCQFr9d_eyEtFq6qw",
   INSTAGRAM_URL: "https://www.instagram.com/kaguyasama_shop/",

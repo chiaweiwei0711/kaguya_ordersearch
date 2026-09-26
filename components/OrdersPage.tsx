@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, ArrowRight, BookOpen, HelpCircle, Shield, MessageCircle, Users, Instagram, ChevronRight, UserCheck, Link2, LogIn, Loader2 } from "lucide-react";
+import { ShieldCheck, Search, ArrowRight, BookOpen, HelpCircle, Shield, MessageCircle, Users, Instagram, ChevronRight, UserCheck, Link2, LogIn, Loader2 } from "lucide-react";
 import { Order, OrderStatus } from "../types";
 import { APP_CONFIG } from "../config";
 import { logoutLine } from "../services/lineIdentity";
@@ -18,6 +18,7 @@ interface Props {
   previewOrders?: Order[];
   totalOrders?: number;
   onSeeAll?: () => void;
+  isStaff?: boolean;
   onOpenOrder?: (o: Order) => void;
   onLogin: () => void;
   onGuide: () => void;
@@ -29,7 +30,7 @@ interface Props {
 //   已認出   → 直接查他自己的單（不用打暱稱）
 //   可登入   → 一顆登入鈕（從外面網址進來的人）
 //   認不出   → 退回手打暱稱（LIFF 起不來的環境，不能把人鎖在外面）
-const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, searchNotice, boundNick, lineState, lineProfile, quietLoading, previewOrders = [], totalOrders = 0, onSeeAll, onOpenOrder, onLogin, onGuide, onFaq, onAbout }) => {
+const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, searchNotice, boundNick, lineState, lineProfile, quietLoading, previewOrders = [], totalOrders = 0, onSeeAll, onOpenOrder, isStaff, onLogin, onGuide, onFaq, onAbout }) => {
   const row = "flex items-center gap-3 px-5 py-4 border-t border-[#283d3e]/10 font-[900] text-[#283d3e] text-[15px] active:bg-[#283d3e]/5 transition";
 
   return (
@@ -176,6 +177,33 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                 <ChevronRight className="w-4 h-4 stroke-[3px]" />
               </button>
             )}
+          </div>
+        )}
+
+        {/* 員工專用：查任何人的訂單。客人常常不會用，要截圖給他們看。
+            用綁定暱稱判斷身分（伺服器拿 LINE userId 查回來的，冒充不了） */}
+        {isStaff && (
+          <div className="mt-5">
+            <div className="flex items-center gap-2 mb-2 px-1">
+              <ShieldCheck className="w-4 h-4 stroke-[2.6px] text-[#e868a0]" />
+              <span className="font-[900] text-[13px] text-[#e868a0]">員工：查其他人的訂單</span>
+            </div>
+            <div className="bg-white rounded-full p-2 flex items-center gap-2">
+              <div className="relative flex-1 flex items-center pl-1">
+                <Search className="absolute left-4 text-[#e868a0] w-5 h-5 stroke-[3px]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="輸入對方的社群暱稱"
+                  className="w-full pl-11 pr-3 py-2.5 bg-transparent outline-none text-[15px] font-[900] placeholder-[#283d3e]/30"
+                  onKeyDown={(e) => { if (e.key === "Enter" && !(e.nativeEvent as any).isComposing) onSearch(); }}
+                />
+              </div>
+              <button onClick={onSearch} aria-label="查詢" className="bg-[#e868a0] text-[#283d3e] w-11 h-11 rounded-full flex items-center justify-center shrink-0 active:scale-90 transition-transform">
+                <ArrowRight className="stroke-[3px] w-5 h-5" />
+              </button>
+            </div>
           </div>
         )}
 
