@@ -75,7 +75,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
     <div className="w-full max-w-lg mx-auto">
       {/* ── 大輪播：開團中的團 ── */}
       <div className="px-4 sm:px-0 mb-2 flex items-baseline">
-        <h2 className="text-white font-[900] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">熱門開團商品</h2>
+        <h2 className="text-white font-[900] text-xl tracking-widest drop-">熱門開團商品</h2>
         
       </div>
 
@@ -109,13 +109,13 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                       : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-12 h-12 text-[#4c59a1]/25 stroke-[2px]" /></div>}
                     {/* 底部漸層讓白字看得清楚 */}
                     <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/75 to-transparent" />
-                    <span className="absolute top-3 left-3 bg-[#3ac0bf] text-white text-[12px] font-[900] px-3 py-1 rounded-full shadow-[0_2px_0px_rgba(0,0,0,0.2)]">開團中</span>
-                    <span className="absolute top-3 right-3 bg-[#f43f5e] text-white text-[12px] font-[900] px-3 py-1 rounded-full shadow-[0_2px_0px_rgba(0,0,0,0.2)]">剩 {left} 天結單</span>
+                    <span className="absolute top-3 left-3 bg-[#3ac0bf] text-white text-[12px] font-[900] px-3 py-1 rounded-full">開團中</span>
+                    <span className="absolute top-3 right-3 bg-[#f43f5e] text-white text-[12px] font-[900] px-3 py-1 rounded-full">剩 {left} 天結單</span>
                     <div className="absolute inset-x-0 bottom-0 p-4">
                       {ip && <div className="text-[#fff170] font-[900] text-[13px] leading-none mb-1.5">{ip}</div>}
                       <div className="text-white font-[900] text-lg leading-tight line-clamp-2">{t.name}</div>
                       {(t.joinPeople ?? 0) > 0 && (
-                        <span className="inline-block mt-2 bg-[#fff170] text-black text-[12px] font-[900] px-3 py-1 rounded-full shadow-[0_2px_0px_rgba(0,0,0,0.2)]">
+                        <span className="inline-block mt-2 bg-[#fff170] text-black text-[12px] font-[900] px-3 py-1 rounded-full">
                           {t.joinPeople} 人填單{(t.joinQty ?? 0) > 0 ? ` · ${t.joinQty} 件` : ""}
                         </span>
                       )}
@@ -152,7 +152,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
       {tags.length > 0 && (
         <>
           <div className="px-4 sm:px-0 mb-2 flex items-baseline">
-            <h2 className="text-white font-[900] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">作品類別</h2>
+            <h2 className="text-white font-[900] text-xl tracking-widest drop-">作品類別</h2>
             <button onClick={() => onSelectTag("")} className="ml-auto text-white/80 font-[900] text-xs underline underline-offset-2 active:opacity-60">看全部作品</button>
           </div>
           <div className="flex gap-3.5 overflow-x-auto px-4 sm:px-0 pb-2" style={{ scrollbarWidth: "none" }}>
@@ -160,7 +160,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
               <button
                 key={t.name}
                 onClick={() => onSelectTag(t.name)}
-                className="shrink-0 w-[72px] flex flex-col items-center gap-1.5 active:translate-y-0.5 transition-transform"
+                className="shrink-0 w-[72px] flex flex-col items-center gap-1.5 active:opacity-60 transition-transform"
               >
                 <span className="relative w-[68px] h-[68px] rounded-full overflow-hidden bg-white shadow-[0_4px_12px_rgba(0,0,0,0.18)] flex items-center justify-center">
                   {t.logo
@@ -178,7 +178,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
             {/* 最後一顆：看全部作品 */}
             <button
               onClick={() => onSelectTag("")}
-              className="shrink-0 w-[72px] flex flex-col items-center gap-1.5 active:translate-y-0.5 transition-transform"
+              className="shrink-0 w-[72px] flex flex-col items-center gap-1.5 active:opacity-60 transition-transform"
             >
               <span className="w-[68px] h-[68px] rounded-full bg-white/15 border-2 border-dashed border-white/60 flex items-center justify-center">
                 <ChevronRight className="w-7 h-7 text-white stroke-[3px]" />

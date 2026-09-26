@@ -248,7 +248,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
     return (
       <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto flex items-center justify-center">
         <div className="w-full max-w-lg mx-auto px-6 py-12 flex flex-col items-center text-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-white border-[3px] border-black shadow-[4px_4px_0px_#000] flex items-center justify-center text-[#3ac0bf]">
+          <div className="w-20 h-20 rounded-full bg-white border border-black flex items-center justify-center text-[#3ac0bf]">
             <CheckCircle2 className="w-11 h-11 stroke-[2.5px]" />
           </div>
           <h2 className="text-2xl font-[900] text-[#4c59a1]">填單已送出！</h2>
@@ -264,7 +264,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
             <span>結單後收到訂購付款通知才查得到訂單！請記得去貼文留言「已填單」！</span>
           </div>
           <div className="flex gap-3 mt-2">
-            <button onClick={() => onPreview?.(nick.trim())} className="bg-white border-[3px] border-black text-[#4c59a1] font-[900] px-5 py-3 rounded-full shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition flex items-center gap-2">
+            <button onClick={() => onPreview?.(nick.trim())} className="bg-white border border-black text-[#4c59a1] font-[900] px-5 py-3 rounded-full active:opacity-60 active:transition flex items-center gap-2">
               <Search className="w-4 h-4 stroke-[3px]" /> 填單明細查詢
             </button>
             <button onClick={onGoQuery ?? onBack} className="bg-[#3ac0bf] text-white font-[900] px-7 py-3 rounded-full active:scale-95 transition">回到首頁</button>
@@ -349,7 +349,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
         </div>
 
         {team.note && (
-          <div className="bg-white rounded-2xl px-5 py-4 mb-4 shadow-[0_4px_0px_rgba(0,0,0,0.10)]">
+          <div className="bg-white rounded-2xl px-5 py-4 mb-4">
             <div className="flex items-center gap-2 text-[#3ac0bf] font-[900] text-sm mb-1.5">
               <Info className="w-4 h-4 stroke-[3px]" /> 團務備註・二補標準
             </div>
@@ -435,7 +435,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                 <button
                   key={val}
                   onClick={() => setActiveCat(val)}
-                  className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
+                  className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-[900] border border-black active:opacity-60 transition-all ${
                     on ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
                   }`}
                 >
@@ -498,7 +498,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                   key={m}
                   type="button"
                   onClick={() => setPay(m)}
-                  className={`py-3.5 rounded-2xl font-[900] border-2 transition active:scale-95 ${pay === m ? "bg-[#3ac0bf] text-white border-[#3ac0bf] shadow-[0_4px_0px_rgba(0,0,0,0.15)]" : "bg-white text-[#4c59a1] border-[#4c59a1]/15"}`}
+                  className={`py-3.5 rounded-2xl font-[900] border-2 transition active:scale-95 ${pay === m ? "bg-[#3ac0bf] text-white border-[#3ac0bf]" : "bg-white text-[#4c59a1] border-[#4c59a1]/15"}`}
                 >
                   {m}
                 </button>
@@ -512,8 +512,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           <div className="flex items-center justify-between gap-3 mt-6 pt-4 border-t-2 border-[#4c59a1]/15">
             <span className="font-[900] text-[#4c59a1]">已選 {count} 件　約 ${total}</span>
             <div className="flex gap-2">
-              <button onClick={clearAll} className="bg-gray-300 text-white font-[900] px-4 py-2.5 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all">清空</button>
-              <button onClick={openConfirm} className="bg-[#3ac0bf] text-white font-[900] px-5 py-2.5 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none transition-all">送出填單</button>
+              <button onClick={clearAll} className="bg-gray-300 text-white font-[900] px-4 py-2.5 rounded-full active:opacity-60 transition-all">清空</button>
+              <button onClick={openConfirm} className="bg-[#3ac0bf] text-white font-[900] px-5 py-2.5 rounded-full active:opacity-60 transition-all">送出填單</button>
             </div>
           </div>
         ) : (
@@ -524,7 +524,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       {/* 外面來的人送出前的一道門：先登入，再確認是官方帳號好友（商品本身完全公開，不擋看） */}
       {showLineGate && (
         <div className="fixed inset-0 z-[105] bg-black/40 flex items-end sm:items-center justify-center p-3">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 border-[3px] border-black shadow-[6px_6px_0px_#000]">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 border border-black">
             <div className="w-14 h-14 rounded-full bg-[#3ac0bf] flex items-center justify-center mx-auto mb-3">
               <UserCheck className="w-8 h-8 stroke-[2.5px] text-white" />
             </div>
@@ -536,7 +536,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                 </div>
                 <button
                   onClick={loginWithLine}
-                  className="block w-full text-center bg-[#3ac0bf] text-white font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition mb-2.5"
+                  className="block w-full text-center bg-[#3ac0bf] text-white font-[900] py-3.5 rounded-full border border-black active:opacity-60 active:transition mb-2.5"
                 >
                   用 LINE 登入
                 </button>
@@ -551,7 +551,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                   href={APP_CONFIG.LINE_URL}
                   target="_blank"
                   rel="noreferrer"
-                  className="block w-full text-center bg-[#3ac0bf] text-white font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition mb-2.5"
+                  className="block w-full text-center bg-[#3ac0bf] text-white font-[900] py-3.5 rounded-full border border-black active:opacity-60 active:transition mb-2.5"
                 >
                   加入官方帳號
                 </a>
@@ -564,7 +564,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                     setIsFriend(f);
                     if (f !== false) { setShowLineGate(false); openConfirm(); }   // 加好了就直接接回送出流程
                   }}
-                  className="w-full bg-white text-[#4c59a1] font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition disabled:opacity-50"
+                  className="w-full bg-white text-[#4c59a1] font-[900] py-3.5 rounded-full border border-black active:opacity-60 active:transition disabled:opacity-50"
                 >
                   {friendRechecking ? "確認中…" : "我加好了，重新確認"}
                 </button>
@@ -583,7 +583,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       {/* 暱稱尚未綁定：擋在送出前，但留一條「我確定有綁定」的路（客人改過 LINE 暱稱時不會被鎖死） */}
       {showUnbound && (
         <div className="fixed inset-0 z-[105] bg-black/40 flex items-end sm:items-center justify-center p-3">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 border-[3px] border-black shadow-[6px_6px_0px_#000]">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 border border-black">
             <div className="w-14 h-14 rounded-full bg-[#f43f5e] flex items-center justify-center mx-auto mb-3">
               <UserX className="w-8 h-8 stroke-[2.5px] text-white" />
             </div>
@@ -595,13 +595,13 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
               href={APP_CONFIG.LINE_URL}
               target="_blank"
               rel="noreferrer"
-              className="block w-full text-center bg-[#3ac0bf] text-white font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition mb-2.5"
+              className="block w-full text-center bg-[#3ac0bf] text-white font-[900] py-3.5 rounded-full border border-black active:opacity-60 active:transition mb-2.5"
             >
               先去綁定
             </a>
             <button
               onClick={() => { setShowUnbound(false); setTimeout(() => nickRef.current?.focus(), 50); }}
-              className="w-full bg-white text-[#4c59a1] font-[900] py-3.5 rounded-full border-[3px] border-black shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-[2px_2px_0px_#000] transition"
+              className="w-full bg-white text-[#4c59a1] font-[900] py-3.5 rounded-full border border-black active:opacity-60 active:transition"
             >
               重新填寫暱稱
             </button>

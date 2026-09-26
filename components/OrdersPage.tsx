@@ -30,7 +30,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
 
       {/* 查單：跟原本同一個搜尋，只是換了地方 */}
       <div className="w-full max-w-md px-4">
-        <div className="bg-white rounded-full p-2 flex items-center gap-2 shadow-[6px_6px_0px_#000] border-[3px] border-black transition-transform focus-within:-translate-y-1">
+        <div className="bg-white rounded-full p-2 flex items-center gap-2 border border-black transition-transform focus-within:-translate-y-1">
           <div className="relative flex-1 flex items-center pl-1">
             <Search className="absolute left-4 text-[#f8a3f4] w-6 h-6 stroke-[3px]" />
             <input
@@ -42,7 +42,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
               onKeyDown={(e) => { if (e.key === "Enter" && !(e.nativeEvent as any).isComposing) onSearch(); }}
             />
           </div>
-          <button onClick={onSearch} aria-label="查詢" className="bg-[#f8a3f4] text-white w-12 h-12 rounded-full border-[3px] border-black flex items-center justify-center shrink-0 active:scale-90 transition-transform">
+          <button onClick={onSearch} aria-label="查詢" className="bg-[#f8a3f4] text-white w-12 h-12 rounded-full border border-black flex items-center justify-center shrink-0 active:scale-90 transition-transform">
             <ArrowRight className="stroke-[3px]" />
           </button>
         </div>
@@ -50,7 +50,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
 
         {/* 綁定狀態：客人常常不知道自己綁沒綁，填單填到一半才發現 */}
         {boundNick ? (
-          <div className="mt-4 bg-white rounded-2xl px-4 py-3 flex items-center gap-2.5 shadow-[0_4px_0px_rgba(0,0,0,0.15)]">
+          <div className="mt-4 bg-white rounded-2xl px-4 py-3 flex items-center gap-2.5">
             <CheckCircle2 className="w-5 h-5 stroke-[3px] text-[#3ac0bf] shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="font-[900] text-[#4c59a1] text-sm truncate">已綁定：{boundNick}</div>
@@ -69,7 +69,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
 
       {/* 購物說明與聯絡方式：原本藏在 MENU 裡，客人幾乎找不到 */}
       <div className="w-full max-w-md px-4 mt-7">
-        <div className="bg-white rounded-3xl overflow-hidden shadow-[0_4px_0px_rgba(0,0,0,0.15)]">
+        <div className="bg-white rounded-3xl overflow-hidden">
           <div className="px-5 pt-4 pb-2 font-[900] text-[13px] tracking-widest text-[#4c59a1]/55">購物說明</div>
           <button onClick={onGuide} className={`w-full ${row}`}>
             <BookOpen className="w-5 h-5 stroke-[2.6px] opacity-70" />購物流程

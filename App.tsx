@@ -659,7 +659,7 @@ const App: React.FC = () => {
                       </div>
                       <button
                         onClick={goOrders}
-                        className="ml-auto shrink-0 flex items-center gap-1.5 bg-white text-[#4c59a1] font-[900] text-sm px-4 py-2.5 rounded-full border-[3px] border-black shadow-[3px_3px_0px_#000] active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all"
+                        className="ml-auto shrink-0 flex items-center gap-1.5 bg-white text-[#4c59a1] font-[900] text-sm px-4 py-2.5 rounded-full border border-black active:opacity-60 active:transition-all"
                       >
                         <User className="w-4 h-4 stroke-[3px]" />我的訂單
                       </button>
@@ -668,7 +668,7 @@ const App: React.FC = () => {
                     {/* 查單已經搬到「我的訂單」頁（/orders），首頁不再內嵌 */}
                     <div className="hidden">
                       <div className="w-full max-w-md px-4">
-                        <div className="bg-[#ffffff] rounded-full p-2 flex items-center gap-2 shadow-[6px_6px_0px_#000] border-[3px] border-black mb-3 transition-transform focus-within:-translate-y-1">
+                        <div className="bg-[#ffffff] rounded-full p-2 flex items-center gap-2 border border-black mb-3 transition-transform focus-within:-translate-y-1">
                           <div className="relative flex-1 flex items-center pl-1">
                             <Search className="absolute left-4 text-[#f8a3f4] w-6 h-6 stroke-[3px]" />
                             <input
@@ -678,7 +678,7 @@ const App: React.FC = () => {
                               onKeyDown={(e) => { if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing) { handleSearch(); } }}
                             />
                           </div>
-                          <button onClick={() => handleSearch()} className="bg-[#f8a3f4] text-white w-12 h-12 rounded-full border-[3px] border-black flex items-center justify-center shrink-0 active:scale-90 transition-transform">
+                          <button onClick={() => handleSearch()} className="bg-[#f8a3f4] text-white w-12 h-12 rounded-full border border-black flex items-center justify-center shrink-0 active:scale-90 transition-transform">
                             <ArrowRight className="stroke-[3px]" />
                           </button>
                         </div>
@@ -705,7 +705,7 @@ const App: React.FC = () => {
                     <div className="w-full max-w-lg">
                         {/* 窄條標題：紅膠囊（可點，進 #/closing 明日結單頁）＋滑動提示 */}
                         <div className="flex items-center gap-2.5 px-4 md:px-1 mb-3">
-                          <button onClick={goClosing} className="bg-[#f43f5e] text-white font-[900] text-sm pl-3.5 pr-2.5 py-1.5 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_3px_0px_rgba(0,0,0,0.25)] active:translate-y-0.5 active:shadow-none transition-all">
+                          <button onClick={goClosing} className="bg-[#f43f5e] text-white font-[900] text-sm pl-3.5 pr-2.5 py-1.5 rounded-full flex items-center gap-1.5 shrink-0 active:opacity-60 transition-all">
                             <AlarmClock className="w-4 h-4 stroke-[3px]" />
                             即將結單
                             <ChevronRight className="w-4 h-4 stroke-[3px]" />
@@ -714,11 +714,11 @@ const App: React.FC = () => {
                         </div>
                         {teamsLoading ? (
                           <div className="px-4 md:px-1">
-                            <div className="bg-white rounded-2xl px-5 py-4 shadow-[0_4px_0px_rgba(0,0,0,0.15)] text-[#4c59a1]/60 font-[900] text-sm text-center">載入中…</div>
+                            <div className="bg-white rounded-2xl px-5 py-4 text-[#4c59a1]/60 font-[900] text-sm text-center">載入中…</div>
                           </div>
                         ) : closingTeams.length === 0 ? (
                           <div className="px-4 md:px-1">
-                            <div className="bg-white rounded-2xl px-5 py-4 shadow-[0_4px_0px_rgba(0,0,0,0.15)] text-[#4c59a1]/70 font-[900] text-sm text-center">明日沒有結單的團</div>
+                            <div className="bg-white rounded-2xl px-5 py-4 text-[#4c59a1]/70 font-[900] text-sm text-center">明日沒有結單的團</div>
                           </div>
                         ) : (
                         <div className="flex gap-3 overflow-x-auto pb-3 px-4 md:px-1 snap-x" style={{ scrollbarWidth: 'none' }}>
@@ -728,7 +728,7 @@ const App: React.FC = () => {
                               <button
                                 key={team.code}
                                 onClick={() => goOrderTeam(team.code)}
-                                className="snap-start shrink-0 w-36 bg-white rounded-2xl overflow-hidden text-left shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all"
+                                className="snap-start shrink-0 w-36 bg-white rounded-2xl overflow-hidden text-left active:opacity-60 transition-all"
                               >
                                 <div className="w-full h-28 bg-[#eef0fa] relative">
                                   {img ? (
@@ -779,27 +779,27 @@ const App: React.FC = () => {
                     <div id="sns-section" className="w-full max-w-lg bg-[#3ac0bf] rounded-[40px] px-6 py-10 flex flex-col items-center">
                       <h2 className="text-[#fff170] font-[900] text-4xl mb-8 tracking-widest">SNS</h2>
                       <div className="w-full space-y-4">
-                        <a href={APP_CONFIG.LINE_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all hover:bg-gray-50">
+                        <a href={APP_CONFIG.LINE_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full active:opacity-60 transition-all hover:bg-gray-50">
                           <div className="flex items-center gap-3"><MessageCircle className="w-6 h-6 stroke-[2.5px] text-[#06C755]" /> 加官方賴好友</div>
                           <ExternalLink className="w-5 h-5 opacity-40" />
                         </a>
-                        <a href={APP_CONFIG.LINE_COMMUNITY_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all hover:bg-gray-50">
+                        <a href={APP_CONFIG.LINE_COMMUNITY_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full active:opacity-60 transition-all hover:bg-gray-50">
                           <div className="flex items-center gap-3"><Star className="w-6 h-6 stroke-[2.5px] text-blue-500" /> LINE購物社群</div>
                           <ExternalLink className="w-5 h-5 opacity-40" />
                         </a>
-                        <a href={APP_CONFIG.INSTAGRAM_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all hover:bg-gray-50">
+                        <a href={APP_CONFIG.INSTAGRAM_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full active:opacity-60 transition-all hover:bg-gray-50">
                           <div className="flex items-center gap-3"><Instagram className="w-6 h-6 stroke-[2.5px] text-[#E1306C]" /> Official Instagram</div>
                           <ExternalLink className="w-5 h-5 opacity-40" />
                         </a>
-                        <a href={APP_CONFIG.THREADS_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all hover:bg-gray-50">
+                        <a href={APP_CONFIG.THREADS_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full active:opacity-60 transition-all hover:bg-gray-50">
                           <div className="flex items-center gap-3"><Hash className="w-6 h-6 stroke-[2.5px]" /> Official Threads</div>
                           <ExternalLink className="w-5 h-5 opacity-40" />
                         </a>
-                        <a href={APP_CONFIG.MAIHUOBIAN_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all hover:bg-gray-50">
+                        <a href={APP_CONFIG.MAIHUOBIAN_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full active:opacity-60 transition-all hover:bg-gray-50">
                           <div className="flex items-center gap-3"><ShoppingBag className="w-6 h-6 stroke-[2.5px] text-orange-500" /> 預購下單賣場</div>
                           <ExternalLink className="w-5 h-5 opacity-40" />
                         </a>
-                        <a href={APP_CONFIG.MAIHUOBIAN_STOCK_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all hover:bg-gray-50">
+                        <a href={APP_CONFIG.MAIHUOBIAN_STOCK_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full active:opacity-60 transition-all hover:bg-gray-50">
                           <div className="flex items-center gap-3"><Box className="w-6 h-6 stroke-[2.5px] text-red-500" /> 現貨賣場</div>
                           <ExternalLink className="w-5 h-5 opacity-40" />
                         </a>
@@ -819,11 +819,11 @@ const App: React.FC = () => {
                   <div className="w-full flex flex-col items-center px-2 mb-6 space-y-5">
 
                     {/* 🎯 1. 頂部暱稱藥丸與返回按鈕 (顯示客人暱稱) */}
-                    <div className="w-full max-w-md bg-white rounded-full p-2 pl-6 flex items-center justify-between shadow-[4px_4px_0px_#000] border-[3px] border-black">
+                    <div className="w-full max-w-md bg-white rounded-full p-2 pl-6 flex items-center justify-between border border-black">
                       <h1 className="text-[#3ac0bf] font-[900] text-2xl tracking-widest truncate flex-1 mr-4">
                         {searchQuery || 'Guest'}
                       </h1>
-                      <button onClick={() => setHasSearched(false)} className="bg-[#f8a3f4] text-white w-10 h-10 rounded-full border-2 border-black flex items-center justify-center active:translate-y-1 transition-all hover:bg-[#eb92e7] shrink-0 shadow-[2px_2px_0px_#000]">
+                      <button onClick={() => setHasSearched(false)} className="bg-[#f8a3f4] text-white w-10 h-10 rounded-full border-2 border-black flex items-center justify-center active:opacity-60 transition-all hover:bg-[#eb92e7] shrink-0">
                         <X className="stroke-[3px]" />
                       </button>
                     </div>
@@ -846,7 +846,7 @@ const App: React.FC = () => {
                             if (tab.id !== 'all') { setCargoFilters([]); setDeliveryFilter(null); }
                           }}
                           className={`px-4 py-2 rounded-full font-[900] whitespace-nowrap transition-all border-2 text-[13px] tracking-widest ${activeTab === tab.id
-                            ? 'bg-[#3ac0bf] border-[#3ac0bf] text-white shadow-[0_2px_0px_rgba(0,0,0,0.2)]'
+                            ? 'bg-[#3ac0bf] border-[#3ac0bf] text-white'
                             : 'bg-transparent border-[#3ac0bf] text-[#3ac0bf] hover:bg-[#3ac0bf]/10'
                             }`}
                         >
@@ -910,7 +910,7 @@ const App: React.FC = () => {
                     {/* 🎯 3. 剛剛被妳罵我弄丟的：貨況與出貨篩選面板 (智商上線精緻版) */}
                     {/* 套用：白底、黑粗框、立體陰影、圓角藥丸樣式，完美搭配米色底色！ */}
                     {activeTab === 'all' && (
-                      <div className="w-full max-w-md bg-white border-2 border-black rounded-[30px] p-6 mb-8 shadow-[4px_4px_0px_#000]">
+                      <div className="w-full max-w-md bg-white border-2 border-black rounded-[30px] p-6 mb-8">
 
                         {/* 貨況篩選：使用粉紫色標題 */}
                         <div className="mb-6">
@@ -927,7 +927,7 @@ const App: React.FC = () => {
                                   // 🎯 圓角藥丸、撞色風格 (選中是粉色solid，未選是米色+黑框)
                                   className={`px-4 py-2 rounded-full text-xs font-[900] tracking-widest border-2 border-black transition-all flex items-center gap-2 active:scale-95 ${isSelected
                                     ? 'bg-[#f8a3f4] text-white shadow-none'
-                                    : 'bg-[#fdfbf0] text-black shadow-[3px_3px_0px_#000] hover:-translate-y-1'
+                                    : 'bg-[#fdfbf0] text-black hover:-translate-y-1'
                                     }`}
                                 >
                                   {isSelected ? <CheckSquare size={16} strokeWidth={3} /> : <Square size={16} strokeWidth={3} />}
@@ -953,7 +953,7 @@ const App: React.FC = () => {
                                   // 🎯 圓角藥丸、撞色風格 (選中是薄荷綠solid，未選是米色+黑框)
                                   className={`px-4 py-2 rounded-full text-xs font-[900] tracking-widest border-2 border-black transition-all flex items-center gap-2 active:scale-95 ${isSelected
                                     ? 'bg-[#3ac0bf] text-white shadow-none'
-                                    : 'bg-[#fdfbf0] text-black shadow-[3px_3px_0px_#000] hover:-translate-y-1'
+                                    : 'bg-[#fdfbf0] text-black hover:-translate-y-1'
                                     }`}
                                 >
                                   {isSelected ? <CheckCircle2 size={16} strokeWidth={3} /> : <Circle size={16} strokeWidth={3} />}
@@ -980,7 +980,7 @@ const App: React.FC = () => {
                             <div
                               key={key}
                               onClick={() => setOpenSub(open ? null : key)}
-                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden ${open ? '-translate-y-1 shadow-[6px_6px_0px_#3ac0bf] border-[#3ac0bf]' : 'shadow-[4px_4px_0px_#000] hover:-translate-y-1 hover:shadow-[6px_6px_0px_#000] active:translate-y-0 active:shadow-[2px_2px_0px_#000]'}`}
+                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden ${open ? '-translate-y-1 border-[#3ac0bf]' : 'hover:-translate-y-1 hover:active:translate-y-0 active:'}`}
                             >
                               <div className="flex flex-wrap gap-2 mb-3">
                                 <span className="bg-[#f8a3f4] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未結單</span>
@@ -1016,7 +1016,7 @@ const App: React.FC = () => {
                                   </p>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); goOrderTeam(sub.team); }}
-                                    className="mt-3 w-full bg-[#3ac0bf] text-white font-[900] py-3 rounded-full border-[2.5px] border-black shadow-[3px_3px_0px_#000] active:translate-y-0.5 active:shadow-[1px_1px_0px_#000] transition-all"
+                                    className="mt-3 w-full bg-[#3ac0bf] text-white font-[900] py-3 rounded-full border-[2.5px] border-black active:opacity-60 active:transition-all"
                                   >
                                     去這團的填單頁（可以加單）
                                   </button>
@@ -1043,7 +1043,7 @@ const App: React.FC = () => {
                               key={order.id}
                               onClick={() => { setSelectedDetailOrder(order); setIsDetailModalOpen(true); }}
                               // 🎯 白色卡片 (#ffffff) + 細黑邊框
-                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all shadow-[4px_4px_0px_#000] relative overflow-hidden flex items-start gap-4 ${isSelected ? '-translate-y-1 shadow-[6px_6px_0px_#3ac0bf] border-[#3ac0bf]' : 'hover:-translate-y-1 hover:shadow-[6px_6px_0px_#000] active:translate-y-0 active:shadow-[2px_2px_0px_#000]'}`}
+                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden flex items-start gap-4 ${isSelected ? '-translate-y-1 border-[#3ac0bf]' : 'hover:-translate-y-1 hover:active:translate-y-0 active:'}`}
                             >
                               {/* 圓形 Checkbox */}
                               {(activeTab === 'deposit' || activeTab === 'balance') && (
@@ -1179,7 +1179,7 @@ const App: React.FC = () => {
             <button
               onClick={openPaymentModal}
               // 🎯 #0090a7 深薄荷綠按鈕 + 黑邊框與黑陰影
-              className="bg-[#0090a7] text-white py-3 md:py-4 px-6 md:px-8 rounded-full font-[900] text-lg md:text-xl border-2 border-black shadow-[4px_4px_0px_#000] active:translate-y-1 active:shadow-none transition-all flex items-center gap-2"
+              className="bg-[#0090a7] text-white py-3 md:py-4 px-6 md:px-8 rounded-full font-[900] text-lg md:text-xl border-2 border-black active:opacity-60 transition-all flex items-center gap-2"
             >
               {activeTab === 'deposit' ? (
                 <><MessageCircle size={20} className="stroke-[2.5px]" /> 前往付款</>
@@ -1256,10 +1256,10 @@ const App: React.FC = () => {
                 onClick={handleLikeNews}
                 disabled={hasLikedNews}
                 className={`
-                  group flex items-center gap-3 px-8 py-3.5 rounded-full border-[3px] border-black transition-all duration-300
+                  group flex items-center gap-3 px-8 py-3.5 rounded-full border border-black transition-all duration-300
                   ${hasLikedNews
                     ? 'bg-gray-200 text-gray-500 cursor-default shadow-none translate-y-1'
-                    : 'bg-white text-[#4c59a1] hover:bg-gray-50 active:scale-95 shadow-[4px_4px_0px_#000]'}
+                    : 'bg-white text-[#4c59a1] hover:bg-gray-50 active:scale-95'}
                   ${isBouncing ? 'animate-bounce' : ''}
                 `}
               >

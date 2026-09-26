@@ -77,7 +77,7 @@ export const usePullToRefresh = (onRefresh?: () => Promise<any> | any) => {
       style={{ opacity: pull > 4 || busy ? 1 : 0 }}
     >
       <div
-        className={`w-11 h-11 rounded-full bg-white border-[3px] border-black shadow-[2px_2px_0px_#000] flex items-center justify-center ${
+        className={`w-11 h-11 rounded-full bg-white border border-black flex items-center justify-center ${
           busy ? "" : "transition-transform duration-150"
         }`}
         style={{ transform: `translateY(${Math.max(pull - 46, -46)}px)` }}

@@ -67,7 +67,7 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
     <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
       <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-8 relative">
         {/* 作品多，給個搜尋比較快找到 */}
-        <div className="bg-white rounded-full p-2 flex items-center gap-2 shadow-[4px_4px_0px_#000] border-[3px] border-black mb-6">
+        <div className="bg-white rounded-full p-2 flex items-center gap-2 border border-black mb-6">
           <Search className="ml-3 text-[#f8a3f4] w-5 h-5 stroke-[3px] shrink-0" />
           <input
             value={q}
@@ -90,7 +90,7 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
                 <button
                   key={g.key}
                   onClick={() => document.getElementById(`works-${g.key}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-[900] border-[3px] border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all ${
+                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-[900] border border-black active:opacity-60 transition-all ${
                     g.key === "open" ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
                   }`}
                 >
@@ -114,7 +114,7 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
               <button
                 key={w.name}
                 onClick={() => onSelect(w.name)}
-                className="flex flex-col items-center gap-2 active:translate-y-0.5 transition-transform"
+                className="flex flex-col items-center gap-2 active:opacity-60 transition-transform"
               >
                 <span className="relative w-full aspect-square rounded-full overflow-hidden bg-white shadow-[0_4px_12px_rgba(0,0,0,0.18)] flex items-center justify-center">
                   {w.logo

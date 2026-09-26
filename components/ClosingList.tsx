@@ -42,7 +42,7 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
         {!loading && list.length === 0 && (
           <div className="text-center py-10">
             <p className="text-[#4c59a1]/70 font-bold mb-5">今明兩天沒有要結單的團</p>
-            <button onClick={onAll} className="bg-[#3ac0bf] text-white font-[900] px-7 py-3 rounded-full shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all">
+            <button onClick={onAll} className="bg-[#3ac0bf] text-white font-[900] px-7 py-3 rounded-full active:opacity-60 transition-all">
               看全部開團
             </button>
           </div>
@@ -55,7 +55,7 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
               <button
                 key={t.code}
                 onClick={() => onSelect(t.code)}
-                className="w-full text-left bg-white rounded-2xl p-3 flex items-center gap-3.5 shadow-[0_4px_0px_rgba(0,0,0,0.15)] active:translate-y-1 active:shadow-none transition-all"
+                className="w-full text-left bg-white rounded-2xl p-3 flex items-center gap-3.5 active:opacity-60 transition-all"
               >
                 <div className="w-20 h-20 rounded-xl bg-[#eef0fa] overflow-hidden shrink-0 flex items-center justify-center">
                   {img

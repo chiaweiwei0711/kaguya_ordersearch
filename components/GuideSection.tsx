@@ -34,8 +34,8 @@ const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
 
         <ol className="space-y-4">
           {STEPS.map((st, i) => (
-            <li key={i} className="bg-white rounded-[24px] p-5 shadow-[0_6px_0px_rgba(0,0,0,0.10)] flex gap-4">
-              <span className="w-12 h-12 shrink-0 rounded-full bg-[#f8a3f4] text-white font-[900] text-2xl flex items-center justify-center shadow-[inset_0_-4px_0_rgba(0,0,0,0.12)]">{i + 1}</span>
+            <li key={i} className="bg-white rounded-[24px] p-5 flex gap-4">
+              <span className="w-12 h-12 shrink-0 rounded-full bg-[#f8a3f4] text-white font-[900] text-2xl flex items-center justify-center">{i + 1}</span>
               <div className="min-w-0">
                 <div className="text-[#1a1a1a] font-[900] text-lg leading-snug">{st.title}</div>
                 <div className="text-[#4c59a1] font-bold text-sm leading-relaxed mt-1">{st.desc}</div>
@@ -52,7 +52,7 @@ const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
 
         <button
           onClick={onFaq}
-          className="mt-8 w-full flex items-center justify-center gap-2 py-4 rounded-full bg-white text-[#3ac0bf] font-[900] shadow-[0_6px_0px_rgba(0,0,0,0.10)] active:scale-95 transition"
+          className="mt-8 w-full flex items-center justify-center gap-2 py-4 rounded-full bg-white text-[#3ac0bf] font-[900] active:scale-95 transition"
         >
           完整規則與常見問題
           <ArrowRight className="w-5 h-5 stroke-[3px]" />

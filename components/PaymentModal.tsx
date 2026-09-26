@@ -153,7 +153,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
     <div className="fixed inset-0 bg-[#4c59a1]/40 backdrop-blur-sm z-[100] flex flex-col items-center justify-center animate-fade-in p-4 md:p-8">
 
       {/* 🎯 模態框主體：白底、無黑框、柔和陰影 */}
-      <div className="w-full max-w-md bg-white border-[2.5px] border-black rounded-[32px] sm:rounded-[40px] shadow-[6px_6px_0px_#000] overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-md bg-white border-[2.5px] border-black rounded-[32px] sm:rounded-[40px] overflow-hidden flex flex-col max-h-[90vh]">
 
         {/* 🎯 Header (色塊分隔) */}
         <div className="p-6 flex items-center justify-between relative shrink-0">
@@ -192,7 +192,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
                 <div className="space-y-3">
                   {orders.map((order, index) => (
                     // 🎯 色塊膠囊
-                    <div key={index} className="flex justify-between items-center bg-white p-3.5 rounded-xl shadow-[0_4px_0px_rgba(0,0,0,0.10)]">
+                    <div key={index} className="flex justify-between items-center bg-white p-3.5 rounded-xl">
                       <span className="text-black font-[900] text-sm truncate pl-1">{order.groupName}</span>
                       <span className="font-[900] text-base text-[#4c59a1] pr-1">
                         ${(isShipping ? balanceWithFee(order) : order.depositAmount).toLocaleString()}
@@ -202,7 +202,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
                 </div>
               </div>
 
-              <div className="bg-white shadow-[0_4px_0px_rgba(0,0,0,0.10)] rounded-[24px] p-8 text-center">
+              <div className="bg-white rounded-[24px] p-8 text-center">
                 <span className="text-[#3ac0bf] font-[900] text-sm tracking-widest uppercase block mb-2">應付總額</span>
                 <span className="text-5xl font-[900] text-[#4c59a1] tracking-tighter">
                   ${totalAmount.toLocaleString()}
@@ -227,7 +227,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
                 <div>
                   <label className="text-xs text-gray-400 font-[900] tracking-widest block mb-2">選擇匯入銀行</label>
                   <div className="relative">
-                    <select value={selectedBankIdx} onChange={(e) => setSelectedBankIdx(Number(e.target.value))} className="w-full bg-white rounded-xl p-4 text-sm text-black font-[900] outline-none appearance-none cursor-pointer shadow-[0_4px_0px_rgba(0,0,0,0.10)]">
+                    <select value={selectedBankIdx} onChange={(e) => setSelectedBankIdx(Number(e.target.value))} className="w-full bg-white rounded-xl p-4 text-sm text-black font-[900] outline-none appearance-none cursor-pointer">
                       {(paymentMethod === 'transfer' ? transferBanks : cardlessBanks).map((bank, idx) => (
                         <option key={idx} value={idx}>{bank.name} ({bank.code})</option>
                       ))}
@@ -238,11 +238,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
 
                 <div>
                   <label className="text-xs text-gray-400 font-[900] tracking-widest block mb-2">對應匯款帳號</label>
-                  <div className="bg-white rounded-xl p-5 flex flex-col gap-4 shadow-[0_4px_0px_rgba(0,0,0,0.10)]">
+                  <div className="bg-white rounded-xl p-5 flex flex-col gap-4">
                     <div className="text-xl font-[900] text-[#4c59a1] tracking-[0.1em] text-center">
                       {paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].account : cardlessBanks[selectedBankIdx].account}
                     </div>
-                    <button onClick={() => navigator.clipboard.writeText(paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].account : cardlessBanks[selectedBankIdx].account)} className="w-full py-3 bg-gray-100 text-gray-600 font-[900] rounded-full border-[2.5px] border-black shadow-[3px_3px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all flex items-center justify-center gap-2">
+                    <button onClick={() => navigator.clipboard.writeText(paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].account : cardlessBanks[selectedBankIdx].account)} className="w-full py-3 bg-gray-100 text-gray-600 font-[900] rounded-full border-[2.5px] border-black active:translate-x-[3px] active:opacity-60 transition-all flex items-center justify-center gap-2">
                       <Copy strokeWidth={2.5} size={16} /> 複製帳號
                     </button>
                   </div>
@@ -266,10 +266,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
                 {paymentMethod === 'transfer' ? (
                   <div className="space-y-4">
                     <label className="text-xs text-gray-400 font-[900] tracking-widest block text-center">您的匯款帳號【末五碼】</label>
-                    <input type="text" inputMode="numeric" maxLength={5} placeholder="例: 12345" value={last5Digits} onChange={(e) => { setLast5Digits(e.target.value.replace(/\D/g, '')); setDetailCopied(false); }} className="w-full bg-white rounded-xl p-4 text-2xl text-[#4c59a1] font-[900] outline-none tracking-[0.5em] text-center placeholder-gray-200 shadow-[0_4px_0px_rgba(0,0,0,0.10)]" />
+                    <input type="text" inputMode="numeric" maxLength={5} placeholder="例: 12345" value={last5Digits} onChange={(e) => { setLast5Digits(e.target.value.replace(/\D/g, '')); setDetailCopied(false); }} className="w-full bg-white rounded-xl p-4 text-2xl text-[#4c59a1] font-[900] outline-none tracking-[0.5em] text-center placeholder-gray-200" />
                   </div>
                 ) : (
-                  <div className="p-6 bg-white rounded-xl text-center space-y-3 shadow-[0_4px_0px_rgba(0,0,0,0.10)]">
+                  <div className="p-6 bg-white rounded-xl text-center space-y-3">
                     <Sparkles className="w-8 h-8 text-[#f8a3f4] mx-auto" />
                     <p className="text-xs font-[900] text-gray-500 tracking-widest leading-loose">
                       您選擇的是【無卡存款】<br />請拍下存款明細，並點選下方按鈕回傳！
@@ -291,7 +291,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
             className={`w-full py-4 rounded-full font-[900] text-lg tracking-widest transition-all flex items-center justify-center gap-2
               ${(!isShipping && step === 3 && paymentMethod === 'transfer' && last5Digits.length < 5)
                 ? 'opacity-50 bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-[#0090a7] text-white border-[2.5px] border-black shadow-[3px_3px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none'
+                : 'bg-[#0090a7] text-white border-[2.5px] border-black active:translate-x-[3px] active:opacity-60'
               }`}
           >
             {isCopied ? <CheckCircle className="w-5 h-5 animate-bounce" strokeWidth={2.5} /> : <ArrowRight className="w-5 h-5 stroke-[2.5px]" />}

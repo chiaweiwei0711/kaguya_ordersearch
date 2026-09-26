@@ -75,7 +75,7 @@ const AboutSection: React.FC<Props> = ({ onBack }) => {
           <div className="inline-block bg-[#fff170] text-[#4c59a1] font-[900] text-sm px-4 py-1.5 rounded-full mb-4">為什麼選 KAGUYA</div>
           <div className="space-y-3">
             {ADVANTAGES.map((a, i) => (
-              <div key={i} className="bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_#000] px-4 py-3.5 flex gap-3">
+              <div key={i} className="bg-white border border-black rounded-2xl px-4 py-3.5 flex gap-3">
                 <span className="shrink-0 w-8 h-8 rounded-full bg-[#fff170] border-2 border-black text-[#4c59a1] font-[900] text-sm flex items-center justify-center">
                   {i + 1}
                 </span>

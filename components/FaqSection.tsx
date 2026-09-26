@@ -83,7 +83,7 @@ const FaqSection: React.FC<Props> = ({ onBack, onGuide }) => {
           <p className="text-white font-[900] text-sm tracking-[0.4em] mt-2">常見問題</p>
         </div>
 
-        <button onClick={onGuide} className="w-full mb-6 flex items-center justify-between gap-3 px-6 py-4 rounded-[24px] bg-white text-[#1a1a1a] font-[900] shadow-[0_6px_0px_rgba(0,0,0,0.10)] active:scale-[0.99] transition text-left">
+        <button onClick={onGuide} className="w-full mb-6 flex items-center justify-between gap-3 px-6 py-4 rounded-[24px] bg-white text-[#1a1a1a] font-[900] active:scale-[0.99] transition text-left">
           <span>第一次跟團？先看購物流程</span>
           <ArrowRight className="w-5 h-5 shrink-0 stroke-[3px] text-[#f8a3f4]" />
         </button>

@@ -121,7 +121,7 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
         <label htmlFor="lookup-nick" className="block text-[#4c59a1] font-[900] text-sm mb-2 tracking-widest">
           輸入您的社群暱稱
         </label>
-        <div className="bg-white rounded-full p-1.5 flex items-center gap-2 shadow-[4px_4px_0px_#000] border-[3px] border-black">
+        <div className="bg-white rounded-full p-1.5 flex items-center gap-2 border border-black">
           <Search className="ml-3 text-[#f8a3f4] w-6 h-6 stroke-[3px] shrink-0" />
           <input
             id="lookup-nick"
@@ -132,12 +132,12 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
             className="w-full px-1 py-2.5 bg-transparent outline-none text-base font-[900] text-[#222] placeholder-gray-400"
             onKeyDown={(e) => { if (e.key === "Enter" && !(e.nativeEvent as any).isComposing) doSearch(); }}
           />
-          <button onClick={() => doSearch()} disabled={!nick.trim() || loading} aria-label="查詢" className="bg-[#f8a3f4] text-white w-11 h-11 rounded-full border-[3px] border-black flex items-center justify-center shrink-0 active:scale-90 transition disabled:opacity-40">
+          <button onClick={() => doSearch()} disabled={!nick.trim() || loading} aria-label="查詢" className="bg-[#f8a3f4] text-white w-11 h-11 rounded-full border border-black flex items-center justify-center shrink-0 active:scale-90 transition disabled:opacity-40">
             <ArrowRight className="stroke-[3px]" />
           </button>
         </div>
         {/* 小提醒：整段太長，用框框收起來比一整片紅字好讀 */}
-        <div className="mt-4 bg-white border-[3px] border-black rounded-2xl shadow-[3px_3px_0px_#000] px-4 pt-3 pb-3.5">
+        <div className="mt-4 bg-white border border-black rounded-2xl px-4 pt-3 pb-3.5">
           <span className="inline-block bg-[#fff170] text-[#4c59a1] text-[12px] font-[900] px-3 py-0.5 rounded-full mb-2">小提醒</span>
           <p className="text-[#4c59a1] text-[13px] font-bold leading-relaxed">
             本頁可預覽<b className="text-[#f43f5e]">尚未結單</b>與<b className="text-[#f43f5e]">已結單尚未訂購完成</b>的填單；尚未結單的訂單如需修改請洽官賴。
@@ -164,7 +164,7 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
           <div className="mt-6 animate-fade-in">
             {error ? (
               <div className="flex flex-col items-center text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-white border-[3px] border-black shadow-[4px_4px_0px_#000] flex items-center justify-center text-[#f43f5e] mb-4">
+                <div className="w-16 h-16 rounded-full bg-white border border-black flex items-center justify-center text-[#f43f5e] mb-4">
                   <SearchX className="w-8 h-8 stroke-[2.5px]" />
                 </div>
                 <div className="text-[#4c59a1] font-[900] text-lg">查詢失敗，請稍後再試</div>
@@ -173,7 +173,7 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
               </div>
             ) : total === 0 ? (
               <div className="flex flex-col items-center text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-white border-[3px] border-black shadow-[4px_4px_0px_#000] flex items-center justify-center text-[#4c59a1] mb-4">
+                <div className="w-16 h-16 rounded-full bg-white border border-black flex items-center justify-center text-[#4c59a1] mb-4">
                   <SearchX className="w-8 h-8 stroke-[2.5px]" />
                 </div>
                 <div className="text-[#4c59a1] font-[900] text-lg">查無填單預覽紀錄</div>
