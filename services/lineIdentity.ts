@@ -10,10 +10,20 @@
 import liff from "@line/liff";
 import { fetchNicknameByLineId } from "./googleSheetService";
 
-// 正式 LIFF。要在本機或臨時網址測登入時，建一個「開發用 LIFF」把它的 Endpoint 指到那個網址，
-// 然後在 .env.local 寫 VITE_LIFF_ID=<開發用 LIFF ID> 就好——不要去改正式 LIFF 的 Endpoint，
-// 那會讓線上客人的登入跳到開發網址。
-export const LIFF_ID = (import.meta as any).env?.VITE_LIFF_ID || "2009367290-DGz77pHN";
+// LIFF 一個 app 只能綁一個 Endpoint，而 LINE 會拿網址去比對——網址對不上就直接 400。
+// 所以正式站與測試站必須是兩個不同的 LIFF app。
+// 這裡用「網域」在執行時決定用哪一個：同一份 build 上正式站用正式 LIFF、
+// 上 netlify.app 預覽站用開發 LIFF。不能用 build 時的環境變數，因為預覽與正式是同一次 build。
+const PROD_LIFF_ID = "2009367290-DGz77pHN";
+const DEV_LIFF_ID = (import.meta as any).env?.VITE_LIFF_ID || "";   // 開發用 LIFF（Endpoint 指到 main--kaguyagoods-order-search.netlify.app）
+
+export const LIFF_ID = (() => {
+  try {
+    const h = window.location.hostname;
+    if (h.endsWith(".netlify.app") && DEV_LIFF_ID) return DEV_LIFF_ID;
+  } catch (_) {}
+  return PROD_LIFF_ID;
+})();
 
 export type LineStatus = "ready" | "can-login" | "unavailable";
 

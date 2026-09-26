@@ -14,7 +14,13 @@ interface Props {
 // 這些規則現在只寫在社群的規則文裡，網站上完全沒有。
 const ToTop: React.FC = () => (
   <button
-    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    onClick={(e) => {
+      // 覆蓋層頁面（購物車、常見問題…）捲動的是自己的 overflow-y-auto 容器，
+      // window.scrollTo 對它沒有作用 → 先找最近的可捲動祖先
+      const sc = (e.currentTarget as HTMLElement).closest(".overflow-y-auto") as HTMLElement | null;
+      if (sc) sc.scrollTo({ top: 0, behavior: "smooth" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+    }}
     className="w-full flex items-center justify-center gap-1.5 py-3 font-[900] text-[12.5px] text-[#283d3e]/60 active:opacity-60 transition"
   >
     <ArrowUp className="w-4 h-4 stroke-[3px]" />回到最上面
