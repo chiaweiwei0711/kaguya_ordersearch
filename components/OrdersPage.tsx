@@ -51,8 +51,12 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
           <div className="bg-white rounded-3xl px-5 py-6 text-center">
             <LogIn className="w-9 h-9 mx-auto text-[#49d5df] stroke-[2px]" />
             <p className="font-[900] text-[16px] mt-3">用 LINE 登入查看你的訂單</p>
+            {/* 會看到這張卡的人就是不在 LINE 裡的人 —— 只對他說話，不要解釋別人的情況 */}
             <p className="font-bold text-[13px] text-[#283d3e]/55 mt-2 leading-relaxed">
-              訂單裡有你的品項與金額，所以要先確認是你本人。從官賴或社群點進來的話會自動登入，不用按這裡。
+              訂單裡有你買了什麼、要付多少錢，所以要先確認是你本人。
+            </p>
+            <p className="font-bold text-[12.5px] text-[#283d3e]/45 mt-1.5 leading-relaxed">
+              登入後就不用再打暱稱，下次自動認出你。
             </p>
             <button onClick={onLogin} className="mt-5 w-full h-12 rounded-full bg-[#06C755] text-white font-[900] text-[15px] active:opacity-60 transition">
               用 LINE 登入

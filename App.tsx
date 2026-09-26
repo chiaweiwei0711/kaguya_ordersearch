@@ -899,8 +899,8 @@ const App: React.FC = () => {
                     )}
                   </div>
 
-                  {/* --- 🎯 下半部：米色大圓弧畫布 (#fdfbf0) --- */}
-                  <div className="w-full bg-[#fdfbf0] rounded-t-[40px] flex-1 flex flex-col items-center pt-8 px-4 sm:px-8 shadow-[0_-10px_20px_rgba(0,0,0,0.1)]">
+                  {/* 內容區：底色跟全站一致，不再另外一塊米黃 */}
+                  <div className="w-full flex-1 flex flex-col items-center pt-2 px-4">
                     {/* 🎯 排序、全選與數量統計 */}
                     {filteredOrders.length > 0 && (
                       <div className="w-full max-w-md flex justify-between items-center mb-6 px-1">
@@ -910,27 +910,27 @@ const App: React.FC = () => {
                           <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value as any)}
-                            className="pl-4 pr-8 py-1.5 bg-transparent border-[2.5px] border-[#49d5df] text-[#49d5df] rounded-full text-sm font-[900] outline-none appearance-none cursor-pointer"
+                            className="pl-4 pr-8 py-2 bg-white border border-black/10 text-[#283d3e] rounded-full text-[13px] font-[900] outline-none appearance-none cursor-pointer"
                           >
                             <option value="default">預設排序(依時間)</option>
                             <option value="price_desc">金額：由高至低</option>
                             <option value="price_asc">金額：由低至高</option>
                             <option value="strokes">團名：依筆畫</option>
                           </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#49d5df] font-[900] text-xs">▼</div>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#283d3e]/40 font-[900] text-[10px]">▼</div>
                         </div>
 
                         {/* 右側：智慧切換全選或數量 */}
                         {(activeTab === 'deposit' || activeTab === 'balance') ? (
                           <button
                             onClick={handleSelectAll}
-                            className="flex items-center gap-2 text-sm font-[900] text-[#49d5df] bg-transparent border-[2.5px] border-dashed border-[#49d5df] px-4 py-1.5 rounded-full hover:bg-[#49d5df]/10 active:scale-95 transition-all"
+                            className="flex items-center gap-2 text-[13px] font-[900] text-[#283d3e] bg-white border border-black/10 px-4 py-2 rounded-full active:opacity-60 transition"
                           >
                             {filteredOrders.every(o => selectedOrderIds.has(o.id)) ? <CheckSquare size={16} strokeWidth={3} /> : <Square size={16} strokeWidth={3} />}
                             全選本頁 ({selectedOrderIds.size})
                           </button>
                         ) : (
-                          <span className="text-[#49d5df] font-[900] tracking-widest text-sm md:text-base pr-1">
+                          <span className="text-[#283d3e]/55 font-[900] tracking-widest text-[13px] pr-1">
                             共 {filteredOrders.length} 個訂單
                           </span>
                         )}
@@ -1061,7 +1061,7 @@ const App: React.FC = () => {
                     {/* 🎯 白色的訂單卡片列表 */}
                     <div className={`w-full max-w-md space-y-4 ${activeTab === 'pending' ? 'hidden' : ''}`}>
                       {filteredOrders.length === 0 ? (
-                        <div className="text-center py-20 text-[#283d3e] font-[900] text-lg bg-white rounded-3xl border-2 border-dashed">目前沒有相關訂單</div>
+                        <div className="text-center py-16 text-[#283d3e]/55 font-[900] bg-white rounded-3xl">目前沒有相關訂單</div>
                       ) : (
                         (activeTab === 'completed' || activeTab === 'all'
                           ? filteredOrders.slice(0, visibleLimit)
@@ -1073,13 +1073,13 @@ const App: React.FC = () => {
                               key={order.id}
                               onClick={() => { setSelectedDetailOrder(order); setIsDetailModalOpen(true); }}
                               // 🎯 白色卡片 (#ffffff) + 細黑邊框
-                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden flex items-start gap-4 ${isSelected ? '-translate-y-1 border-[#49d5df]' : 'hover:-translate-y-1 hover:active:translate-y-0 active:'}`}
+                              className={`bg-white rounded-3xl p-5 cursor-pointer transition-all relative overflow-hidden flex items-start gap-4 border ${isSelected ? 'border-[#49d5df] ring-2 ring-[#49d5df]/30' : 'border-black/[0.07] active:opacity-70'}`}
                             >
                               {/* 圓形 Checkbox */}
                               {(activeTab === 'deposit' || activeTab === 'balance') && (
                                 <div
                                   onClick={e => { e.stopPropagation(); toggleOrderSelection(order.id); }}
-                                  className={`w-6 h-6 mt-1.5 rounded-full flex items-center justify-center border-[2.5px] border-black transition-all shrink-0 ${isSelected ? 'bg-black text-white' : 'bg-transparent text-transparent'}`}
+                                  className={`w-6 h-6 mt-1 rounded-full flex items-center justify-center border-2 transition-all shrink-0 ${isSelected ? 'bg-[#49d5df] border-[#49d5df] text-white' : 'bg-white border-[#283d3e]/25 text-transparent'}`}
                                 >
                                   <Check size={14} strokeWidth={4} />
                                 </div>
@@ -1090,15 +1090,13 @@ const App: React.FC = () => {
                                 <div className="flex flex-wrap gap-2 mb-3">
 
                                   {/* 🎯 1 & 2: 已出貨 -> 薄荷綠solid 配白字，無黑框 */}
-                                  {order.isShipped ? (
-                                    <span className="bg-[#49d5df] text-[#283d3e] px-3 py-1.5 rounded-full text-[11px] font-[900]">已出貨</span>
-                                  ) : (
-                                    <span className="bg-[#283d3e] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未出貨</span>
-                                  )}
+                                  <span className={`inline-flex items-center gap-1.5 border border-black/12 bg-white text-[#283d3e] px-2.5 py-1 rounded-full text-[11px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${order.isShipped ? 'before:bg-[#49d5df]' : 'before:bg-[#283d3e]/35'}`}>
+                                    {order.isShipped ? '已出貨' : '尚未出貨'}
+                                  </span>
 
                                   {/* 🎯 2: 白底標籤 (已抵台等) -> 亮黃底 `#f6f9f9` 配黑字，無黑框 */}
                                   {order.shippingStatus && (
-                                    <span className="bg-[#f6f9f9] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">
+                                    <span className="inline-flex items-center gap-1.5 border border-black/12 bg-white text-[#283d3e] px-2.5 py-1 rounded-full text-[11px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-[#e868a0]">
                                       {order.shippingStatus}
                                     </span>
                                   )}
@@ -1117,11 +1115,11 @@ const App: React.FC = () => {
                                   })()}
                                 </div>
 
-                                <h3 className="text-xl font-[900] text-black leading-snug mb-4">{order.groupName}</h3>
+                                <h3 className="text-[16px] font-[900] text-[#283d3e] leading-snug mb-3">{order.groupName}</h3>
 
                                 <div className="flex justify-between items-end">
                                   {/* 🎯 共 1 件 (白底 + 黑邊框 + 無陰影) */}
-                                  <span className="text-black text-[11px] font-[900] bg-white border-2 border-black px-3 py-1.5 rounded-full leading-none">共 {order.totalQuantity} 件</span>
+                                  <span className="text-[#283d3e]/55 text-[12px] font-[900] leading-none">共 {order.totalQuantity} 件</span>
 
                                   <div className="text-right flex flex-col items-end">
                                     <span className="text-[10px] text-gray-600 font-[900] mb-0.5">{activeTab === 'deposit' ? '應付訂金' : activeTab === 'balance' ? '應付餘款' : '商品總額'}</span>
