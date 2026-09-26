@@ -576,6 +576,7 @@ const App: React.FC = () => {
           }
           onHome={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); nav('/'); window.scrollTo(0, 0); }}
           onMenu={() => setIsMenuOpen(true)}
+          showBack={mainView !== 'query' || hasSearched}
         />
       )}
 
@@ -653,8 +654,8 @@ const App: React.FC = () => {
 
                     <div className="w-full max-w-lg flex items-center gap-3 mb-4 mt-6">
                       <div className="min-w-0">
-                        <div className="text-white font-[900] text-3xl tracking-widest leading-none drop-shadow-[0_2px_0_rgba(0,0,0,0.25)]">KAGUYA</div>
-                        <div className="text-white/80 font-[900] text-[13px] tracking-widest mt-1">日本動漫周邊專業代購</div>
+                        {/* 品牌名在頂部列already有了，這裡只留一句話介紹 */}
+                        <div className="text-white/85 font-[900] text-[14px] tracking-widest">日本動漫周邊專業代購</div>
                       </div>
                       <button
                         onClick={goOrders}
