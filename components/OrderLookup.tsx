@@ -78,27 +78,27 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
     <div key={`${s.team}-${idx}`} className="bg-white rounded-2xl px-5 py-4">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[#4c59a1] font-[900] text-base leading-snug">{s.teamName}</div>
-          {s.time && <div className="text-[#4c59a1]/55 font-bold text-xs mt-1">填單時間 {fmtYMD(s.time)}</div>}
+          <div className="text-[#283d3e] font-[900] text-base leading-snug">{s.teamName}</div>
+          {s.time && <div className="text-[#283d3e]/55 font-bold text-xs mt-1">填單時間 {fmtYMD(s.time)}</div>}
         </div>
         <span className={`shrink-0 font-[900] text-[11px] px-2.5 py-1 rounded-full ${badge.className}`}>{badge.text}</span>
       </div>
 
       {(teamCounts.get(s.team) || 0) > 1 && (
-        <div className="mt-2 inline-flex items-center gap-1 bg-[#fff170] border-2 border-black text-black font-[900] text-[11px] px-2.5 py-0.5 rounded-full">
+        <div className="mt-2 inline-flex items-center gap-1 bg-[#f6f9f9] border-2 border-black text-black font-[900] text-[11px] px-2.5 py-0.5 rounded-full">
           <AlertTriangle className="w-3 h-3 stroke-[3px]" /> 此團您填過 {teamCounts.get(s.team)} 次
         </div>
       )}
 
-      <div className="border-t-2 border-[#4c59a1]/15 my-3" />
+      <div className="border-t-2 border-[#283d3e]/15 my-3" />
       {s.items.map((it, i) => (
-        <div key={i} className="flex justify-between items-start text-sm text-[#4c59a1] font-bold py-0.5">
+        <div key={i} className="flex justify-between items-start text-sm text-[#283d3e] font-bold py-0.5">
           <span className="min-w-0 break-words mr-2 leading-snug">{it.label}</span>
           <span className="shrink-0">×{it.qty}　${(it.qty * it.price).toLocaleString()}</span>
         </div>
       ))}
-      <div className="border-t-2 border-[#4c59a1]/15 my-3" />
-      <div className="flex justify-between text-[#4c59a1] font-[900]">
+      <div className="border-t-2 border-[#283d3e]/15 my-3" />
+      <div className="flex justify-between text-[#283d3e] font-[900]">
         <span>預估小計</span>
         <span>${s.subtotal.toLocaleString()}</span>
       </div>
@@ -106,19 +106,19 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#fff170] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-[#f6f9f9] overflow-y-auto">
       <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-7 relative">
         {/* 返回 */}
-        <h2 className="text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-6">
+        <h2 className="text-[#283d3e] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-6">
           填單明細查詢
         </h2>
 
         {/* 暱稱輸入 */}
-        <label htmlFor="lookup-nick" className="block text-[#4c59a1] font-[900] text-sm mb-2 tracking-widest">
+        <label htmlFor="lookup-nick" className="block text-[#283d3e] font-[900] text-sm mb-2 tracking-widest">
           輸入您的社群暱稱
         </label>
         <div className="bg-white rounded-full p-1.5 flex items-center gap-2 border border-black">
-          <Search className="ml-3 text-[#f8a3f4] w-6 h-6 stroke-[3px] shrink-0" />
+          <Search className="ml-3 text-[#e868a0] w-6 h-6 stroke-[3px] shrink-0" />
           <input
             id="lookup-nick"
             type="text"
@@ -128,17 +128,17 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
             className="w-full px-1 py-2.5 bg-transparent outline-none text-base font-[900] text-[#222] placeholder-gray-400"
             onKeyDown={(e) => { if (e.key === "Enter" && !(e.nativeEvent as any).isComposing) doSearch(); }}
           />
-          <button onClick={() => doSearch()} disabled={!nick.trim() || loading} aria-label="查詢" className="bg-[#f8a3f4] text-white w-11 h-11 rounded-full border border-black flex items-center justify-center shrink-0 active:scale-90 transition disabled:opacity-40">
+          <button onClick={() => doSearch()} disabled={!nick.trim() || loading} aria-label="查詢" className="bg-[#e868a0] text-[#283d3e] w-11 h-11 rounded-full border border-black flex items-center justify-center shrink-0 active:scale-90 transition disabled:opacity-40">
             <ArrowRight className="stroke-[3px]" />
           </button>
         </div>
         {/* 小提醒：整段太長，用框框收起來比一整片紅字好讀 */}
         <div className="mt-4 bg-white border border-black rounded-2xl px-4 pt-3 pb-3.5">
-          <span className="inline-block bg-[#fff170] text-[#4c59a1] text-[12px] font-[900] px-3 py-0.5 rounded-full mb-2">小提醒</span>
-          <p className="text-[#4c59a1] text-[13px] font-bold leading-relaxed">
-            本頁可預覽<b className="text-[#f43f5e]">尚未結單</b>與<b className="text-[#f43f5e]">已結單尚未訂購完成</b>的填單；尚未結單的訂單如需修改請洽官賴。
+          <span className="inline-block bg-[#f6f9f9] text-[#283d3e] text-[12px] font-[900] px-3 py-0.5 rounded-full mb-2">小提醒</span>
+          <p className="text-[#283d3e] text-[13px] font-bold leading-relaxed">
+            本頁可預覽<b className="text-[#e46b58]">尚未結單</b>與<b className="text-[#e46b58]">已結單尚未訂購完成</b>的填單；尚未結單的訂單如需修改請洽官賴。
             <br />
-            結單且訂購完成後，訂單才正式成立！可於<b className="text-[#f43f5e]">首頁的訂單查詢</b>處查詢正式訂單！
+            結單且訂購完成後，訂單才正式成立！可於<b className="text-[#e46b58]">首頁的訂單查詢</b>處查詢正式訂單！
           </p>
         </div>
 
@@ -146,12 +146,12 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
         {loading && (
           <div className="flex flex-col items-center py-16">
             <div className="flex items-end gap-2 h-12">
-              <div className="w-2.5 h-6 bg-[#f8a3f4] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-2.5 h-9 bg-[#3ac0bf] rounded-full animate-bounce" style={{ animationDelay: "100ms" }} />
-              <div className="w-2.5 h-5 bg-[#4c59a1] rounded-full animate-bounce" style={{ animationDelay: "200ms" }} />
-              <div className="w-2.5 h-8 bg-[#fff170] border border-black/10 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              <div className="w-2.5 h-6 bg-[#e868a0] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <div className="w-2.5 h-9 bg-[#49d5df] rounded-full animate-bounce" style={{ animationDelay: "100ms" }} />
+              <div className="w-2.5 h-5 bg-[#283d3e] rounded-full animate-bounce" style={{ animationDelay: "200ms" }} />
+              <div className="w-2.5 h-8 bg-[#f6f9f9] border border-black/10 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
             </div>
-            <p className="mt-4 text-[#4c59a1] font-[900] tracking-widest text-sm animate-pulse">載入中…</p>
+            <p className="mt-4 text-[#283d3e] font-[900] tracking-widest text-sm animate-pulse">載入中…</p>
           </div>
         )}
 
@@ -160,21 +160,21 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
           <div className="mt-6 animate-fade-in">
             {error ? (
               <div className="flex flex-col items-center text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-white border border-black flex items-center justify-center text-[#f43f5e] mb-4">
+                <div className="w-16 h-16 rounded-full bg-white border border-black flex items-center justify-center text-[#e46b58] mb-4">
                   <SearchX className="w-8 h-8 stroke-[2.5px]" />
                 </div>
-                <div className="text-[#4c59a1] font-[900] text-lg">查詢失敗，請稍後再試</div>
-                <div className="text-[#4c59a1]/70 font-bold text-sm mt-1.5">若持續無法查詢，請私訊官賴協助。</div>
-                <button onClick={resetSearch} className="mt-5 bg-[#3ac0bf] text-white font-[900] px-7 py-2.5 rounded-full active:scale-95 transition tracking-widest">重新查詢</button>
+                <div className="text-[#283d3e] font-[900] text-lg">查詢失敗，請稍後再試</div>
+                <div className="text-[#283d3e]/70 font-bold text-sm mt-1.5">若持續無法查詢，請私訊官賴協助。</div>
+                <button onClick={resetSearch} className="mt-5 bg-[#49d5df] text-[#283d3e] font-[900] px-7 py-2.5 rounded-full active:scale-95 transition tracking-widest">重新查詢</button>
               </div>
             ) : total === 0 ? (
               <div className="flex flex-col items-center text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-white border border-black flex items-center justify-center text-[#4c59a1] mb-4">
+                <div className="w-16 h-16 rounded-full bg-white border border-black flex items-center justify-center text-[#283d3e] mb-4">
                   <SearchX className="w-8 h-8 stroke-[2.5px]" />
                 </div>
-                <div className="text-[#4c59a1] font-[900] text-lg">查無填單預覽紀錄</div>
-                <div className="text-[#4c59a1]/70 font-bold text-sm mt-1.5 leading-relaxed">可能還沒填，或該團已訂購完成（請改至主頁查詢訂單）。</div>
-                <button onClick={onBack} className="mt-5 bg-[#3ac0bf] text-white font-[900] px-7 py-2.5 rounded-full active:scale-95 transition tracking-widest">看看開團中的團</button>
+                <div className="text-[#283d3e] font-[900] text-lg">查無填單預覽紀錄</div>
+                <div className="text-[#283d3e]/70 font-bold text-sm mt-1.5 leading-relaxed">可能還沒填，或該團已訂購完成（請改至主頁查詢訂單）。</div>
+                <button onClick={onBack} className="mt-5 bg-[#49d5df] text-[#283d3e] font-[900] px-7 py-2.5 rounded-full active:scale-95 transition tracking-widest">看看開團中的團</button>
               </div>
             ) : (
               <div className="space-y-7">
@@ -182,12 +182,12 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
                 {openSubs.length > 0 && (
                   <section>
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="inline-block bg-[#3ac0bf] text-white font-[900] text-sm px-4 py-1.5 rounded-full tracking-widest">開團中 · {openSubs.length} 筆</span>
+                      <span className="inline-block bg-[#49d5df] text-[#283d3e] font-[900] text-sm px-4 py-1.5 rounded-full tracking-widest">開團中 · {openSubs.length} 筆</span>
                     </div>
                     <div className="space-y-3">
-                      {openSubs.map((s, idx) => renderSub(s, idx, { text: "尚未結單", className: "bg-[#4c59a1] text-white" }))}
+                      {openSubs.map((s, idx) => renderSub(s, idx, { text: "尚未結單", className: "bg-[#283d3e] text-white" }))}
                     </div>
-                    <p className="text-[#4c59a1]/70 font-bold text-[11px] leading-relaxed mt-3 px-1">
+                    <p className="text-[#283d3e]/70 font-bold text-[11px] leading-relaxed mt-3 px-1">
                       因各團二補規則有些許差異，實際總金額以結單後訂單查詢為準！
                     </p>
                   </section>
@@ -199,9 +199,9 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
                     <div className="flex items-center gap-2 mb-3">
                       <span className="inline-block bg-[#2b2b2b] text-white font-[900] text-sm px-4 py-1.5 rounded-full tracking-widest">已結單 · {closedSubs.length} 筆</span>
                     </div>
-                    <div className="bg-white border-2 border-[#f8a3f4] rounded-2xl px-4 py-3 mb-3 flex items-start gap-2">
-                      <AlertTriangle className="w-5 h-5 shrink-0 text-[#f8a3f4] stroke-[2.5px] mt-0.5" />
-                      <p className="text-[#4c59a1] font-bold text-xs leading-relaxed">
+                    <div className="bg-white border-2 border-[#e868a0] rounded-2xl px-4 py-3 mb-3 flex items-start gap-2">
+                      <AlertTriangle className="w-5 h-5 shrink-0 text-[#e868a0] stroke-[2.5px] mt-0.5" />
+                      <p className="text-[#283d3e] font-bold text-xs leading-relaxed">
                         商品已結單，正在統計商品訂購中，已無法修改填單！訂購完成後我們會通知您至主頁查詢訂單並付款！
                       </p>
                     </div>

@@ -135,13 +135,13 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   const chip = (on: boolean, kind: "open" | "closed") =>
     `flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-[900] border border-black active:opacity-60 transition-all ${
       on
-        ? (kind === "open" ? "bg-[#3ac0bf] text-white" : "bg-[#2b2b2b] text-white")
-        : "bg-white text-[#4c59a1]/40"
+        ? (kind === "open" ? "bg-[#49d5df] text-[#283d3e]" : "bg-[#2b2b2b] text-white")
+        : "bg-white text-[#283d3e]/40"
     }`;
 
   const inner = (
     <>
-      <div className={preview ? "" : "text-[#4c59a1]"}>
+      <div className={preview ? "" : "text-[#283d3e]"}>
         <SectionHead en="PRE-ORDER" title="預購填單專區" count={preview ? undefined : filtered.length} />
       </div>
 
@@ -155,7 +155,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                 key={label}
                 onClick={() => setHot(val)}
                 className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-[900] border border-black active:opacity-60 transition-all ${
-                  on ? (val ? "bg-[#f43f5e] text-white" : "bg-[#4c59a1] text-white") : "bg-white text-[#4c59a1]/45"
+                  on ? (val ? "bg-[#e46b58] text-[#283d3e]" : "bg-[#283d3e] text-white") : "bg-white text-[#283d3e]/45"
                 }`}
               >
                 {val && <Flame className="w-4 h-4 stroke-[3px]" />}
@@ -168,11 +168,11 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
 
       {!preview && onLookup && (
         <button onClick={onLookup} className="w-full bg-white border border-black rounded-full px-3 py-2 flex items-center gap-3 mb-5 active:opacity-60 active:transition-all">
-          <span className="w-9 h-9 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shrink-0">
+          <span className="w-9 h-9 rounded-full bg-[#49d5df] text-[#283d3e] flex items-center justify-center shrink-0">
             <Search className="w-5 h-5 stroke-[3px]" />
           </span>
-          <span className="flex-1 text-left text-[#4c59a1] font-[900] text-base tracking-widest">填單明細查詢</span>
-          <ChevronRight className="w-5 h-5 text-[#4c59a1] stroke-[3px] shrink-0" />
+          <span className="flex-1 text-left text-[#283d3e] font-[900] text-base tracking-widest">填單明細查詢</span>
+          <ChevronRight className="w-5 h-5 text-[#283d3e] stroke-[3px] shrink-0" />
         </button>
       )}
 
@@ -182,27 +182,27 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
         <div className="mb-5">
           <div className="flex items-center gap-2.5">
             <div className="flex-1 min-w-0 bg-white rounded-full p-1.5 pl-4 flex items-center gap-2 border border-black">
-              <Search className="w-5 h-5 text-[#f8a3f4] stroke-[3px] shrink-0" />
+              <Search className="w-5 h-5 text-[#e868a0] stroke-[3px] shrink-0" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="搜團名、商品名"
-                className="w-full bg-transparent outline-none text-base font-[900] text-[#4c59a1] placeholder-gray-400 py-1.5"
+                className="w-full bg-transparent outline-none text-base font-[900] text-[#283d3e] placeholder-gray-400 py-1.5"
               />
               {q && (
-                <button onClick={() => setQuery("")} aria-label="清除搜尋" className="w-8 h-8 rounded-full bg-[#f8a3f4] text-white flex items-center justify-center shrink-0 active:scale-90 transition mr-1">
+                <button onClick={() => setQuery("")} aria-label="清除搜尋" className="w-8 h-8 rounded-full bg-[#e868a0] text-[#283d3e] flex items-center justify-center shrink-0 active:scale-90 transition mr-1">
                   <X className="w-4 h-4 stroke-[3px]" />
                 </button>
               )}
             </div>
             <button
               onClick={() => setFilterOpen(true)}
-              className="shrink-0 flex items-center gap-1.5 h-[52px] px-4 rounded-full border border-black bg-white text-[#4c59a1] font-[900] text-sm active:opacity-60 active:transition-all"
+              className="shrink-0 flex items-center gap-1.5 h-[52px] px-4 rounded-full border border-black bg-white text-[#283d3e] font-[900] text-sm active:opacity-60 active:transition-all"
             >
               <SlidersHorizontal className="w-5 h-5 stroke-[2.5px]" />
               篩選
               {filterCount > 0 && (
-                <span className="ml-0.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#f8a3f4] text-white text-[12px] flex items-center justify-center">{filterCount}</span>
+                <span className="ml-0.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#e868a0] text-[#283d3e] text-[12px] flex items-center justify-center">{filterCount}</span>
               )}
             </button>
           </div>
@@ -211,13 +211,13 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
           {(pickedTags.length > 0 || !showOpen || !showClosed || sortBy !== "default") && (
             <div className="flex flex-wrap gap-2 mt-3">
               {sortBy !== "default" && (
-                <button onClick={() => setSortBy("default")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#4c59a1] text-white text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
+                <button onClick={() => setSortBy("default")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#283d3e] text-white text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
                   {SORT_OPTS.find(([v]) => v === sortBy)?.[1]}
                   <X className="w-3.5 h-3.5 stroke-[3px]" />
                 </button>
               )}
               {!showClosed && showOpen && (
-                <button onClick={() => setShowClosed(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#3ac0bf] text-white text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
+                <button onClick={() => setShowClosed(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#49d5df] text-[#283d3e] text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
                   開團中<X className="w-3.5 h-3.5 stroke-[3px]" />
                 </button>
               )}
@@ -227,7 +227,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                 </button>
               )}
               {pickedTags.map((t) => (
-                <button key={t} onClick={() => toggleTag(t)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f8a3f4] text-white text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
+                <button key={t} onClick={() => toggleTag(t)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e868a0] text-[#283d3e] text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
                   {t}<X className="w-3.5 h-3.5 stroke-[3px]" />
                 </button>
               ))}
@@ -242,19 +242,19 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
           <div className="absolute inset-0 bg-black/40" />
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-lg bg-[#fff170] rounded-t-[32px] border-t-[3px] border-x-[3px] border-black max-h-[86vh] overflow-y-auto animate-fade-in-up"
+            className="relative w-full max-w-lg bg-[#f6f9f9] rounded-t-[32px] border-t-[3px] border-x-[3px] border-black max-h-[86vh] overflow-y-auto animate-fade-in-up"
             style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
           >
-            <div className="sticky top-0 bg-[#fff170] px-5 pt-4 pb-3 flex items-center border-b-2 border-black/10">
-              <h3 className="text-[#4c59a1] font-[900] text-xl tracking-widest">篩選</h3>
+            <div className="sticky top-0 bg-[#f6f9f9] px-5 pt-4 pb-3 flex items-center border-b-2 border-black/10">
+              <h3 className="text-[#283d3e] font-[900] text-xl tracking-widest">篩選</h3>
               <button onClick={() => setFilterOpen(false)} aria-label="關閉" className="ml-auto w-9 h-9 rounded-full bg-white border border-black flex items-center justify-center active:scale-90 transition">
-                <X className="w-4 h-4 stroke-[3px] text-[#4c59a1]" />
+                <X className="w-4 h-4 stroke-[3px] text-[#283d3e]" />
               </button>
             </div>
 
             <div className="px-5 py-4 space-y-5">
               <div>
-                <div className="font-[900] text-[#4c59a1]/60 text-[13px] tracking-widest mb-2">狀態</div>
+                <div className="font-[900] text-[#283d3e]/60 text-[13px] tracking-widest mb-2">狀態</div>
                 <div className="flex gap-2.5">
                   <button onClick={() => setShowOpen((v) => !v)} className={chip(showOpen, "open")}>
                     {showOpen && <Check className="w-4 h-4 stroke-[4px]" />}開團中
@@ -266,14 +266,14 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               </div>
 
               <div>
-                <div className="font-[900] text-[#4c59a1]/60 text-[13px] tracking-widest mb-2">排序</div>
+                <div className="font-[900] text-[#283d3e]/60 text-[13px] tracking-widest mb-2">排序</div>
                 <div className="flex flex-wrap gap-2">
                   {SORT_OPTS.map(([val, label]) => (
                     <button
                       key={val}
                       onClick={() => setSortBy(val)}
                       className={`px-4 py-2 rounded-full text-sm font-[900] border border-black active:opacity-60 transition-all ${
-                        sortBy === val ? "bg-[#4c59a1] text-white" : "bg-white text-[#4c59a1]"
+                        sortBy === val ? "bg-[#283d3e] text-white" : "bg-white text-[#283d3e]"
                       }`}
                     >
                       {label}
@@ -283,14 +283,14 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               </div>
 
               <div>
-                <div className="font-[900] text-[#4c59a1]/60 text-[13px] tracking-widest mb-2">檢視方式</div>
+                <div className="font-[900] text-[#283d3e]/60 text-[13px] tracking-widest mb-2">檢視方式</div>
                 <div className="flex gap-2">
                   {([["grid", "方塊", LayoutGrid], ["list", "條列", Rows3]] as const).map(([mode, label, Icon]) => (
                     <button
                       key={mode}
                       onClick={() => setViewMode(mode)}
                       className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-[900] border border-black active:opacity-60 transition-all ${
-                        viewMode === mode ? "bg-[#4c59a1] text-white" : "bg-white text-[#4c59a1]"
+                        viewMode === mode ? "bg-[#283d3e] text-white" : "bg-white text-[#283d3e]"
                       }`}
                     >
                       <Icon className="w-4 h-4 stroke-[3px]" />{label}
@@ -301,8 +301,8 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
 
               {tagIndex.all.length > 0 && (
                 <div>
-                  <div className="font-[900] text-[#4c59a1]/60 text-[13px] tracking-widest mb-2">
-                    作品{pickedTags.length > 0 && <span className="text-[#f8a3f4]">（已選 {pickedTags.length}）</span>}
+                  <div className="font-[900] text-[#283d3e]/60 text-[13px] tracking-widest mb-2">
+                    作品{pickedTags.length > 0 && <span className="text-[#e868a0]">（已選 {pickedTags.length}）</span>}
                   </div>
                   <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto">
                     {tagIndex.all.map((t) => {
@@ -312,10 +312,10 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                           key={t}
                           onClick={() => toggleTag(t)}
                           className={`px-3 py-1.5 rounded-full text-[13px] font-[900] border-2 border-black transition-all active:opacity-60 ${
-                            on ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
+                            on ? "bg-[#49d5df] text-[#283d3e]" : "bg-white text-[#283d3e]"
                           }`}
                         >
-                          {t}<span className={on ? "text-white/80 ml-1" : "text-[#4c59a1]/45 ml-1"}>{tagIndex.counts[t]}</span>
+                          {t}<span className={on ? "text-white/80 ml-1" : "text-[#283d3e]/45 ml-1"}>{tagIndex.counts[t]}</span>
                         </button>
                       );
                     })}
@@ -324,16 +324,16 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-[#fff170] px-5 py-3 flex gap-2.5 border-t-2 border-black/10">
+            <div className="sticky bottom-0 bg-[#f6f9f9] px-5 py-3 flex gap-2.5 border-t-2 border-black/10">
               <button
                 onClick={() => { setPickedTags([]); setSortBy("default"); setShowOpen(true); setShowClosed(true); }}
-                className="px-5 py-3 rounded-full bg-white text-[#4c59a1] font-[900] border border-black active:opacity-60 active:transition-all"
+                className="px-5 py-3 rounded-full bg-white text-[#283d3e] font-[900] border border-black active:opacity-60 active:transition-all"
               >
                 重設
               </button>
               <button
                 onClick={() => setFilterOpen(false)}
-                className="flex-1 py-3 rounded-full bg-[#4c59a1] text-white font-[900] border border-black active:opacity-60 active:transition-all"
+                className="flex-1 py-3 rounded-full bg-[#283d3e] text-white font-[900] border border-black active:opacity-60 active:transition-all"
               >
                 看 {filtered.length} 個團
               </button>
@@ -342,9 +342,9 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
         </div>
       )}
 
-      {loading && <p className="text-center text-[#4c59a1]/60 font-bold py-8">載入中…</p>}
+      {loading && <p className="text-center text-[#283d3e]/60 font-bold py-8">載入中…</p>}
       {!loading && shown.length === 0 && (
-        <p className="text-center text-[#4c59a1]/70 font-bold py-8">{!preview && q ? `找不到符合「${q}」的團` : "目前沒有開團"}</p>
+        <p className="text-center text-[#283d3e]/70 font-bold py-8">{!preview && q ? `找不到符合「${q}」的團` : "目前沒有開團"}</p>
       )}
 
       {/* 方塊檢視：封面大圖一眼看出在賣什麼（列表頁限定） */}
@@ -367,23 +367,23 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                     : "bg-gray-100 opacity-80 active:scale-[0.98]"
                 }`}
               >
-                <div className={`relative aspect-square ${open ? "bg-[#eef0fa]" : "bg-gray-200"}`}>
+                <div className={`relative aspect-square ${open ? "bg-[#e9f5f6]" : "bg-gray-200"}`}>
                   {cover
                     ? <img src={cover} alt="" referrerPolicy="no-referrer" loading="lazy" className={`w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
-                    : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-[#4c59a1]/25 stroke-[2px]" /></div>}
-                  <span className={`absolute top-2 left-2 text-[12px] font-[900] px-3 py-1 rounded-full ${
-                    open ? "bg-[#3ac0bf] text-white" : "bg-[#2b2b2b] text-white"
+                    : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-[#283d3e]/25 stroke-[2px]" /></div>}
+                  <span className={`absolute top-2 left-2 text-[12px] font-[900] px-3 py-1 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${
+                    open ? "text-[#283d3e] before:bg-[#49d5df]" : "text-gray-500 before:bg-gray-400"
                   }`}>
                     {open ? "開團中" : "已結單"}
                   </span>
                 </div>
                 <div className="p-3 flex flex-col gap-1.5 flex-1">
-                  <div className={`font-[900] text-[13.5px] leading-tight line-clamp-3 ${open ? "text-[#4c59a1]" : "text-gray-400"}`}>{t.name}</div>
-                  {ip && <span className={`text-[12px] font-[900] leading-none ${open ? "text-[#3ac0bf]" : "text-gray-400"}`}>{ip}</span>}
+                  <div className={`font-[900] text-[13.5px] leading-tight line-clamp-3 ${open ? "text-[#283d3e]" : "text-gray-400"}`}>{t.name}</div>
+                  {ip && <span className={`text-[12px] font-[900] leading-none ${open ? "text-[#e868a0]" : "text-gray-400"}`}>{ip}</span>}
                   <div className="mt-auto pt-1 flex flex-wrap gap-1.5">
-                    {open && <span className="text-[11px] font-[900] text-white bg-[#f43f5e] px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>}
+                    {open && <span className="text-[11px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>}
                     {(t.joinPeople ?? 0) > 0 && (
-                      <span className={`text-[11px] font-[900] px-2.5 py-0.5 rounded-full ${open ? "bg-[#3ac0bf] text-white" : "bg-gray-300 text-gray-600"}`}>{t.joinPeople} 人跟團</span>
+                      <span className={`text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${open ? "text-[#283d3e] before:bg-[#e868a0]" : "text-gray-500 before:bg-gray-400"}`}>{t.joinPeople} 人跟團</span>
                     )}
                   </div>
                   {t.openAt && <span className={`text-[12px] font-bold ${open ? "text-black/65" : "text-gray-400"}`}>開團日期：{fmtYMD(t.openAt)}</span>}
@@ -407,22 +407,22 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               }`}
             >
               {/* 封面圖：一眼看出是什麼團的商品 */}
-              <div className={`w-16 h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center ${open ? "bg-[#eef0fa]" : "bg-gray-200"}`}>
+              <div className={`w-16 h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center ${open ? "bg-[#e9f5f6]" : "bg-gray-200"}`}>
                 {cover
                   ? <img src={cover} alt="" referrerPolicy="no-referrer" loading="lazy" className={`w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
-                  : <ShoppingBag className="w-7 h-7 text-[#4c59a1]/25 stroke-[2px]" />}
+                  : <ShoppingBag className="w-7 h-7 text-[#283d3e]/25 stroke-[2px]" />}
               </div>
               <div className="min-w-0 flex-1">
-                <div className={`font-[900] text-base line-clamp-2 leading-snug ${open ? "text-[#4c59a1]" : "text-gray-400"}`}>{t.name}</div>
+                <div className={`font-[900] text-base line-clamp-2 leading-snug ${open ? "text-[#283d3e]" : "text-gray-400"}`}>{t.name}</div>
                 {open && (
-                  <span className="inline-block mt-1.5 text-[11px] font-[900] text-white bg-[#f43f5e] px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>
+                  <span className="mt-1.5 text-[11px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>
                 )}
                 {(t.joinPeople ?? 0) > 0 && (
-                  <span className={`inline-block mt-1.5 ml-1.5 text-[11px] font-[900] px-2.5 py-0.5 rounded-full ${open ? "bg-[#3ac0bf] text-white" : "bg-gray-300 text-gray-600"}`}>{t.joinPeople} 人跟團</span>
+                  <span className={`mt-1.5 ml-1.5 text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${open ? "text-[#283d3e] before:bg-[#e868a0]" : "text-gray-500 before:bg-gray-400"}`}>{t.joinPeople} 人跟團</span>
                 )}
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">
-                <span className={`text-sm font-[900] px-4 py-1.5 rounded-full ${open ? "bg-[#3ac0bf] text-white" : "bg-[#2b2b2b] text-white"}`}>
+                <span className={`text-sm font-[900] px-4 py-1.5 rounded-full ${open ? "bg-[#49d5df] text-[#283d3e]" : "bg-[#2b2b2b] text-white"}`}>
                   {open ? "開團中" : "已結單"}
                 </span>
                 {t.openAt && (
@@ -444,13 +444,13 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
             onClick={() => goPage(curPage - 1)}
             disabled={curPage === 1}
             aria-label="上一頁"
-            className="w-10 h-10 rounded-full bg-white border border-black text-[#4c59a1] flex items-center justify-center active:opacity-60 transition disabled:opacity-30"
+            className="w-10 h-10 rounded-full bg-white border border-black text-[#283d3e] flex items-center justify-center active:opacity-60 transition disabled:opacity-30"
           >
             <ChevronLeft className="w-5 h-5 stroke-[3px]" />
           </button>
           {pageItems.map((it, idx) =>
             it === "…" ? (
-              <span key={`e${idx}`} className="text-[#4c59a1] font-[900] px-0.5">…</span>
+              <span key={`e${idx}`} className="text-[#283d3e] font-[900] px-0.5">…</span>
             ) : (
               <button
                 key={it}
@@ -458,7 +458,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                 aria-label={`第 ${it} 頁`}
                 aria-current={it === curPage ? "page" : undefined}
                 className={`w-10 h-10 rounded-full border border-black font-[900] flex items-center justify-center active:opacity-60 transition ${
-                  it === curPage ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
+                  it === curPage ? "bg-[#49d5df] text-[#283d3e]" : "bg-white text-[#283d3e]"
                 }`}
               >
                 {it}
@@ -469,7 +469,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
             onClick={() => goPage(curPage + 1)}
             disabled={curPage === pageCount}
             aria-label="下一頁"
-            className="w-10 h-10 rounded-full bg-white border border-black text-[#4c59a1] flex items-center justify-center active:opacity-60 transition disabled:opacity-30"
+            className="w-10 h-10 rounded-full bg-white border border-black text-[#283d3e] flex items-center justify-center active:opacity-60 transition disabled:opacity-30"
           >
             <ChevronRight className="w-5 h-5 stroke-[3px]" />
           </button>
@@ -486,13 +486,13 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   if (preview) {
     return (
       <div className="w-full max-w-lg mx-auto">
-        <div className="bg-[#fff170] rounded-[40px] px-5 sm:px-7 py-8 relative">{inner}</div>
+        <div className="bg-[#f6f9f9] rounded-[40px] px-5 sm:px-7 py-8 relative">{inner}</div>
       </div>
     );
   }
   // 列表頁：整頁鋪滿黃色
   return (
-    <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
+    <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto overscroll-y-contain">
       {ptrIndicator}
       <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-8 relative">{inner}</div>
     </div>

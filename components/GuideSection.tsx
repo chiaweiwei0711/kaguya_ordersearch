@@ -17,20 +17,20 @@ const STEPS: { title: string; desc: string; tags: string[]; warn?: string }[] = 
 
 const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
   return (
-    <div className="fixed inset-0 z-40 bg-[#f8a3f4] overflow-y-auto">
+    <div className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto">
       <div className="w-full max-w-xl mx-auto px-5 sm:px-7 pt-20 pb-8">
         <div className="text-center mb-8">
-          <h2 className="text-[#4c59a1] font-[900] text-4xl sm:text-5xl tracking-widest pl-[0.1em]">購物流程</h2>
-          <p className="text-[#4c59a1] font-[900] text-sm tracking-[0.4em] pl-[0.4em] mt-2">五步驟一次懂</p>
+          <h2 className="text-[#283d3e] font-[900] text-4xl sm:text-5xl tracking-widest pl-[0.1em]">購物流程</h2>
+          <p className="text-[#283d3e] font-[900] text-sm tracking-[0.4em] pl-[0.4em] mt-2">五步驟一次懂</p>
         </div>
 
         <ol className="space-y-4">
           {STEPS.map((st, i) => (
             <li key={i} className="bg-white rounded-[24px] p-5 flex gap-4">
-              <span className="w-12 h-12 shrink-0 rounded-full bg-[#f8a3f4] text-white font-[900] text-2xl flex items-center justify-center">{i + 1}</span>
+              <span className="w-12 h-12 shrink-0 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-2xl flex items-center justify-center">{i + 1}</span>
               <div className="min-w-0">
                 <div className="text-[#1a1a1a] font-[900] text-lg leading-snug">{st.title}</div>
-                <div className="text-[#4c59a1] font-bold text-sm leading-relaxed mt-1">{st.desc}</div>
+                <div className="text-[#283d3e] font-bold text-sm leading-relaxed mt-1">{st.desc}</div>
                 <div className="flex flex-wrap gap-1.5 mt-2.5">
                   {st.tags.map((t) => (
                     <span key={t} className="text-[11px] font-[900] rounded-full px-2.5 py-1 bg-[#d6f3ec] text-[#1f9ead]">{t}</span>
@@ -44,7 +44,7 @@ const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
 
         <button
           onClick={onFaq}
-          className="mt-8 w-full flex items-center justify-center gap-2 py-4 rounded-full bg-white text-[#3ac0bf] font-[900] active:scale-95 transition"
+          className="mt-8 w-full flex items-center justify-center gap-2 py-4 rounded-full bg-white text-[#49d5df] font-[900] active:scale-95 transition"
         >
           完整規則與常見問題
           <ArrowRight className="w-5 h-5 stroke-[3px]" />

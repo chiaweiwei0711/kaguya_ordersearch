@@ -29,14 +29,14 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
   const storageInfo = getStorageStatus(order.arrivalDate);
 
   return (
-    <div className="fixed inset-0 bg-[#4c59a1]/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in">
+    <div className="fixed inset-0 bg-[#283d3e]/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in">
       {/* 🎯 卡片主體：純白底色、柔和陰影、無黑框 */}
       <div className="bg-white border-[2.5px] border-black rounded-[32px] sm:rounded-[40px] w-full max-w-md overflow-hidden relative flex flex-col max-h-[90vh]">
 
         {/* 🎯 Header */}
         <div className="p-6 flex justify-between items-center shrink-0">
           <h3 className="font-[900] text-2xl tracking-widest flex items-center gap-2 text-black">
-            <span className="text-2xl text-[#f8a3f4]">◇</span> 訂單詳情
+            <span className="text-2xl text-[#e868a0]">◇</span> 訂單詳情
           </h3>
           <button onClick={onClose} className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 active:scale-95 transition-all">
             <X strokeWidth={3} size={20} />
@@ -45,7 +45,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
 
         {/* 🎯 User Info Banner (色塊) */}
         <div className="bg-white rounded-[20px] mx-6 p-4 flex items-center gap-4 shrink-0">
-          <div className="bg-[#f8a3f4] p-3 rounded-full shadow-sm md:shadow-md shadow-[#f8a3f4]/30">
+          <div className="bg-[#e868a0] p-3 rounded-full shadow-sm md:shadow-md shadow-[#e868a0]/30">
             <User className="w-6 h-6 text-white stroke-[2.5px]" />
           </div>
           <div>
@@ -54,22 +54,22 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
           </div>
         </div>
 
-        {/* 🎯 滾動內容區 (💡 魔法在這裡：直接用 Tailwind 覆寫滾輪樣式為 #f8a3f4) */}
-        <div className="px-6 py-5 overflow-y-auto flex-1 space-y-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#3ac0bf] [&::-webkit-scrollbar-thumb]:rounded-full">
+        {/* 🎯 滾動內容區 (💡 魔法在這裡：直接用 Tailwind 覆寫滾輪樣式為 #e868a0) */}
+        <div className="px-6 py-5 overflow-y-auto flex-1 space-y-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#49d5df] [&::-webkit-scrollbar-thumb]:rounded-full">
 
           {/* 狀態標籤 (純色膠囊) */}
           <div className="flex flex-wrap gap-2">
             {order.isShipped ? (
-              <span className="bg-[#3ac0bf] text-white px-3 py-1.5 rounded-full text-xs font-[900] tracking-widest">已出貨</span>
+              <span className="bg-[#49d5df] text-[#283d3e] px-3 py-1.5 rounded-full text-xs font-[900] tracking-widest">已出貨</span>
             ) : (
-              <span className="bg-[#4c59a1] text-white px-3 py-1.5 rounded-full text-xs font-[900] tracking-widest">尚未出貨</span>
+              <span className="bg-[#283d3e] text-white px-3 py-1.5 rounded-full text-xs font-[900] tracking-widest">尚未出貨</span>
             )}
             {order.shippingStatus && (
-              <span className="bg-[#fff170] text-black px-3 py-1.5 rounded-full text-xs font-[900] tracking-widest">
+              <span className="bg-[#f6f9f9] text-black px-3 py-1.5 rounded-full text-xs font-[900] tracking-widest">
                 {order.shippingStatus}
               </span>
             )}
-            <span className={`px-3 py-1.5 rounded-full text-xs font-[900] tracking-widest ${order.status === OrderStatus.PAID ? 'bg-[#3ac0bf]/15 text-[#3ac0bf]' : 'bg-gray-100 text-gray-400'}`}>
+            <span className={`px-3 py-1.5 rounded-full text-xs font-[900] tracking-widest ${order.status === OrderStatus.PAID ? 'bg-[#49d5df]/15 text-[#49d5df]' : 'bg-gray-100 text-gray-400'}`}>
               {order.status === OrderStatus.PAID ? '已付訂金' : '未付訂金'}
             </span>
 
@@ -82,21 +82,21 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
           </div>
 
           {/* 商品標題 (粉紅粗左邊框) */}
-          <div className="border-l-[4px] border-[#f8a3f4] pl-4 py-1">
-            <p className="font-[900] text-xl md:text-2xl text-[#4c59a1] leading-snug">{order.groupName}</p>
+          <div className="border-l-[4px] border-[#e868a0] pl-4 py-1">
+            <p className="font-[900] text-xl md:text-2xl text-[#283d3e] leading-snug">{order.groupName}</p>
           </div>
 
           {/* 日期與付款方式 Grid (色塊) */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white p-4 rounded-[20px] flex items-center gap-3">
-              <Calendar className="w-7 h-7 text-[#f8a3f4] stroke-[2px]" />
+              <Calendar className="w-7 h-7 text-[#e868a0] stroke-[2px]" />
               <div>
                 <p className="text-[10px] text-gray-400 font-[900] mb-1">預計出貨</p>
                 <p className="text-sm font-[900] text-black leading-tight">{order.shippingDate || "尚未排定"}</p>
               </div>
             </div>
             <div className="bg-white p-4 rounded-[20px] flex items-center gap-3">
-              <CreditCard className="w-7 h-7 text-[#3ac0bf] stroke-[2px]" />
+              <CreditCard className="w-7 h-7 text-[#49d5df] stroke-[2px]" />
               <div>
                 <p className="text-[10px] text-gray-400 font-[900] mb-1">付款方式</p>
                 <p className="text-sm font-[900] text-black leading-tight">{order.paymentMethod}</p>
@@ -106,14 +106,14 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
 
           {/* 購買清單 (色塊) */}
           <div>
-            <h4 className="text-xs font-[900] text-[#3ac0bf] mb-3 flex items-center gap-2 tracking-widest">
-              <Package className="w-4 h-4 text-[#3ac0bf] stroke-[3px]" /> 購買清單
+            <h4 className="text-xs font-[900] text-[#49d5df] mb-3 flex items-center gap-2 tracking-widest">
+              <Package className="w-4 h-4 text-[#49d5df] stroke-[3px]" /> 購買清單
             </h4>
             <div className="space-y-3">
               {order.items.map((item, idx) => (
                 <div key={idx} className="flex justify-between items-center gap-3 bg-white p-3.5 rounded-xl">
                   <span className="font-[900] text-black text-sm">{item.name}</span>
-                  <span className="bg-[#f8a3f4] px-3 py-1 rounded-full text-xs font-[900] text-white whitespace-nowrap">
+                  <span className="bg-[#e868a0] px-3 py-1 rounded-full text-xs font-[900] text-white whitespace-nowrap">
                     x {item.quantity || order.totalQuantity}
                   </span>
                 </div>
@@ -131,8 +131,8 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
 
           {/* 金額結算 (色塊) */}
           <div>
-            <h4 className="text-xs font-[900] text-[#3ac0bf] mb-3 flex items-center gap-2 tracking-widest">
-              <DollarSign className="w-4 h-4 text-[#3ac0bf] stroke-[3px]" /> 金額結算
+            <h4 className="text-xs font-[900] text-[#49d5df] mb-3 flex items-center gap-2 tracking-widest">
+              <DollarSign className="w-4 h-4 text-[#49d5df] stroke-[3px]" /> 金額結算
             </h4>
             <div className="space-y-4 bg-white p-6 rounded-[24px]">
               {/* 商品金額（純商品） */}
@@ -173,7 +173,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                         <div className="border-t-2 border-dashed border-gray-200"></div>
                         <div className="flex justify-between items-center">
                           <span className="font-[900] text-black text-lg tracking-widest">應付訂金</span>
-                          <span className="font-[900] text-[#3ac0bf] text-3xl tracking-tighter">$ {order.depositAmount.toLocaleString()}</span>
+                          <span className="font-[900] text-[#49d5df] text-3xl tracking-tighter">$ {order.depositAmount.toLocaleString()}</span>
                         </div>
                       </>
                     ) : (
@@ -181,12 +181,12 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                       <>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-500 text-sm font-[900] tracking-widest">已付訂金</span>
-                          <span className="font-[900] text-[#3ac0bf]">− $ {order.depositAmount.toLocaleString()}</span>
+                          <span className="font-[900] text-[#49d5df]">− $ {order.depositAmount.toLocaleString()}</span>
                         </div>
                         <div className="border-t-2 border-dashed border-gray-200"></div>
                         <div className="flex justify-between items-center">
                           <span className={`font-[900] tracking-widest ${hasExtra ? 'text-gray-500 text-sm' : 'text-black text-lg'}`}>尾款</span>
-                          <span className={`font-[900] whitespace-nowrap ${hasExtra ? 'text-black' : 'text-[#4c59a1] text-3xl tracking-tighter'}`}>$ {baseBalance.toLocaleString()}</span>
+                          <span className={`font-[900] whitespace-nowrap ${hasExtra ? 'text-black' : 'text-[#283d3e] text-3xl tracking-tighter'}`}>$ {baseBalance.toLocaleString()}</span>
                         </div>
                       </>
                     )}
@@ -204,7 +204,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                             {storageInfo.arrival.getMonth() + 1}/{storageInfo.arrival.getDate()} 抵台・免費保管至 {storageInfo.freeUntil.getMonth() + 1}/{storageInfo.freeUntil.getDate()}・逾期 {storageInfo.overdueDays} 天 × $5
                           </div>
                         </div>
-                        <span className="font-[900] text-[#f8a3f4] whitespace-nowrap">+ $ {fee.toLocaleString()}</span>
+                        <span className="font-[900] text-[#e868a0] whitespace-nowrap">+ $ {fee.toLocaleString()}</span>
                       </div>
                     )}
                     {!isPending && hasExtra && (
@@ -212,7 +212,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                         <div className="border-t-2 border-dashed border-gray-200"></div>
                         <div className="flex justify-between items-center">
                           <span className="font-[900] text-black text-lg tracking-widest">總尾款</span>
-                          <span className="font-[900] text-3xl tracking-tighter whitespace-nowrap text-[#4c59a1]">$ {total.toLocaleString()}</span>
+                          <span className="font-[900] text-3xl tracking-tighter whitespace-nowrap text-[#283d3e]">$ {total.toLocaleString()}</span>
                         </div>
                       </>
                     )}
@@ -231,7 +231,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
         <div className="p-6 flex gap-3 shrink-0">
           {payLabel ? (
             <>
-              <button onClick={() => onPay && onPay(order)} className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-[#3ac0bf] text-white font-[900] border-[2.5px] border-black active:translate-x-[3px] active:opacity-60 transition-all">
+              <button onClick={() => onPay && onPay(order)} className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-[#49d5df] text-[#283d3e] font-[900] border-[2.5px] border-black active:translate-x-[3px] active:opacity-60 transition-all">
                 <ArrowRight className="w-5 h-5 stroke-[3px]" />
                 {payLabel}
               </button>
@@ -241,7 +241,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
               </button>
             </>
           ) : (
-            <button onClick={openLine} className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-[#3ac0bf] text-white font-[900] border-[2.5px] border-black active:translate-x-[3px] active:opacity-60 transition-all">
+            <button onClick={openLine} className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-[#49d5df] text-[#283d3e] font-[900] border-[2.5px] border-black active:translate-x-[3px] active:opacity-60 transition-all">
               <ExternalLink className="w-5 h-5 stroke-[2.5px]" />
               聯絡客服
             </button>

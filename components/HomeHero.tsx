@@ -73,12 +73,12 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
   if (!loading && openTeams.length === 0) return null;
 
   return (
-    <div className="w-full max-w-lg mx-auto text-white">
+    <div className="w-full max-w-lg mx-auto text-[#283d3e]">
       {/* ── 大輪播：開團中的團 ── */}
       <SectionHead en="PICK UP" title="熱門開團商品" />
 
       {loading ? (
-        <div className="mx-4 sm:mx-0 h-52 rounded-[28px] bg-white/70 shadow-[0_10px_24px_rgba(0,0,0,0.18)] flex items-center justify-center text-[#4c59a1]/60 font-[900]">
+        <div className="mx-4 sm:mx-0 h-52 rounded-[28px] bg-white/70 shadow-[0_10px_24px_rgba(0,0,0,0.18)] flex items-center justify-center text-[#283d3e]/60 font-[900]">
           載入中…
         </div>
       ) : (
@@ -101,27 +101,27 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                   onFocus={() => setIdx(i)}
                   className="snap-center shrink-0 w-full text-left rounded-[28px] overflow-hidden bg-white shadow-[0_10px_24px_rgba(0,0,0,0.22)] active:scale-[0.985] transition-transform"
                 >
-                  <div className="relative w-full aspect-[4/3] bg-[#eef0fa]">
+                  <div className="relative w-full aspect-[4/3] bg-[#e9f5f6]">
                     {cover
                       ? <img src={cover} alt="" referrerPolicy="no-referrer" loading={i === 0 ? "eager" : "lazy"} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-12 h-12 text-[#4c59a1]/25 stroke-[2px]" /></div>}
+                      : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-12 h-12 text-[#283d3e]/25 stroke-[2px]" /></div>}
                     {/* 底部漸層讓白字看得清楚 */}
                     <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/75 to-transparent" />
-                    <span className="absolute top-3 left-3 bg-[#3ac0bf] text-white text-[12px] font-[900] px-3 py-1 rounded-full">開團中</span>
-                    <span className="absolute top-3 right-3 bg-[#f43f5e] text-white text-[12px] font-[900] px-3 py-1 rounded-full">剩 {left} 天結單</span>
+                    <span className="absolute top-3 left-3 text-[12px] font-[900] text-[#283d3e] before:bg-[#49d5df] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">開團中</span>
+                    <span className="absolute top-3 right-3 text-[12px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">剩 {left} 天結單</span>
                     <div className="absolute inset-x-0 bottom-0 p-4">
-                      {ip && <div className="text-[#fff170] font-[900] text-[13px] leading-none mb-1.5">{ip}</div>}
+                      {ip && <div className="text-[#f6f9f9] font-[900] text-[13px] leading-none mb-1.5">{ip}</div>}
                       <div className="text-white font-[900] text-lg leading-tight line-clamp-2">{t.name}</div>
                       {(t.joinPeople ?? 0) > 0 && (
-                        <span className="inline-block mt-2 bg-[#fff170] text-black text-[12px] font-[900] px-3 py-1 rounded-full">
+                        <span className="mt-2 text-[12px] font-[900] text-[#283d3e] before:bg-[#e868a0] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">
                           {t.joinPeople} 人填單{(t.joinQty ?? 0) > 0 ? ` · ${t.joinQty} 件` : ""}
                         </span>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center px-4 py-3">
-                    <span className="text-[#4c59a1]/70 font-[900] text-[13px]">{t.shipInfo ? `預計 ${t.shipInfo} 發貨` : "點進來看商品"}</span>
-                    <span className="ml-auto flex items-center gap-1 text-[#4c59a1] font-[900] text-sm">
+                    <span className="text-[#283d3e]/70 font-[900] text-[13px]">{t.shipInfo ? `預計 ${t.shipInfo} 發貨` : "點進來看商品"}</span>
+                    <span className="ml-auto flex items-center gap-1 text-[#283d3e] font-[900] text-sm">
                       去填單 <ChevronRight className="w-4 h-4 stroke-[3px]" />
                     </span>
                   </div>
@@ -163,9 +163,9 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                     ? <img src={t.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[86%] h-[72%] object-contain" />
                     : t.cover
                       ? <img src={t.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-full h-full object-cover" />
-                      : <ShoppingBag className="w-7 h-7 text-[#4c59a1]/25 stroke-[2px]" />}
+                      : <ShoppingBag className="w-7 h-7 text-[#283d3e]/25 stroke-[2px]" />}
                   {t.open > 0 && (
-                    <span className="absolute inset-x-0 bottom-0 bg-[#3ac0bf]/95 text-white text-[10px] font-[900] text-center py-0.5">{t.open} 團</span>
+                    <span className="absolute inset-x-0 bottom-0 bg-white/92 text-[#283d3e] text-[10px] font-[900] text-center py-0.5 border-t border-black/8">{t.open} 團</span>
                   )}
                 </span>
                 <span className="font-[900] text-[11px] leading-tight text-center line-clamp-2">{t.name}</span>

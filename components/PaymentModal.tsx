@@ -115,12 +115,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
     const inner = (
       <>
         <div className="flex items-center justify-between gap-2 mb-2.5">
-          <span className="text-xs font-[900] tracking-widest text-[#4c59a1]">
+          <span className="text-xs font-[900] tracking-widest text-[#283d3e]">
             {isShipping ? '欲出貨的商品清單' : '回傳明細預覽'}
           </span>
           {/* 複製指示只在賣貨便流程出現（付訂金靠下方大按鈕自動送出，框只給看） */}
           {isShipping && (
-            <span className={`flex items-center gap-1 text-xs font-[900] shrink-0 ${detailCopied ? 'text-[#3ac0bf]' : 'text-[#f8a3f4]'}`}>
+            <span className={`flex items-center gap-1 text-xs font-[900] shrink-0 ${detailCopied ? 'text-[#49d5df]' : 'text-[#e868a0]'}`}>
               {detailCopied ? <CheckCircle size={16} strokeWidth={2.5} /> : <Copy size={16} strokeWidth={2.5} />}
               {detailCopied ? '已複製' : '複製'}
             </span>
@@ -129,7 +129,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
         <div className="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap break-words font-mono">
           {generateDetailMessage()}
         </div>
-        <div className={`mt-3 flex items-center justify-center gap-1.5 text-center text-xs font-[900] rounded-2xl py-2.5 transition-colors ${detailCopied ? 'bg-[#3ac0bf]/15 text-[#3ac0bf]' : 'bg-[#f8a3f4]/15 text-[#4c59a1]'}`}>
+        <div className={`mt-3 flex items-center justify-center gap-1.5 text-center text-xs font-[900] rounded-2xl py-2.5 transition-colors ${detailCopied ? 'bg-[#49d5df]/15 text-[#49d5df]' : 'bg-[#e868a0]/15 text-[#283d3e]'}`}>
           {detailCopied && isShipping && <CheckCircle size={14} strokeWidth={2.5} />}
           {isShipping ? '貼到賣貨便「備註欄第二格」就好，不用自己打字' : '按下方「複製明細並回傳」會自動送出，並跳到官方 LINE 貼上就完成'}
         </div>
@@ -137,11 +137,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
     );
     // 賣貨便：整張框可點複製（真功能）；付訂金：純預覽（不可點，靠下方大按鈕）
     return isShipping ? (
-      <button type="button" onClick={copyDetail} className={`w-full text-left rounded-[24px] p-5 border-2 transition-all active:scale-[0.99] ${detailCopied ? 'border-[#3ac0bf] bg-[#3ac0bf]/[0.08]' : 'border-dashed border-[#f8a3f4] bg-[#f8a3f4]/[0.08]'}`}>
+      <button type="button" onClick={copyDetail} className={`w-full text-left rounded-[24px] p-5 border-2 transition-all active:scale-[0.99] ${detailCopied ? 'border-[#49d5df] bg-[#49d5df]/[0.08]' : 'border-dashed border-[#e868a0] bg-[#e868a0]/[0.08]'}`}>
         {inner}
       </button>
     ) : (
-      <div className="w-full text-left rounded-[24px] p-5 border-2 border-dashed border-[#f8a3f4] bg-[#f8a3f4]/[0.08]">
+      <div className="w-full text-left rounded-[24px] p-5 border-2 border-dashed border-[#e868a0] bg-[#e868a0]/[0.08]">
         {inner}
       </div>
     );
@@ -150,7 +150,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
   const currentStepTitle = isShipping ? '確認出貨明細' : (step === 1 ? '確認商品與金額' : step === 2 ? '選擇付款方式與帳號' : '回報付款資訊');
 
   return (
-    <div className="fixed inset-0 bg-[#4c59a1]/40 backdrop-blur-sm z-[100] flex flex-col items-center justify-center animate-fade-in p-4 md:p-8">
+    <div className="fixed inset-0 bg-[#283d3e]/40 backdrop-blur-sm z-[100] flex flex-col items-center justify-center animate-fade-in p-4 md:p-8">
 
       {/* 🎯 模態框主體：白底、無黑框、柔和陰影 */}
       <div className="w-full max-w-md bg-white border-[2.5px] border-black rounded-[32px] sm:rounded-[40px] overflow-hidden flex flex-col max-h-[90vh]">
@@ -169,7 +169,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
             {!isShipping && (
               <div className="flex gap-1.5 mt-2">
                 {[1, 2, 3].map((s) => (
-                  <div key={s} className={`h-[4px] rounded-full transition-all duration-300 ${step === s ? 'w-6 bg-[#3ac0bf]' : 'w-4 bg-gray-200'}`} />
+                  <div key={s} className={`h-[4px] rounded-full transition-all duration-300 ${step === s ? 'w-6 bg-[#49d5df]' : 'w-4 bg-gray-200'}`} />
                 ))}
               </div>
             )}
@@ -178,7 +178,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
         </div>
 
         {/* 🎯 滾動內容區 (✨已換成專屬粉紫滾輪) */}
-        <div className="flex-1 overflow-y-auto px-6 py-2 space-y-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#3ac0bf] [&::-webkit-scrollbar-thumb]:rounded-full">
+        <div className="flex-1 overflow-y-auto px-6 py-2 space-y-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#49d5df] [&::-webkit-scrollbar-thumb]:rounded-full">
 
           {/* --- 步驟 1 --- */}
           {(step === 1 || isShipping) && (
@@ -187,14 +187,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
               <div>
                 <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
                   <span className="text-gray-400 font-[900] text-xs tracking-widest uppercase">訂單項目清單</span>
-                  <span className="bg-[#4c59a1] text-white text-[10px] px-3 py-1 rounded-full font-[900] tracking-widest">{orders.length} 筆</span>
+                  <span className="bg-[#283d3e] text-white text-[10px] px-3 py-1 rounded-full font-[900] tracking-widest">{orders.length} 筆</span>
                 </div>
                 <div className="space-y-3">
                   {orders.map((order, index) => (
                     // 🎯 色塊膠囊
                     <div key={index} className="flex justify-between items-center bg-white p-3.5 rounded-xl">
                       <span className="text-black font-[900] text-sm truncate pl-1">{order.groupName}</span>
-                      <span className="font-[900] text-base text-[#4c59a1] pr-1">
+                      <span className="font-[900] text-base text-[#283d3e] pr-1">
                         ${(isShipping ? balanceWithFee(order) : order.depositAmount).toLocaleString()}
                       </span>
                     </div>
@@ -203,8 +203,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
               </div>
 
               <div className="bg-white rounded-[24px] p-8 text-center">
-                <span className="text-[#3ac0bf] font-[900] text-sm tracking-widest uppercase block mb-2">應付總額</span>
-                <span className="text-5xl font-[900] text-[#4c59a1] tracking-tighter">
+                <span className="text-[#49d5df] font-[900] text-sm tracking-widest uppercase block mb-2">應付總額</span>
+                <span className="text-5xl font-[900] text-[#283d3e] tracking-tighter">
                   ${totalAmount.toLocaleString()}
                 </span>
               </div>
@@ -215,10 +215,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
           {step === 2 && !isShipping && (
             <div className="space-y-6">
               <div className="flex gap-3 bg-gray-100 rounded-full p-1.5">
-                <button onClick={() => setPaymentMethod('transfer')} className={`flex-1 py-3 text-sm font-[900] rounded-full transition-all flex justify-center items-center gap-2 ${paymentMethod === 'transfer' ? 'bg-white text-[#3ac0bf] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
+                <button onClick={() => setPaymentMethod('transfer')} className={`flex-1 py-3 text-sm font-[900] rounded-full transition-all flex justify-center items-center gap-2 ${paymentMethod === 'transfer' ? 'bg-white text-[#49d5df] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
                   <Building size={18} strokeWidth={2.5} /> 匯款
                 </button>
-                <button onClick={() => setPaymentMethod('cardless')} className={`flex-1 py-3 text-sm font-[900] rounded-full transition-all flex justify-center items-center gap-2 ${paymentMethod === 'cardless' ? 'bg-white text-[#3ac0bf] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
+                <button onClick={() => setPaymentMethod('cardless')} className={`flex-1 py-3 text-sm font-[900] rounded-full transition-all flex justify-center items-center gap-2 ${paymentMethod === 'cardless' ? 'bg-white text-[#49d5df] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
                   <CreditCard size={18} strokeWidth={2.5} /> 無卡存款
                 </button>
               </div>
@@ -239,7 +239,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
                 <div>
                   <label className="text-xs text-gray-400 font-[900] tracking-widest block mb-2">對應匯款帳號</label>
                   <div className="bg-white rounded-xl p-5 flex flex-col gap-4">
-                    <div className="text-xl font-[900] text-[#4c59a1] tracking-[0.1em] text-center">
+                    <div className="text-xl font-[900] text-[#283d3e] tracking-[0.1em] text-center">
                       {paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].account : cardlessBanks[selectedBankIdx].account}
                     </div>
                     <button onClick={() => navigator.clipboard.writeText(paymentMethod === 'transfer' ? transferBanks[selectedBankIdx].account : cardlessBanks[selectedBankIdx].account)} className="w-full py-3 bg-gray-100 text-gray-600 font-[900] rounded-full border-[2.5px] border-black active:translate-x-[3px] active:opacity-60 transition-all flex items-center justify-center gap-2">
@@ -255,8 +255,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
           {step === 3 && !isShipping && (
             <div className="space-y-6 pt-4">
               <div className="text-center space-y-3">
-                <div className="w-16 h-16 bg-[#3ac0bf]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle className="text-[#3ac0bf] w-8 h-8 stroke-[2.5px]" />
+                <div className="w-16 h-16 bg-[#49d5df]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="text-[#49d5df] w-8 h-8 stroke-[2.5px]" />
                 </div>
                 <h4 className="text-xl font-[900] text-black tracking-widest">回傳付款資訊</h4>
                 <p className="text-gray-400 font-[900] text-xs">一鍵複製明細，貼上官方 LINE 回傳就完成囉！</p>
@@ -266,11 +266,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
                 {paymentMethod === 'transfer' ? (
                   <div className="space-y-4">
                     <label className="text-xs text-gray-400 font-[900] tracking-widest block text-center">您的匯款帳號【末五碼】</label>
-                    <input type="text" inputMode="numeric" maxLength={5} placeholder="例: 12345" value={last5Digits} onChange={(e) => { setLast5Digits(e.target.value.replace(/\D/g, '')); setDetailCopied(false); }} className="w-full bg-white rounded-xl p-4 text-2xl text-[#4c59a1] font-[900] outline-none tracking-[0.5em] text-center placeholder-gray-200" />
+                    <input type="text" inputMode="numeric" maxLength={5} placeholder="例: 12345" value={last5Digits} onChange={(e) => { setLast5Digits(e.target.value.replace(/\D/g, '')); setDetailCopied(false); }} className="w-full bg-white rounded-xl p-4 text-2xl text-[#283d3e] font-[900] outline-none tracking-[0.5em] text-center placeholder-gray-200" />
                   </div>
                 ) : (
                   <div className="p-6 bg-white rounded-xl text-center space-y-3">
-                    <Sparkles className="w-8 h-8 text-[#f8a3f4] mx-auto" />
+                    <Sparkles className="w-8 h-8 text-[#e868a0] mx-auto" />
                     <p className="text-xs font-[900] text-gray-500 tracking-widest leading-loose">
                       您選擇的是【無卡存款】<br />請拍下存款明細，並點選下方按鈕回傳！
                     </p>

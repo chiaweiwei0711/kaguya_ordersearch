@@ -40,10 +40,10 @@ const ADVANTAGES: { title: string; desc: string }[] = [
 
 const AboutSection: React.FC<Props> = ({ onBack }) => {
   return (
-    <div className="fixed inset-0 z-40 bg-[#3ac0bf] overflow-y-auto">
+    <div className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto">
       <div className="w-full max-w-xl mx-auto px-5 sm:px-7 pt-20 pb-8">
         <div className="text-center mb-6">
-          <h2 className="text-[#fff170] font-[900] text-4xl sm:text-5xl tracking-widest">ABOUT</h2>
+          <h2 className="text-[#f6f9f9] font-[900] text-4xl sm:text-5xl tracking-widest">ABOUT</h2>
           <p className="text-white font-[900] text-sm tracking-[0.4em] mt-2">關於 KAGUYA</p>
         </div>
 
@@ -54,8 +54,8 @@ const AboutSection: React.FC<Props> = ({ onBack }) => {
         </div>
 
         <div className="bg-white rounded-[28px] px-6 py-7 sm:px-8">
-          <div className="inline-block bg-[#fff170] text-[#4c59a1] font-[900] text-sm px-4 py-1.5 rounded-full mb-5">我們是誰</div>
-          <div className="space-y-4 text-[#4c59a1] font-bold text-[15px] leading-relaxed">
+          <div className="inline-block bg-[#f6f9f9] text-[#283d3e] font-[900] text-sm px-4 py-1.5 rounded-full mb-5">我們是誰</div>
+          <div className="space-y-4 text-[#283d3e] font-bold text-[15px] leading-relaxed">
             {STORY.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
@@ -64,16 +64,16 @@ const AboutSection: React.FC<Props> = ({ onBack }) => {
 
         {/* 優勢：一條一張卡，左上角編號圓標 */}
         <div className="mt-7">
-          <div className="inline-block bg-[#fff170] text-[#4c59a1] font-[900] text-sm px-4 py-1.5 rounded-full mb-4">為什麼選 KAGUYA</div>
+          <div className="inline-block bg-[#f6f9f9] text-[#283d3e] font-[900] text-sm px-4 py-1.5 rounded-full mb-4">為什麼選 KAGUYA</div>
           <div className="space-y-3">
             {ADVANTAGES.map((a, i) => (
               <div key={i} className="bg-white border border-black rounded-2xl px-4 py-3.5 flex gap-3">
-                <span className="shrink-0 w-8 h-8 rounded-full bg-[#fff170] border-2 border-black text-[#4c59a1] font-[900] text-sm flex items-center justify-center">
+                <span className="shrink-0 w-8 h-8 rounded-full bg-[#f6f9f9] border-2 border-black text-[#283d3e] font-[900] text-sm flex items-center justify-center">
                   {i + 1}
                 </span>
                 <div className="min-w-0">
-                  <div className="text-[#4c59a1] font-[900] text-[15px] leading-snug">{a.title}</div>
-                  <p className="text-[#4c59a1]/75 font-bold text-[13px] leading-relaxed mt-1">{a.desc}</p>
+                  <div className="text-[#283d3e] font-[900] text-[15px] leading-snug">{a.title}</div>
+                  <p className="text-[#283d3e]/75 font-bold text-[13px] leading-relaxed mt-1">{a.desc}</p>
                 </div>
               </div>
             ))}

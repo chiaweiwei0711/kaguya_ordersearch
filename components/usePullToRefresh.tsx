@@ -83,7 +83,7 @@ export const usePullToRefresh = (onRefresh?: () => Promise<any> | any) => {
         style={{ transform: `translateY(${Math.max(pull - 46, -46)}px)` }}
       >
         <RefreshCw
-          className={`w-5 h-5 stroke-[3px] ${ready || busy ? "text-[#3ac0bf]" : "text-[#4c59a1]/40"} ${busy ? "animate-spin" : ""}`}
+          className={`w-5 h-5 stroke-[3px] ${ready || busy ? "text-[#49d5df]" : "text-[#283d3e]/40"} ${busy ? "animate-spin" : ""}`}
           style={busy ? undefined : { transform: `rotate(${pull * 3}deg)` }}
         />
       </div>

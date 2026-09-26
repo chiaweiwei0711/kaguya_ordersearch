@@ -67,17 +67,17 @@ const FaqSection: React.FC<Props> = ({ onBack, onGuide }) => {
   const [open, setOpen] = useState<number>(0);
 
   return (
-    <div className="fixed inset-0 z-40 bg-[#3ac0bf] overflow-y-auto">
+    <div className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto">
       {/* 限寬置中 → 桌機也維持窄欄、跟手機一樣好看 */}
       <div className="w-full max-w-xl mx-auto px-5 sm:px-7 pt-20 pb-8">
         <div className="text-center mb-8">
-          <h2 className="text-[#fff170] font-[900] text-4xl sm:text-5xl tracking-widest">FAQ</h2>
+          <h2 className="text-[#f6f9f9] font-[900] text-4xl sm:text-5xl tracking-widest">FAQ</h2>
           <p className="text-white font-[900] text-sm tracking-[0.4em] mt-2">常見問題</p>
         </div>
 
         <button onClick={onGuide} className="w-full mb-6 flex items-center justify-between gap-3 px-6 py-4 rounded-[24px] bg-white text-[#1a1a1a] font-[900] active:scale-[0.99] transition text-left">
           <span>第一次跟團？先看購物流程</span>
-          <ArrowRight className="w-5 h-5 shrink-0 stroke-[3px] text-[#f8a3f4]" />
+          <ArrowRight className="w-5 h-5 shrink-0 stroke-[3px] text-[#e868a0]" />
         </button>
 
         <div className="space-y-4">
@@ -104,8 +104,8 @@ const FaqSection: React.FC<Props> = ({ onBack, onGuide }) => {
                     <div className="bg-white px-6 py-6 space-y-5">
                       {cat.items.map((it, j) => (
                         <div key={j}>
-                          <div className="text-[#3ac0bf] font-[900] text-base mb-1.5 leading-snug">Q{j + 1}. {it.q}</div>
-                          <div className="text-[#4c59a1] font-bold text-sm leading-relaxed">{it.a}</div>
+                          <div className="text-[#49d5df] font-[900] text-base mb-1.5 leading-snug">Q{j + 1}. {it.q}</div>
+                          <div className="text-[#283d3e] font-bold text-sm leading-relaxed">{it.a}</div>
                         </div>
                       ))}
                     </div>

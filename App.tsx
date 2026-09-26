@@ -44,15 +44,15 @@ const LoadingOverlay: React.FC = () => {
     <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center bg-[#fdfbf0]/80 backdrop-blur-sm animate-fade-in">
       {/* 音浪/小蚯蚓跳動區塊 */}
       <div className="flex items-center justify-center gap-2.5 h-16">
-        <div className="w-3 h-8 bg-[#f8a3f4] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '0ms' }}></div>
-        <div className="w-3 h-12 bg-[#3ac0bf] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '100ms' }}></div>
-        <div className="w-3 h-6 bg-[#4c59a1] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '200ms' }}></div>
-        <div className="w-3 h-10 bg-[#fff170] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '300ms' }}></div>
-        <div className="w-3 h-8 bg-[#f8a3f4] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '400ms' }}></div>
+        <div className="w-3 h-8 bg-[#e868a0] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '0ms' }}></div>
+        <div className="w-3 h-12 bg-[#49d5df] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '100ms' }}></div>
+        <div className="w-3 h-6 bg-[#283d3e] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '200ms' }}></div>
+        <div className="w-3 h-10 bg-[#f6f9f9] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '300ms' }}></div>
+        <div className="w-3 h-8 bg-[#e868a0] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '400ms' }}></div>
       </div>
 
       {/* 提示文字 */}
-      <p className="mt-6 text-[#4c59a1] font-[900] tracking-widest text-sm animate-pulse">
+      <p className="mt-6 text-[#283d3e] font-[900] tracking-widest text-sm animate-pulse">
         KAGUYA 努力為您尋找中...
       </p>
     </div>
@@ -60,7 +60,7 @@ const LoadingOverlay: React.FC = () => {
 };
 
 // --- 🎨 2.0 進化版：立體浮游糖果點點資料 (網格生成確保均勻，含動畫參數) ---
-const DOT_COLORS = ['#4ceade', '#77dbf1', '#ffaefe', '#eeda22'];
+const DOT_COLORS = ['#4ceade', '#77dbf1', '#f6f9f9', '#eeda22'];
 const COLS = 8; // 橫向 8 列
 const ROWS = 8; // 縱向 8 行
 const TOTAL_DOTS = COLS * ROWS; // 總共 64 顆，絕對夠多！
@@ -514,10 +514,7 @@ const App: React.FC = () => {
       className="min-h-screen font-sans text-black selection:bg-[#e891d4] relative flex justify-center overflow-x-hidden transition-colors duration-500"
       style={{
         // 一頁一色：作品與填單專區用黃底，其餘（首頁、我的訂單、查單結果）維持品牌藍紫
-        backgroundColor:
-          mainView === 'works' ? '#fff170'
-          : mainView === 'order' && !selectedTeamCode ? '#fff170'
-          : '#4c59a1',
+        backgroundColor: '#f6f9f9',
         transitionTimingFunction: 'cubic-bezier(.32,.72,0,1)',
       }}
     >
@@ -550,15 +547,15 @@ const App: React.FC = () => {
 
       {/* LINE 內開啟的自動登入過場：蓋住 liff.init→查綁定→自動查單的空白期 */}
       {liffBoot && (
-        <div className="fixed inset-0 z-[130] flex flex-col items-center justify-center bg-[#4c59a1]">
+        <div className="fixed inset-0 z-[130] flex flex-col items-center justify-center bg-[#283d3e]">
           <div className="flex items-center justify-center gap-2.5 h-16">
-            <div className="w-3 h-8 bg-[#f8a3f4] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-3 h-12 bg-[#3ac0bf] rounded-full animate-bounce" style={{ animationDelay: '100ms' }}></div>
-            <div className="w-3 h-6 bg-[#fff170] rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
+            <div className="w-3 h-8 bg-[#e868a0] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-3 h-12 bg-[#49d5df] rounded-full animate-bounce" style={{ animationDelay: '100ms' }}></div>
+            <div className="w-3 h-6 bg-[#f6f9f9] rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
             <div className="w-3 h-10 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
           </div>
           <p className="text-white font-[900] text-lg tracking-widest mt-6">LINE 自動登入中</p>
-          <p className="text-[#fff170] font-[900] text-sm tracking-widest mt-2">正在為您查詢訂單，請稍候…</p>
+          <p className="text-[#f6f9f9] font-[900] text-sm tracking-widest mt-2">正在為您查詢訂單，請稍候…</p>
         </div>
       )}
 
@@ -571,7 +568,7 @@ const App: React.FC = () => {
           onMenu={() => setIsMenuOpen(true)}
           onOrders={goOrders}
           showBack={mainView !== 'query' || hasSearched}
-          tone={mainView === 'works' || mainView === 'order' ? 'light' : 'dark'}
+          tone="light"
         />
       )}
 
@@ -580,12 +577,12 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-[100] bg-[#c3ccfd] flex flex-col items-center animate-fade-in overflow-y-auto pt-24 pb-10">
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="fixed top-6 right-6 bg-[#3ac0bf] text-white font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-md active:scale-95 transition-transform hover:bg-[#34adab]"
+            className="fixed top-6 right-6 bg-[#49d5df] text-[#283d3e] font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-md active:scale-95 transition-transform hover:bg-[#34adab]"
           >
             CLOSE
           </button>
 
-          <div className="w-full max-w-xs px-6 space-y-7 text-[#4c59a1]">
+          <div className="w-full max-w-xs px-6 space-y-7 text-[#283d3e]">
             {/* 分成四組：逛的、我的、看說明的、對外連結 */}
             <div>
               <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">逛商品</div>
@@ -650,16 +647,16 @@ const App: React.FC = () => {
                     <div className="w-full max-w-lg flex flex-col gap-2.5 mt-4 px-4 sm:px-0">
                       {/* 常駐搜尋框：movic／KADOKAWA／AMNIBUS 都放在頂部列正下方全寬一條，不藏進圖示 */}
                       <div className="w-full h-12 rounded-full bg-white border border-black/10 flex items-center gap-2.5 px-4">
-                        <Search className="w-5 h-5 stroke-[3px] text-[#4c59a1]/40 shrink-0" />
+                        <Search className="w-5 h-5 stroke-[3px] text-[#283d3e]/40 shrink-0" />
                         <input
                           value={homeQuery}
                           onChange={(e) => setHomeQuery(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing && homeQuery.trim()) goOrderSearch(homeQuery); }}
                           placeholder="搜團名、商品名"
-                          className="flex-1 min-w-0 bg-transparent outline-none font-[900] text-[15px] text-[#4c59a1] placeholder-[#4c59a1]/35"
+                          className="flex-1 min-w-0 bg-transparent outline-none font-[900] text-[15px] text-[#283d3e] placeholder-[#283d3e]/35"
                         />
                         {homeQuery.trim() && (
-                          <button onClick={() => goOrderSearch(homeQuery)} className="shrink-0 h-8 px-3.5 rounded-full bg-[#eef0fa] text-[#4c59a1] font-[900] text-[13px] active:opacity-60">搜尋</button>
+                          <button onClick={() => goOrderSearch(homeQuery)} className="shrink-0 h-8 px-3.5 rounded-full bg-[#e9f5f6] text-[#283d3e] font-[900] text-[13px] active:opacity-60">搜尋</button>
                         )}
                       </div>
                     </div>
@@ -669,7 +666,7 @@ const App: React.FC = () => {
                       <div className="w-full max-w-md px-4">
                         <div className="bg-[#ffffff] rounded-full p-2 flex items-center gap-2 border border-black mb-3 transition-transform focus-within:-translate-y-1">
                           <div className="relative flex-1 flex items-center pl-1">
-                            <Search className="absolute left-4 text-[#f8a3f4] w-6 h-6 stroke-[3px]" />
+                            <Search className="absolute left-4 text-[#e868a0] w-6 h-6 stroke-[3px]" />
                             <input
                               type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                               placeholder="請輸入您的社群暱稱"
@@ -677,14 +674,14 @@ const App: React.FC = () => {
                               onKeyDown={(e) => { if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing) { handleSearch(); } }}
                             />
                           </div>
-                          <button onClick={() => handleSearch()} className="bg-[#f8a3f4] text-white w-12 h-12 rounded-full border border-black flex items-center justify-center shrink-0 active:scale-90 transition-transform">
+                          <button onClick={() => handleSearch()} className="bg-[#e868a0] text-[#283d3e] w-12 h-12 rounded-full border border-black flex items-center justify-center shrink-0 active:scale-90 transition-transform">
                             <ArrowRight className="stroke-[3px]" />
                           </button>
                         </div>
                         {searchNotice && (
-                          <p className="text-[#f8a3f4] text-sm font-[900] mt-3 text-center tracking-widest">{searchNotice}</p>
+                          <p className="text-[#e868a0] text-sm font-[900] mt-3 text-center tracking-widest">{searchNotice}</p>
                         )}
-                        <p className="text-[#3ac0bf] text-xs sm:text-sm font-[900] mt-4 text-center tracking-widest">
+                        <p className="text-[#49d5df] text-xs sm:text-sm font-[900] mt-4 text-center tracking-widest">
                           ※若有更改社群暱稱，請務必私訊官賴協助修改！
                         </p>
                       </div>
@@ -701,15 +698,15 @@ const App: React.FC = () => {
                       onSelectTag={goOrderTag}
                     />
                     {/* 明日結單區塊：固定存在（載入中／明日沒團也保留，不忽隱忽現） */}
-                    <div className="w-full max-w-lg text-white">
+                    <div className="w-full max-w-lg text-[#283d3e]">
                         <SectionHead en="CLOSING SOON" title="即將結單" />
                         {teamsLoading ? (
                           <div className="px-4 md:px-1">
-                            <div className="bg-white rounded-2xl px-5 py-4 text-[#4c59a1]/60 font-[900] text-sm text-center">載入中…</div>
+                            <div className="bg-white rounded-2xl px-5 py-4 text-[#283d3e]/60 font-[900] text-sm text-center">載入中…</div>
                           </div>
                         ) : closingTeams.length === 0 ? (
                           <div className="px-4 md:px-1">
-                            <div className="bg-white rounded-2xl px-5 py-4 text-[#4c59a1]/70 font-[900] text-sm text-center">明日沒有結單的團</div>
+                            <div className="bg-white rounded-2xl px-5 py-4 text-[#283d3e]/70 font-[900] text-sm text-center">明日沒有結單的團</div>
                           </div>
                         ) : (
                         <div className="flex gap-3 overflow-x-auto pb-3 px-4 md:px-1 snap-x" style={{ scrollbarWidth: 'none' }}>
@@ -721,21 +718,21 @@ const App: React.FC = () => {
                                 onClick={() => goOrderTeam(team.code)}
                                 className="snap-start shrink-0 w-36 bg-white rounded-2xl overflow-hidden text-left active:opacity-60 transition-all"
                               >
-                                <div className="w-full h-28 bg-[#eef0fa] relative">
+                                <div className="w-full h-28 bg-[#e9f5f6] relative">
                                   {img ? (
                                     <img src={img} alt={team.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                   ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[#4c59a1]/40">
+                                    <div className="w-full h-full flex items-center justify-center text-[#283d3e]/40">
                                       <ShoppingBag className="w-9 h-9 stroke-[2px]" />
                                     </div>
                                   )}
-                                  <span className={`absolute top-1.5 left-1.5 text-[10px] font-[900] px-2 py-0.5 rounded-full shadow-sm ${when === 'today' ? 'bg-[#f43f5e] text-white' : 'bg-[#fff170] text-black'}`}>
+                                  <span className={`absolute top-1.5 left-1.5 text-[10px] font-[900] px-2 py-0.5 rounded-full shadow-sm border border-black/12 bg-white text-[#283d3e] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${when === 'today' ? 'before:bg-[#e46b58]' : 'before:bg-[#49d5df]'}`}>
                                     {when === 'today' ? '今日結單' : '明日結單'}
                                   </span>
                                 </div>
                                 <div className="px-2.5 py-2">
-                                  <div className="font-[900] text-[12px] text-[#4c59a1] leading-tight line-clamp-2 min-h-[30px]">{team.name}</div>
-                                  <div className="text-[10px] font-[900] text-[#f43f5e] mt-1">{fmtMDHM(team.closeAt)} 止</div>
+                                  <div className="font-[900] text-[12px] text-[#283d3e] leading-tight line-clamp-2 min-h-[30px]">{team.name}</div>
+                                  <div className="text-[10px] font-[900] text-[#e46b58] mt-1">{fmtMDHM(team.closeAt)} 止</div>
                                 </div>
                               </button>
                             );
@@ -747,14 +744,14 @@ const App: React.FC = () => {
                     {(teamsLoading || teams.length > 0) && (
                       <GroupOrderList teams={teams} products={groupProducts} preview loading={teamsLoading} onSelect={goOrderTeam} onMore={goOrderList} />
                     )}
-                    <div id="news-section" className="w-full max-w-lg bg-[#ffaefe] rounded-[40px] px-6 py-10 flex flex-col items-center">
-                      <h2 className="text-[#4c59a1] font-[900] text-4xl mb-6 tracking-widest">NEWS</h2>
-                      <div className="w-full space-y-4 text-[#4c59a1] font-[900] text-base md:text-lg">
+                    <div id="news-section" className="w-full max-w-lg bg-[#f6f9f9] rounded-[40px] px-6 py-10 flex flex-col items-center">
+                      <h2 className="text-[#283d3e] font-[900] text-4xl mb-6 tracking-widest">NEWS</h2>
+                      <div className="w-full space-y-4 text-[#283d3e] font-[900] text-base md:text-lg">
                         {news.slice(0, 3).map((item, idx) => (
                           <div
                             key={idx}
                             onClick={() => setSelectedNews(item)}
-                            className="flex justify-between items-center border-b-[3px] border-[#4c59a1]/20 pb-3 cursor-pointer hover:opacity-70 active:scale-95 transition-all"
+                            className="flex justify-between items-center border-b-[3px] border-[#283d3e]/20 pb-3 cursor-pointer hover:opacity-70 active:scale-95 transition-all"
                           >
                             <span className="truncate mr-4 flex-1">{item.title}</span>
                             <span className="shrink-0">{item.date}</span>
@@ -763,13 +760,13 @@ const App: React.FC = () => {
                         {news.length === 0 && <p className="text-center opacity-70">載入中…</p>}
                       </div>
                       {/* 🎯 點擊 More 進入全新粉紅列表頁面 */}
-                      <button onClick={() => { setMainView('info'); nav('/news'); window.scrollTo(0, 0); }} className="mt-8 ml-auto text-[#4c59a1] font-[900] text-lg flex items-center border-b-[3px] border-[#4c59a1] hover:opacity-70 active:translate-x-2 transition-all">
+                      <button onClick={() => { setMainView('info'); nav('/news'); window.scrollTo(0, 0); }} className="mt-8 ml-auto text-[#283d3e] font-[900] text-lg flex items-center border-b-[3px] border-[#283d3e] hover:opacity-70 active:translate-x-2 transition-all">
                         More... <ArrowRight className="ml-1 w-5 h-5 stroke-[3px]" />
                       </button>
                     </div>
 
-                    <div id="sns-section" className="w-full max-w-lg bg-[#3ac0bf] rounded-[40px] px-6 py-10 flex flex-col items-center">
-                      <h2 className="text-[#fff170] font-[900] text-4xl mb-8 tracking-widest">SNS</h2>
+                    <div id="sns-section" className="w-full max-w-lg bg-[#49d5df] rounded-[40px] px-6 py-10 flex flex-col items-center">
+                      <h2 className="text-[#283d3e] font-[900] text-4xl mb-8 tracking-widest">SNS</h2>
                       <div className="w-full space-y-4">
                         <a href={APP_CONFIG.LINE_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full active:opacity-60 transition-all hover:bg-gray-50">
                           <div className="flex items-center gap-3"><MessageCircle className="w-6 h-6 stroke-[2.5px] text-[#06C755]" /> 加官方賴好友</div>
@@ -799,7 +796,7 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <footer className="pt-16 pb-32 text-center text-[#3ac0bf] text-[11px] font-[900] space-y-2">
+                  <footer className="pt-16 pb-32 text-center text-[#49d5df] text-[11px] font-[900] space-y-2">
                     <div className="opacity-80">本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
                     <p className="mt-2 opacity-80">© {new Date().getFullYear()} All Rights Reserved.</p>
                   </footer>
@@ -812,10 +809,10 @@ const App: React.FC = () => {
 
                     {/* 🎯 1. 頂部暱稱藥丸與返回按鈕 (顯示客人暱稱) */}
                     <div className="w-full max-w-md bg-white rounded-full p-2 pl-6 flex items-center justify-between border border-black">
-                      <h1 className="text-[#3ac0bf] font-[900] text-2xl tracking-widest truncate flex-1 mr-4">
+                      <h1 className="text-[#49d5df] font-[900] text-2xl tracking-widest truncate flex-1 mr-4">
                         {searchQuery || 'Guest'}
                       </h1>
-                      <button onClick={() => setHasSearched(false)} className="bg-[#f8a3f4] text-white w-10 h-10 rounded-full border-2 border-black flex items-center justify-center active:opacity-60 transition-all hover:bg-[#eb92e7] shrink-0">
+                      <button onClick={() => setHasSearched(false)} className="bg-[#e868a0] text-[#283d3e] w-10 h-10 rounded-full border-2 border-black flex items-center justify-center active:opacity-60 transition-all hover:bg-[#eb92e7] shrink-0">
                         <X className="stroke-[3px]" />
                       </button>
                     </div>
@@ -838,8 +835,8 @@ const App: React.FC = () => {
                             if (tab.id !== 'all') { setCargoFilters([]); setDeliveryFilter(null); }
                           }}
                           className={`px-4 py-2 rounded-full font-[900] whitespace-nowrap transition-all border-2 text-[13px] tracking-widest ${activeTab === tab.id
-                            ? 'bg-[#3ac0bf] border-[#3ac0bf] text-white'
-                            : 'bg-transparent border-[#3ac0bf] text-[#3ac0bf] hover:bg-[#3ac0bf]/10'
+                            ? 'bg-[#49d5df] border-[#49d5df] text-[#283d3e]'
+                            : 'bg-transparent border-[#49d5df] text-[#49d5df] hover:bg-[#49d5df]/10'
                             }`}
                         >
                           {tab.label}
@@ -855,7 +852,7 @@ const App: React.FC = () => {
                           placeholder="在結果中搜尋團名和商品..."
                           value={subQuery}
                           onChange={(e) => setSubQuery(e.target.value)}
-                          className="w-full px-4 py-1.5 bg-transparent outline-none text-sm font-[900] text-[#4c59a1] placeholder-gray-400"
+                          className="w-full px-4 py-1.5 bg-transparent outline-none text-sm font-[900] text-[#283d3e] placeholder-gray-400"
                         />
                       </div>
                     )}
@@ -872,27 +869,27 @@ const App: React.FC = () => {
                           <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value as any)}
-                            className="pl-4 pr-8 py-1.5 bg-transparent border-[2.5px] border-[#3ac0bf] text-[#3ac0bf] rounded-full text-sm font-[900] outline-none appearance-none cursor-pointer"
+                            className="pl-4 pr-8 py-1.5 bg-transparent border-[2.5px] border-[#49d5df] text-[#49d5df] rounded-full text-sm font-[900] outline-none appearance-none cursor-pointer"
                           >
                             <option value="default">預設排序(依時間)</option>
                             <option value="price_desc">金額：由高至低</option>
                             <option value="price_asc">金額：由低至高</option>
                             <option value="strokes">團名：依筆畫</option>
                           </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#3ac0bf] font-[900] text-xs">▼</div>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#49d5df] font-[900] text-xs">▼</div>
                         </div>
 
                         {/* 右側：智慧切換全選或數量 */}
                         {(activeTab === 'deposit' || activeTab === 'balance') ? (
                           <button
                             onClick={handleSelectAll}
-                            className="flex items-center gap-2 text-sm font-[900] text-[#3ac0bf] bg-transparent border-[2.5px] border-dashed border-[#3ac0bf] px-4 py-1.5 rounded-full hover:bg-[#3ac0bf]/10 active:scale-95 transition-all"
+                            className="flex items-center gap-2 text-sm font-[900] text-[#49d5df] bg-transparent border-[2.5px] border-dashed border-[#49d5df] px-4 py-1.5 rounded-full hover:bg-[#49d5df]/10 active:scale-95 transition-all"
                           >
                             {filteredOrders.every(o => selectedOrderIds.has(o.id)) ? <CheckSquare size={16} strokeWidth={3} /> : <Square size={16} strokeWidth={3} />}
                             全選本頁 ({selectedOrderIds.size})
                           </button>
                         ) : (
-                          <span className="text-[#3ac0bf] font-[900] tracking-widest text-sm md:text-base pr-1">
+                          <span className="text-[#49d5df] font-[900] tracking-widest text-sm md:text-base pr-1">
                             共 {filteredOrders.length} 個訂單
                           </span>
                         )}
@@ -906,8 +903,8 @@ const App: React.FC = () => {
 
                         {/* 貨況篩選：使用粉紫色標題 */}
                         <div className="mb-6">
-                          <h4 className="text-[#4c59a1] font-[900] text-sm md:text-base mb-4 flex items-center gap-2 tracking-widest uppercase">
-                            <Box className="w-6 h-6 stroke-[3px] text-[#f8a3f4]" /> 貨況篩選
+                          <h4 className="text-[#283d3e] font-[900] text-sm md:text-base mb-4 flex items-center gap-2 tracking-widest uppercase">
+                            <Box className="w-6 h-6 stroke-[3px] text-[#e868a0]" /> 貨況篩選
                           </h4>
                           <div className="flex flex-wrap gap-2.5">
                             {ITEM_STATUS_OPTIONS.map(status => {
@@ -918,7 +915,7 @@ const App: React.FC = () => {
                                   onClick={() => toggleCargoFilter(status)}
                                   // 🎯 圓角藥丸、撞色風格 (選中是粉色solid，未選是米色+黑框)
                                   className={`px-4 py-2 rounded-full text-xs font-[900] tracking-widest border-2 border-black transition-all flex items-center gap-2 active:scale-95 ${isSelected
-                                    ? 'bg-[#f8a3f4] text-white shadow-none'
+                                    ? 'bg-[#e868a0] text-[#283d3e] shadow-none'
                                     : 'bg-[#fdfbf0] text-black hover:-translate-y-1'
                                     }`}
                                 >
@@ -932,8 +929,8 @@ const App: React.FC = () => {
 
                         {/* 出貨篩選：使用薄荷綠標題 */}
                         <div>
-                          <h4 className="text-[#4c59a1] font-[900] text-sm md:text-base mb-4 flex items-center gap-2 tracking-widest uppercase">
-                            <Truck className="w-6 h-6 stroke-[3px] text-[#3ac0bf]" /> 出貨篩選
+                          <h4 className="text-[#283d3e] font-[900] text-sm md:text-base mb-4 flex items-center gap-2 tracking-widest uppercase">
+                            <Truck className="w-6 h-6 stroke-[3px] text-[#49d5df]" /> 出貨篩選
                           </h4>
                           <div className="flex flex-wrap gap-2.5">
                             {DELIVERY_STATUS_OPTIONS.map(status => {
@@ -944,7 +941,7 @@ const App: React.FC = () => {
                                   onClick={() => toggleDeliveryFilter(status)}
                                   // 🎯 圓角藥丸、撞色風格 (選中是薄荷綠solid，未選是米色+黑框)
                                   className={`px-4 py-2 rounded-full text-xs font-[900] tracking-widest border-2 border-black transition-all flex items-center gap-2 active:scale-95 ${isSelected
-                                    ? 'bg-[#3ac0bf] text-white shadow-none'
+                                    ? 'bg-[#49d5df] text-[#283d3e] shadow-none'
                                     : 'bg-[#fdfbf0] text-black hover:-translate-y-1'
                                     }`}
                                 >
@@ -962,7 +959,7 @@ const App: React.FC = () => {
                         卡片做成跟訂單卡同一套（白卡＋黑框＋硬陰影），點一下展開自己填了什麼 */}
                     {activeTab === 'pending' && (
                       <div className="w-full max-w-md space-y-4">
-                        <p className="text-white/85 font-bold text-[12.5px] leading-relaxed px-1">
+                        <p className="text-[#283d3e]/75 font-bold text-[12.5px] leading-relaxed px-1">
                           這些是你送出、但團還沒結單的填單。結單後我們會推播「訂購付款通知」，那時才會變成訂單。
                         </p>
                         {pendingSubs.map((sub, i) => {
@@ -972,11 +969,11 @@ const App: React.FC = () => {
                             <div
                               key={key}
                               onClick={() => setOpenSub(open ? null : key)}
-                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden ${open ? '-translate-y-1 border-[#3ac0bf]' : 'hover:-translate-y-1 hover:active:translate-y-0 active:'}`}
+                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden ${open ? '-translate-y-1 border-[#49d5df]' : 'hover:-translate-y-1 hover:active:translate-y-0 active:'}`}
                             >
                               <div className="flex flex-wrap gap-2 mb-3">
-                                <span className="bg-[#f8a3f4] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未結單</span>
-                                <span className="bg-[#fff170] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">{fmtMDHM(sub.time)} 填單</span>
+                                <span className="bg-[#e868a0] text-[#283d3e] px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未結單</span>
+                                <span className="bg-[#f6f9f9] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">{fmtMDHM(sub.time)} 填單</span>
                               </div>
 
                               <h3 className="text-xl font-[900] text-black leading-snug mb-4">{sub.teamName}</h3>
@@ -986,8 +983,8 @@ const App: React.FC = () => {
                                   共 {sub.items.reduce((n, it) => n + it.qty, 0)} 件
                                 </span>
                                 <div className="text-right">
-                                  <div className="text-[11px] font-[900] text-[#4c59a1]/55 leading-none mb-1">填單金額</div>
-                                  <div className="text-2xl font-[900] text-[#4c59a1] leading-none">${sub.subtotal}</div>
+                                  <div className="text-[11px] font-[900] text-[#283d3e]/55 leading-none mb-1">填單金額</div>
+                                  <div className="text-2xl font-[900] text-[#283d3e] leading-none">${sub.subtotal}</div>
                                 </div>
                               </div>
 
@@ -997,18 +994,18 @@ const App: React.FC = () => {
                                   <div className="space-y-2">
                                     {sub.items.map((it, k) => (
                                       <div key={k} className="flex items-baseline gap-2 text-[13.5px]">
-                                        <span className="font-[900] text-[#4c59a1] flex-1 leading-snug">{it.type ? it.type + ' ' : ''}{it.label}</span>
+                                        <span className="font-[900] text-[#283d3e] flex-1 leading-snug">{it.type ? it.type + ' ' : ''}{it.label}</span>
                                         <span className="font-[900] text-black/55 shrink-0">×{it.qty}</span>
                                         <span className="font-[900] text-black shrink-0 w-16 text-right">${it.qty * it.price}</span>
                                       </div>
                                     ))}
                                   </div>
-                                  <p className="text-[11.5px] font-bold text-[#4c59a1]/55 mt-3 leading-relaxed">
+                                  <p className="text-[11.5px] font-bold text-[#283d3e]/55 mt-3 leading-relaxed">
                                     金額是填單當下的商品小計，不含境內運費與倉儲費；正式金額以結單後的訂購付款通知為準。
                                   </p>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); goOrderTeam(sub.team); }}
-                                    className="mt-3 w-full bg-[#3ac0bf] text-white font-[900] py-3 rounded-full border-[2.5px] border-black active:opacity-60 active:transition-all"
+                                    className="mt-3 w-full bg-[#49d5df] text-[#283d3e] font-[900] py-3 rounded-full border-[2.5px] border-black active:opacity-60 active:transition-all"
                                   >
                                     去這團的填單頁（可以加單）
                                   </button>
@@ -1023,7 +1020,7 @@ const App: React.FC = () => {
                     {/* 🎯 白色的訂單卡片列表 */}
                     <div className={`w-full max-w-md space-y-4 ${activeTab === 'pending' ? 'hidden' : ''}`}>
                       {filteredOrders.length === 0 ? (
-                        <div className="text-center py-20 text-[#4c59a1] font-[900] text-lg bg-white rounded-3xl border-2 border-dashed">目前沒有相關訂單</div>
+                        <div className="text-center py-20 text-[#283d3e] font-[900] text-lg bg-white rounded-3xl border-2 border-dashed">目前沒有相關訂單</div>
                       ) : (
                         (activeTab === 'completed' || activeTab === 'all'
                           ? filteredOrders.slice(0, visibleLimit)
@@ -1035,7 +1032,7 @@ const App: React.FC = () => {
                               key={order.id}
                               onClick={() => { setSelectedDetailOrder(order); setIsDetailModalOpen(true); }}
                               // 🎯 白色卡片 (#ffffff) + 細黑邊框
-                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden flex items-start gap-4 ${isSelected ? '-translate-y-1 border-[#3ac0bf]' : 'hover:-translate-y-1 hover:active:translate-y-0 active:'}`}
+                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden flex items-start gap-4 ${isSelected ? '-translate-y-1 border-[#49d5df]' : 'hover:-translate-y-1 hover:active:translate-y-0 active:'}`}
                             >
                               {/* 圓形 Checkbox */}
                               {(activeTab === 'deposit' || activeTab === 'balance') && (
@@ -1053,14 +1050,14 @@ const App: React.FC = () => {
 
                                   {/* 🎯 1 & 2: 已出貨 -> 薄荷綠solid 配白字，無黑框 */}
                                   {order.isShipped ? (
-                                    <span className="bg-[#3ac0bf] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">已出貨</span>
+                                    <span className="bg-[#49d5df] text-[#283d3e] px-3 py-1.5 rounded-full text-[11px] font-[900]">已出貨</span>
                                   ) : (
-                                    <span className="bg-[#4c59a1] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未出貨</span>
+                                    <span className="bg-[#283d3e] text-white px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未出貨</span>
                                   )}
 
-                                  {/* 🎯 2: 白底標籤 (已抵台等) -> 亮黃底 `#fff170` 配黑字，無黑框 */}
+                                  {/* 🎯 2: 白底標籤 (已抵台等) -> 亮黃底 `#f6f9f9` 配黑字，無黑框 */}
                                   {order.shippingStatus && (
-                                    <span className="bg-[#fff170] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">
+                                    <span className="bg-[#f6f9f9] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">
                                       {order.shippingStatus}
                                     </span>
                                   )}
@@ -1087,8 +1084,8 @@ const App: React.FC = () => {
 
                                   <div className="text-right flex flex-col items-end">
                                     <span className="text-[10px] text-gray-600 font-[900] mb-0.5">{activeTab === 'deposit' ? '應付訂金' : activeTab === 'balance' ? '應付餘款' : '商品總額'}</span>
-                                    {/* 🎯 拔掉黑邊框的粉紫色金額 #f8a3f4 */}
-                                    <span className="text-4xl font-[900] text-[#4c59a1] tracking-tighter leading-none">
+                                    {/* 🎯 拔掉黑邊框的粉紫色金額 #e868a0 */}
+                                    <span className="text-4xl font-[900] text-[#283d3e] tracking-tighter leading-none">
                                       ${(activeTab === 'deposit' ? order.depositAmount : activeTab === 'balance' ? balanceWithFee(order) : order.productTotal).toLocaleString()}
                                     </span>
                                   </div>
@@ -1103,14 +1100,14 @@ const App: React.FC = () => {
                         <div className="pt-6 pb-2 text-center animate-fade-in">
                           <button
                             onClick={() => setVisibleLimit(prev => prev + 10)}
-                            className="text-[#3ac0bf] font-[900] text-lg sm:text-xl tracking-widest underline decoration-[3px] underline-offset-4 hover:opacity-70 active:scale-95 transition-all"
+                            className="text-[#49d5df] font-[900] text-lg sm:text-xl tracking-widest underline decoration-[3px] underline-offset-4 hover:opacity-70 active:scale-95 transition-all"
                           >
                             顯示更多訂單...
                           </button>
                         </div>
                       )}
                       {/* 🎯 專屬米色背景底部 Footer (跟著米色畫布一路延伸到底) */}
-                      <footer className="w-full pt-20 pb-32 text-center text-[#4c59a1] text-[11px] font-[900] space-y-2 mt-auto opacity-80">
+                      <footer className="w-full pt-20 pb-32 text-center text-[#283d3e] text-[11px] font-[900] space-y-2 mt-auto opacity-80">
                         <div>本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
                         <p className="mt-2">© {new Date().getFullYear()} All Rights Reserved.</p>
                       </footer>
@@ -1155,15 +1152,15 @@ const App: React.FC = () => {
       {/* 🎯 完美還原圖 4 的底部結帳條 (帶有滑出動效 animate-fade-in-up) */}
       {hasSearched && selectedOrdersData.length > 0 && (activeTab === 'deposit' || activeTab === 'balance') && (
         <div className="fixed bottom-0 left-0 right-0 z-40 animate-fade-in-up">
-          <div className="w-full max-w-2xl mx-auto bg-[#3ac0bf] rounded-t-[40px] px-8 py-6 shadow-[0_-10px_20px_rgba(0,0,0,0.15)] flex items-center justify-between">
+          <div className="w-full max-w-2xl mx-auto bg-[#49d5df] rounded-t-[40px] px-8 py-6 shadow-[0_-10px_20px_rgba(0,0,0,0.15)] flex items-center justify-between">
             <div className="flex flex-col">
-              <p className="text-white text-lg font-[900] tracking-widest mb-1">
-                已選 <span className="text-[#f8a3f4] text-2xl mx-1">{selectedOrdersData.length}</span> 筆訂單
+              <p className="text-[#283d3e] text-lg font-[900] tracking-widest mb-1">
+                已選 <span className="text-[#e868a0] text-2xl mx-1">{selectedOrdersData.length}</span> 筆訂單
               </p>
               <div className="flex items-baseline gap-2">
-                <span className="text-white font-[900] text-xl">共</span>
-                <span className="text-[#fff170] font-[900] text-3xl">$</span>
-                <span className="text-4xl md:text-5xl font-[900] text-[#fff170] tracking-tighter">{totalSelectedAmount.toLocaleString()}</span>
+                <span className="text-[#283d3e] font-[900] text-xl">共</span>
+                <span className="text-[#283d3e] font-[900] text-3xl">$</span>
+                <span className="text-4xl md:text-5xl font-[900] text-[#f6f9f9] tracking-tighter">{totalSelectedAmount.toLocaleString()}</span>
                 <span className="text-white font-[900] text-xl">元</span>
               </div>
             </div>
@@ -1196,8 +1193,8 @@ const App: React.FC = () => {
       {/* 🎯 圖 3：全螢幕 NEWS 列表頁 (取代舊的 info) */}
       {/* ========================================= */}
       {mainView === 'info' && (
-        <div className="fixed inset-0 z-[40] bg-[#ffaefe] overflow-y-auto animate-fade-in flex flex-col items-center px-6 pt-20 pb-10">
-          <div className="w-full max-w-md mb-8 text-[#4c59a1]">
+        <div className="fixed inset-0 z-[40] bg-[#f6f9f9] overflow-y-auto animate-fade-in flex flex-col items-center px-6 pt-20 pb-10">
+          <div className="w-full max-w-md mb-8 text-[#283d3e]">
             <SectionHead en="NEWS" title="最新公告" count={news.filter(n => !n.title.includes("跑馬燈")).length} />
           </div>
 
@@ -1206,17 +1203,17 @@ const App: React.FC = () => {
               <button
                 key={idx}
                 onClick={() => setSelectedNews(item)}
-                className="w-full text-left px-5 py-4 border-t border-[#4c59a1]/10 first:border-t-0 active:bg-[#4c59a1]/5 transition flex items-start gap-3"
+                className="w-full text-left px-5 py-4 border-t border-[#283d3e]/10 first:border-t-0 active:bg-[#283d3e]/5 transition flex items-start gap-3"
               >
                 <div className="min-w-0 flex-1">
                   {/* 日期在上、標題在下且不截斷：舊版 truncate 會把長公告切掉，客人看不到重點 */}
-                  <div className="text-[12px] font-[900] text-[#4c59a1]/55 tracking-widest mb-1">{item.date}</div>
-                  <div className="font-[900] text-[15px] leading-snug text-[#4c59a1]">{item.title}</div>
+                  <div className="text-[12px] font-[900] text-[#283d3e]/55 tracking-widest mb-1">{item.date}</div>
+                  <div className="font-[900] text-[15px] leading-snug text-[#283d3e]">{item.title}</div>
                 </div>
-                <ChevronRight className="w-5 h-5 stroke-[3px] text-[#4c59a1]/30 shrink-0 mt-5" />
+                <ChevronRight className="w-5 h-5 stroke-[3px] text-[#283d3e]/30 shrink-0 mt-5" />
               </button>
             ))}
-            {news.length === 0 && <p className="px-5 py-6 text-center font-[900] text-[#4c59a1]/60">載入中…</p>}
+            {news.length === 0 && <p className="px-5 py-6 text-center font-[900] text-[#283d3e]/60">載入中…</p>}
           </div>
         </div>
       )}
@@ -1225,27 +1222,27 @@ const App: React.FC = () => {
       {/* 🎯 圖 4：全螢幕 NEWS 內文詳情頁 (含愛心計數) */}
       {/* ========================================= */}
       {selectedNews && (
-        <div className="fixed inset-0 z-[90] bg-[#ffaefe] overflow-y-auto animate-fade-in flex flex-col items-center p-6 md:p-12">
+        <div className="fixed inset-0 z-[90] bg-[#f6f9f9] overflow-y-auto animate-fade-in flex flex-col items-center p-6 md:p-12">
           <div className="relative flex items-center w-full max-w-md mx-auto mb-6">
-            <button onClick={() => setSelectedNews(null)} aria-label="關閉" className="ml-auto w-10 h-10 rounded-full bg-white text-[#4c59a1] flex items-center justify-center active:opacity-60 transition shrink-0">
+            <button onClick={() => setSelectedNews(null)} aria-label="關閉" className="ml-auto w-10 h-10 rounded-full bg-white text-[#283d3e] flex items-center justify-center active:opacity-60 transition shrink-0">
               <X strokeWidth={3} size={22} />
             </button>
           </div>
 
           <div className="w-full max-w-md mx-auto flex flex-col flex-1 pb-20">
             {/* 標題與日期線 */}
-            <h2 className="text-[#4c59a1] font-[900] text-2xl mb-2 leading-snug">{selectedNews.title}</h2>
-            <div className="text-[#4c59a1]/60 font-[900] text-sm mb-6 border-b border-[#4c59a1]/20 pb-4 tracking-widest">
+            <h2 className="text-[#283d3e] font-[900] text-2xl mb-2 leading-snug">{selectedNews.title}</h2>
+            <div className="text-[#283d3e]/60 font-[900] text-sm mb-6 border-b border-[#283d3e]/20 pb-4 tracking-widest">
               {selectedNews.date}
             </div>
 
             {/* 內文 */}
-            <div className="text-[#4c59a1] font-medium text-[16px] leading-[1.9] whitespace-pre-wrap">
+            <div className="text-[#283d3e] font-medium text-[16px] leading-[1.9] whitespace-pre-wrap">
               {selectedNews.content}
             </div>
 
             {/* 💖 全新 Soft Pop 風格的按讚按鈕 */}
-            <div className="mt-16 flex flex-col items-center border-t-[3px] border-dashed border-[#4c59a1]/30 pt-10">
+            <div className="mt-16 flex flex-col items-center border-t-[3px] border-dashed border-[#283d3e]/30 pt-10">
               <button
                 onClick={handleLikeNews}
                 disabled={hasLikedNews}
@@ -1253,17 +1250,17 @@ const App: React.FC = () => {
                   group flex items-center gap-3 px-8 py-3.5 rounded-full border border-black transition-all duration-300
                   ${hasLikedNews
                     ? 'bg-gray-200 text-gray-500 cursor-default shadow-none translate-y-1'
-                    : 'bg-white text-[#4c59a1] hover:bg-gray-50 active:scale-95'}
+                    : 'bg-white text-[#283d3e] hover:bg-gray-50 active:scale-95'}
                   ${isBouncing ? 'animate-bounce' : ''}
                 `}
               >
                 <Heart
                   size={26}
-                  className={`stroke-[2.5px] transition-colors ${hasLikedNews ? 'fill-gray-400 text-gray-400' : 'fill-[#f8a3f4] text-[#f8a3f4] group-hover:scale-110 transition-transform'}`}
+                  className={`stroke-[2.5px] transition-colors ${hasLikedNews ? 'fill-gray-400 text-gray-400' : 'fill-[#e868a0] text-[#e868a0] group-hover:scale-110 transition-transform'}`}
                 />
                 <span className="font-[900] text-2xl tracking-tighter">{currentLikes}</span>
               </button>
-              <p className="text-[#4c59a1] text-sm font-[900] tracking-widest mt-5">
+              <p className="text-[#283d3e] text-sm font-[900] tracking-widest mt-5">
                 {hasLikedNews ? '感謝您的喜愛！✨' : '覺得這則公告有幫助嗎？'}
               </p>
             </div>

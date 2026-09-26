@@ -65,20 +65,20 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
   }, [works, strokeCmp]);
 
   return (
-    <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
-      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-8 relative text-[#4c59a1]">
+    <div className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto overscroll-y-contain">
+      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-8 relative text-[#283d3e]">
         <SectionHead en="WORKS" title="作品類別" count={works.length} />
         {/* 作品多，給個搜尋比較快找到 */}
         <div className="bg-white rounded-full p-2 flex items-center gap-2 border border-black mb-6">
-          <Search className="ml-3 text-[#f8a3f4] w-5 h-5 stroke-[3px] shrink-0" />
+          <Search className="ml-3 text-[#e868a0] w-5 h-5 stroke-[3px] shrink-0" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="搜作品名"
-            className="flex-1 bg-transparent outline-none font-[900] text-[#4c59a1] placeholder-gray-400 py-1"
+            className="flex-1 bg-transparent outline-none font-[900] text-[#283d3e] placeholder-gray-400 py-1"
           />
           {q && (
-            <button onClick={() => setQ("")} aria-label="清除" className="w-8 h-8 rounded-full bg-[#eef0fa] text-[#4c59a1] flex items-center justify-center mr-1 active:scale-90 transition">
+            <button onClick={() => setQ("")} aria-label="清除" className="w-8 h-8 rounded-full bg-[#e9f5f6] text-[#283d3e] flex items-center justify-center mr-1 active:scale-90 transition">
               <X className="w-4 h-4 stroke-[3px]" />
             </button>
           )}
@@ -86,14 +86,14 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
 
         {/* 索引列：點了直接滑到那一區（像日本電商的 あ／か／さ 行） */}
         {!loading && groups.length > 1 && (
-          <div className="sticky top-14 z-10 -mx-5 sm:-mx-7 px-5 sm:px-7 py-2 bg-[#fff170]/95 backdrop-blur mb-4">
+          <div className="sticky top-14 z-10 -mx-5 sm:-mx-7 px-5 sm:px-7 py-2 bg-[#f6f9f9]/95 backdrop-blur mb-4">
             <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
               {groups.map((g) => (
                 <button
                   key={g.key}
                   onClick={() => document.getElementById(`works-${g.key}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
                   className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-[900] border border-black active:opacity-60 transition-all ${
-                    g.key === "open" ? "bg-[#3ac0bf] text-white" : "bg-white text-[#4c59a1]"
+                    g.key === "open" ? "bg-[#49d5df] text-[#283d3e]" : "bg-white text-[#283d3e]"
                   }`}
                 >
                   {g.title}
@@ -104,13 +104,13 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
         )}
 
         {loading ? (
-          <p className="text-center text-[#4c59a1]/60 font-bold py-10">載入中…</p>
+          <p className="text-center text-[#283d3e]/60 font-bold py-10">載入中…</p>
         ) : works.length === 0 ? (
-          <p className="text-center text-[#4c59a1]/70 font-bold py-10">找不到符合「{q}」的作品</p>
+          <p className="text-center text-[#283d3e]/70 font-bold py-10">找不到符合「{q}」的作品</p>
         ) : (
           groups.map((g) => (
           <div key={g.key} id={`works-${g.key}`} className="mb-8 scroll-mt-16">
-            <h3 className="text-[#4c59a1] font-[900] text-base tracking-widest mb-3 pl-1">{g.title}<span className="text-[#4c59a1]/45 ml-2 text-sm">{g.items.length}</span></h3>
+            <h3 className="text-[#283d3e] font-[900] text-base tracking-widest mb-3 pl-1">{g.title}<span className="text-[#283d3e]/45 ml-2 text-sm">{g.items.length}</span></h3>
             <div className="grid grid-cols-3 gap-4">
             {g.items.map((w) => (
               <button
@@ -123,13 +123,13 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
                     ? <img src={w.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[86%] h-[72%] object-contain" />
                     : w.cover
                       ? <img src={w.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-full h-full object-cover" />
-                      : <ShoppingBag className="w-8 h-8 text-[#4c59a1]/25 stroke-[2px]" />}
+                      : <ShoppingBag className="w-8 h-8 text-[#283d3e]/25 stroke-[2px]" />}
                   {w.open > 0 && (
-                    <span className="absolute inset-x-0 bottom-0 bg-[#3ac0bf]/95 text-white text-[10px] font-[900] text-center py-0.5">開團中 {w.open}</span>
+                    <span className="absolute inset-x-0 bottom-0 bg-[#49d5df]/95 text-[#283d3e] text-[10px] font-[900] text-center py-0.5">開團中 {w.open}</span>
                   )}
                 </span>
-                <span className="font-[900] text-[#4c59a1] text-[12px] leading-tight text-center line-clamp-2">{w.name}</span>
-                <span className="font-[900] text-[#4c59a1]/45 text-[11px] -mt-1.5">{w.total} 團</span>
+                <span className="font-[900] text-[#283d3e] text-[12px] leading-tight text-center line-clamp-2">{w.name}</span>
+                <span className="font-[900] text-[#283d3e]/45 text-[11px] -mt-1.5">{w.total} 團</span>
               </button>
             ))}
             </div>

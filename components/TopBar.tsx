@@ -16,7 +16,7 @@ interface Props {
 // 兩顆各自浮動的圓鈕會跟頁面左上的返回鍵疊在一起，收成一條就不會再打架，
 // 也順便解決「捲到一半不知道自己在哪一頁」。
 const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders, onCart, cartCount = 0 }) => {
-  const ICON = `w-10 h-10 shrink-0 flex items-center justify-center active:opacity-50 transition-opacity ${tone === "dark" ? "text-white" : "text-[#4c59a1]"}`;
+  const ICON = `w-10 h-10 shrink-0 flex items-center justify-center active:opacity-50 transition-opacity ${tone === "dark" ? "text-white" : "text-[#283d3e]"}`;
   return (
     <header
       // 背景透出頁面自己的底色——固定一塊品牌色會跟黃底的頁面打架。
@@ -38,18 +38,18 @@ const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders, onC
 
       <button
         onClick={onHome}
-        className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform ${tone === "dark" ? "text-white" : "text-[#4c59a1]"}`}
+        className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform ${tone === "dark" ? "text-white" : "text-[#49d5df]"}`}
       >
         {/* 日後有 logo icon 就放在文字左邊，這一行整組都是回首頁的按鈕 */}
         <span className="font-[900] text-[22px] leading-none tracking-widest" style={{ fontFamily: '"Zen Maru Gothic", "Noto Sans TC", sans-serif' }}>KAGUYA</span>
-        <span className="font-[900] text-[10px] leading-none tracking-[0.18em] opacity-75">日本動漫周邊專業代購</span>
+        <span className="font-[900] text-[10px] leading-none tracking-[0.18em] text-[#283d3e]/50">日本動漫周邊專業代購</span>
       </button>
 
       {onCart && (
         <button onClick={onCart} aria-label="選購清單" className={`${ICON} relative`}>
           <ShoppingCart className="w-[21px] h-[21px] stroke-[2.2px]" />
           {cartCount > 0 && (
-            <span className="absolute top-1 right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-[#f43f5e] text-white text-[10px] font-[900] flex items-center justify-center">{cartCount}</span>
+            <span className="absolute top-1 right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-[#e46b58] text-[#283d3e] text-[10px] font-[900] flex items-center justify-center">{cartCount}</span>
           )}
         </button>
       )}
