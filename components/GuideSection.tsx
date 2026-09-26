@@ -28,13 +28,13 @@ const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
             <li key={i} className="bg-white rounded-[24px] p-5 flex gap-4">
               <span className="w-12 h-12 shrink-0 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-2xl flex items-center justify-center">{i + 1}</span>
               <div className="min-w-0">
-                <div className="text-[#1a1a1a] font-[900] text-lg leading-snug">{st.title}</div>
+                <div className="text-[#283d3e] font-[900] text-lg leading-snug">{st.title}</div>
                 <div className="text-[#283d3e] font-bold text-sm leading-relaxed mt-1">{st.desc}</div>
                 <div className="flex flex-wrap gap-1.5 mt-2.5">
                   {st.tags.map((t) => (
-                    <span key={t} className="text-[11px] font-[900] rounded-full px-2.5 py-1 bg-[#d6f3ec] text-[#1f9ead]">{t}</span>
+                    <span key={t} className="text-[11px] font-[900] rounded-full px-2.5 py-1 bg-[#e9f5f6] text-[#1f9ead]">{t}</span>
                   ))}
-                  {st.warn && <span className="text-[11px] font-[900] rounded-full px-2.5 py-1 bg-[#fde7ef] text-[#c4265e]">{st.warn}</span>}
+                  {st.warn && <span className="text-[11px] font-[900] rounded-full px-2.5 py-1 bg-[#fbe3ef] text-[#c4265e]">{st.warn}</span>}
                 </div>
               </div>
             </li>

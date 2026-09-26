@@ -123,7 +123,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
 
           {/* 備註區 (僅當有 notes 才顯示) */}
           {order.notes && (
-            <div className="bg-[#fef9c3] border border-[#fde68a] rounded-[20px] p-4">
+            <div className="bg-[#fdeeea] border border-[#f3cdc5] rounded-[20px] p-4">
               <p className="text-xs font-[900] text-[#92400e] mb-1.5 tracking-widest">📝 備註</p>
               <p className="text-sm font-[700] text-[#78350f] whitespace-pre-wrap leading-relaxed">{order.notes}</p>
             </div>

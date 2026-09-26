@@ -330,7 +330,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                 )}
                 {teamOpen
                   ? <span className="text-sm font-[900] text-white bg-[#49d5df] px-4 py-1 rounded-full">開團中</span>
-                  : <span className="text-sm font-[900] text-white bg-[#2b2b2b] px-4 py-1 rounded-full">已結單</span>}
+                  : <span className="text-sm font-[900] text-white bg-[#283d3e] px-4 py-1 rounded-full">已結單</span>}
                 {showJoinCard && (
                   <span aria-hidden className="ml-auto text-[#283d3e]/45 animate-nudge-x shrink-0">
                     <ChevronRight className="w-5 h-5 stroke-[3px]" />
@@ -489,7 +489,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                         {(p.minQty ?? 1) > 1 && <MinBar min={p.minQty!} ordered={stats[itemKey(p)] || 0} />}
                         {teamOpen && (
                         <div className="flex items-center justify-between mt-1">
-                          <button onClick={() => setQ(idx, q - 1)} className="w-7 h-7 rounded-full bg-[#e6e9ff] text-[#283d3e] font-black">−</button>
+                          <button onClick={() => setQ(idx, q - 1)} className="w-7 h-7 rounded-full bg-[#e9f5f6] text-[#283d3e] font-black">−</button>
                           <input value={q} onChange={(e) => setQ(idx, parseInt(e.target.value) || 0)} inputMode="numeric" className="w-9 text-center font-bold text-[#283d3e] bg-transparent outline-none" />
                           <button onClick={() => setQ(idx, q + 1)} className="w-7 h-7 rounded-full bg-[#49d5df] text-[#283d3e] font-black">＋</button>
                         </div>
@@ -674,7 +674,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                 ))}
               </div>
             ))}
-            <div className="flex justify-between font-[900] text-[#283d3e] border-t-2 border-[#e6e9ff] pt-2 text-lg">
+            <div className="flex justify-between font-[900] text-[#283d3e] border-t-2 border-[#e9f5f6] pt-2 text-lg">
               <span>總金額</span><span>${total}</span>
             </div>
             <div className="text-[11px] text-gray-400 mt-1">實際金額以訂購完成之查詢表確認為準</div>

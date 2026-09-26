@@ -134,7 +134,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   const chip = (on: boolean, kind: "open" | "closed") =>
     `flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-[900] border border-black active:opacity-60 transition-all ${
       on
-        ? (kind === "open" ? "bg-[#49d5df] text-[#283d3e]" : "bg-[#2b2b2b] text-white")
+        ? (kind === "open" ? "bg-[#49d5df] text-[#283d3e]" : "bg-[#283d3e] text-white")
         : "bg-white text-[#283d3e]/40"
     }`;
 
@@ -213,7 +213,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                 </button>
               )}
               {!showOpen && showClosed && (
-                <button onClick={() => setShowOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2b2b2b] text-white text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
+                <button onClick={() => setShowOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#283d3e] text-white text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
                   已結單<X className="w-3.5 h-3.5 stroke-[3px]" />
                 </button>
               )}
@@ -413,7 +413,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                 )}
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">
-                <span className={`text-sm font-[900] px-4 py-1.5 rounded-full ${open ? "bg-[#49d5df] text-[#283d3e]" : "bg-[#2b2b2b] text-white"}`}>
+                <span className={`text-sm font-[900] px-4 py-1.5 rounded-full ${open ? "bg-[#49d5df] text-[#283d3e]" : "bg-[#283d3e] text-white"}`}>
                   {open ? "開團中" : "已結單"}
                 </span>
                 {t.openAt && (

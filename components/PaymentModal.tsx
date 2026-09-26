@@ -291,7 +291,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
             className={`w-full py-4 rounded-full font-[900] text-lg tracking-widest transition-all flex items-center justify-center gap-2
               ${(!isShipping && step === 3 && paymentMethod === 'transfer' && last5Digits.length < 5)
                 ? 'opacity-50 bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-[#0090a7] text-white border-[2.5px] border-black active:translate-x-[3px] active:opacity-60'
+                : 'bg-[#49d5df] text-white border-[2.5px] border-black active:translate-x-[3px] active:opacity-60'
               }`}
           >
             {isCopied ? <CheckCircle className="w-5 h-5 animate-bounce" strokeWidth={2.5} /> : <ArrowRight className="w-5 h-5 stroke-[2.5px]" />}

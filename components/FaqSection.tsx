@@ -82,7 +82,7 @@ const FaqSection: React.FC<Props> = ({ onBack, onGuide }) => {
       <div className="w-full max-w-xl mx-auto px-5 sm:px-7 pt-20 pb-8">
         <div className="mb-7"><SectionHead en="FAQ" title="常見問題" /></div>
 
-        <button onClick={onGuide} className="w-full mb-6 flex items-center justify-between gap-3 px-6 py-4 rounded-[24px] bg-white text-[#1a1a1a] font-[900] active:scale-[0.99] transition text-left">
+        <button onClick={onGuide} className="w-full mb-6 flex items-center justify-between gap-3 px-6 py-4 rounded-[24px] bg-white text-[#283d3e] font-[900] active:scale-[0.99] transition text-left">
           <span>第一次跟團？先看購物流程</span>
           <ArrowRight className="w-5 h-5 shrink-0 stroke-[3px] text-[#e868a0]" />
         </button>
@@ -96,10 +96,10 @@ const FaqSection: React.FC<Props> = ({ onBack, onGuide }) => {
                 <button
                   onClick={() => setOpen(isOpen ? -1 : i)}
                   aria-expanded={isOpen}
-                  className="w-full px-6 py-5 flex items-center justify-between gap-3 text-left bg-[#d6f3ec] hover:bg-[#c8efe5] active:bg-[#c8efe5] transition-colors"
+                  className="w-full px-6 py-5 flex items-center justify-between gap-3 text-left bg-[#e9f5f6] hover:bg-[#e9f5f6] active:bg-[#e9f5f6] transition-colors"
                 >
-                  <span className="text-[#1a1a1a] font-[900] text-lg tracking-wide">{cat.title}</span>
-                  <ChevronDown className={`w-6 h-6 shrink-0 text-[#1a1a1a] stroke-[3px] transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                  <span className="text-[#283d3e] font-[900] text-lg tracking-wide">{cat.title}</span>
+                  <ChevronDown className={`w-6 h-6 shrink-0 text-[#283d3e] stroke-[3px] transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </button>
 
                 {/* 答案區：由上往下平順展開（grid-rows 0fr→1fr，無斷裂感） */}

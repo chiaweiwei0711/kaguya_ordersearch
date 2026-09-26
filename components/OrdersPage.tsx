@@ -13,6 +13,7 @@ interface Props {
   boundNick?: string | null;
   lineState: "loading" | "ready" | "can-login" | "unavailable";
   lineProfile?: { name?: string; picture?: string };
+  quietLoading?: boolean;
   onLogin: () => void;
   onGuide: () => void;
   onFaq: () => void;
@@ -23,7 +24,7 @@ interface Props {
 //   已認出   → 直接查他自己的單（不用打暱稱）
 //   可登入   → 一顆登入鈕（從外面網址進來的人）
 //   認不出   → 退回手打暱稱（LIFF 起不來的環境，不能把人鎖在外面）
-const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, searchNotice, boundNick, lineState, lineProfile, onLogin, onGuide, onFaq, onAbout }) => {
+const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, searchNotice, boundNick, lineState, lineProfile, quietLoading, onLogin, onGuide, onFaq, onAbout }) => {
   const row = "flex items-center gap-3 px-5 py-4 border-t border-[#283d3e]/10 font-[900] text-[#283d3e] text-[15px] active:bg-[#283d3e]/5 transition";
 
   return (
@@ -48,6 +49,11 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                 <div className="font-bold text-[11px] text-[#49d5df] mt-0.5">已綁定的社群暱稱</div>
               </div>
             </div>
+            {quietLoading && (
+              <div className="mt-3 flex items-center justify-center gap-2 font-[900] text-[12.5px] text-[#283d3e]/45">
+                <Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />正在載入你的訂單…
+              </div>
+            )}
             <button
               onClick={() => { if (window.confirm("要換一個 LINE 帳號嗎？\n這會把你從這個網站登出，下次要重新登入。")) logoutLine(); }}
               className="mt-3 w-full h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[12.5px] text-[#283d3e]/60 active:opacity-60 transition"

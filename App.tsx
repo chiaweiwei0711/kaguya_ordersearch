@@ -43,7 +43,7 @@ const DELIVERY_STATUS_OPTIONS = ['已出貨', '尚未出貨'];
 // // --- 全新 Soft Pop 風格：跳跳音浪 Loading 動畫 ---
 const LoadingOverlay: React.FC = () => {
   return (
-    <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center bg-[#fdfbf0]/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center bg-[#f6f9f9]/80 backdrop-blur-sm animate-fade-in">
       {/* 音浪/小蚯蚓跳動區塊 */}
       <div className="flex items-center justify-center gap-2.5 h-16">
         <div className="w-3 h-8 bg-[#e868a0] rounded-full animate-bounce shadow-sm" style={{ animationDelay: '0ms' }}></div>
@@ -62,7 +62,8 @@ const LoadingOverlay: React.FC = () => {
 };
 
 // --- 🎨 2.0 進化版：立體浮游糖果點點資料 (網格生成確保均勻，含動畫參數) ---
-const DOT_COLORS = ['#4ceade', '#77dbf1', '#f6f9f9', '#eeda22'];
+// 圓點用主色與對比色的濃淡，才跟整套配色是同一家族（原本有一顆是白的＝跟底色一樣看不見）
+const DOT_COLORS = ['#49d5df', '#e868a0', '#a9e7ec', '#f7c6dd'];
 const COLS = 8; // 橫向 8 列
 const ROWS = 8; // 縱向 8 行
 const TOTAL_DOTS = COLS * ROWS; // 總共 64 顆，絕對夠多！
@@ -417,9 +418,11 @@ const App: React.FC = () => {
   }, [selectedOrdersData, activeTab]);
 
   // 🌟 1. 自動搜尋的大腦：讓程式可以自己呼叫並帶入暱稱
-  const executeSearch = async (queryToSearch: string) => {
+  const [quietLoading, setQuietLoading] = useState(false);   // 自動查單用：頁面內轉圈，不蓋整片
+  const executeSearch = async (queryToSearch: string, quiet = false) => {
     if (!queryToSearch) return;
-    setIsLoading(true); setSearchNotice('');
+    if (quiet) setQuietLoading(true); else setIsLoading(true);
+    setSearchNotice('');
     setFoundOrders([]); setMySubs([]); setSelectedOrderIds(new Set()); setCargoFilters([]); setDeliveryFilter(null);
     setSubQuery(''); setSortBy('default');
     try {
@@ -440,7 +443,7 @@ const App: React.FC = () => {
       console.error(error);
       // 查單 GAS 連續三次都沒回資料：不能畫成「沒有相關訂單」（那是騙人的），回到搜尋框請他再按一次
       if (error instanceof SearchFailedError) { setHasSearched(false); setSearchNotice('查詢逾時，請再按一次查詢'); }
-    } finally { setIsLoading(false); }
+    } finally { setIsLoading(false); setQuietLoading(false); }
   };
 
   // 🌟 2. 手動搜尋的按鈕：給客人手動按 Enter 或點擊箭頭用的
@@ -452,7 +455,7 @@ const App: React.FC = () => {
     if (autoQueried.current === boundNick) return;
     autoQueried.current = boundNick;
     setSearchQuery(boundNick);
-    executeSearch(boundNick);
+    executeSearch(boundNick, true);   // 安靜載入：不要整片蓋住
   }, [mainView, boundNick, hasSearched]);
 
   const handleSearch = (e?: React.FormEvent, override?: string) => {
@@ -548,10 +551,10 @@ const App: React.FC = () => {
 
       {/* 全新全螢幕 MENU */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[100] bg-[#c3ccfd] flex flex-col items-center animate-fade-in overflow-y-auto pt-24 pb-10">
+        <div className="fixed inset-0 z-[100] bg-[#f6f9f9] flex flex-col items-center animate-fade-in overflow-y-auto pt-24 pb-10">
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="fixed top-6 right-6 bg-[#49d5df] text-[#283d3e] font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full shadow-md active:scale-95 transition-transform hover:bg-[#34adab]"
+            className="fixed top-6 right-6 bg-[#e868a0] text-[#283d3e] font-[900] text-sm tracking-widest px-5 py-2.5 rounded-full active:opacity-60 transition"
           >
             CLOSE
           </button>
@@ -607,6 +610,7 @@ const App: React.FC = () => {
               boundNick={boundNick}
               lineState={lineState}
               lineProfile={lineProfile}
+              quietLoading={quietLoading}
               onLogin={loginWithLine}
               onGuide={() => { setMainView('guide'); nav('/guide'); window.scrollTo(0, 0); }}
               onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }}
@@ -907,7 +911,7 @@ const App: React.FC = () => {
                                   // 🎯 圓角藥丸、撞色風格 (選中是粉色solid，未選是米色+黑框)
                                   className={`px-4 py-2 rounded-full text-xs font-[900] tracking-widest border-2 border-black transition-all flex items-center gap-2 active:scale-95 ${isSelected
                                     ? 'bg-[#e868a0] text-[#283d3e] shadow-none'
-                                    : 'bg-[#fdfbf0] text-black hover:-translate-y-1'
+                                    : 'bg-[#f6f9f9] text-black hover:-translate-y-1'
                                     }`}
                                 >
                                   {isSelected ? <CheckSquare size={16} strokeWidth={3} /> : <Square size={16} strokeWidth={3} />}
@@ -933,7 +937,7 @@ const App: React.FC = () => {
                                   // 🎯 圓角藥丸、撞色風格 (選中是薄荷綠solid，未選是米色+黑框)
                                   className={`px-4 py-2 rounded-full text-xs font-[900] tracking-widest border-2 border-black transition-all flex items-center gap-2 active:scale-95 ${isSelected
                                     ? 'bg-[#49d5df] text-[#283d3e] shadow-none'
-                                    : 'bg-[#fdfbf0] text-black hover:-translate-y-1'
+                                    : 'bg-[#f6f9f9] text-black hover:-translate-y-1'
                                     }`}
                                 >
                                   {isSelected ? <CheckCircle2 size={16} strokeWidth={3} /> : <Circle size={16} strokeWidth={3} />}
@@ -1167,8 +1171,8 @@ const App: React.FC = () => {
 
             <button
               onClick={openPaymentModal}
-              // 🎯 #0090a7 深薄荷綠按鈕 + 黑邊框與黑陰影
-              className="bg-[#0090a7] text-white py-3 md:py-4 px-6 md:px-8 rounded-full font-[900] text-lg md:text-xl border-2 border-black active:opacity-60 transition-all flex items-center gap-2"
+              // 🎯 #49d5df 深薄荷綠按鈕 + 黑邊框與黑陰影
+              className="bg-[#49d5df] text-white py-3 md:py-4 px-6 md:px-8 rounded-full font-[900] text-lg md:text-xl border-2 border-black active:opacity-60 transition-all flex items-center gap-2"
             >
               {activeTab === 'deposit' ? (
                 <><MessageCircle size={20} className="stroke-[2.5px]" /> 前往付款</>
