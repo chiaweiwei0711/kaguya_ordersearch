@@ -176,8 +176,12 @@ const App: React.FC = () => {
       if (!n) return false;
       // 完全相同、或其中一邊包含另一邊（團名有時會多／少後綴）都算同一團
       for (const o of ordered) { if (o === n || o.includes(n) || n.includes(o)) return false; }
-      // 已結單但還沒訂購完成的也要留著——那段空窗期客人本來就該看得到自己填了什麼
-      // （原本這裡把已結單的整批濾掉，整併填單明細查詢後會讓那一類完全消失）
+      const t = teams.find((x) => x.code === s.team);
+      // 後台按下「購買完成」那一刻，填單就該從這裡消失、同時訂單成立。
+      // 用團表的 purchased 旗標判斷——那是後台真正在按的東西，
+      // 比拿團名字串去猜可靠得多（團名會被改，之前就是這樣誤判過）。
+      if (t?.purchased) return false;
+      // 已結單但還沒按購買完成的要留著：那段空窗期客人本來就該看得到自己填了什麼
       return true;
     });
   }, [mySubs, foundOrders, teams]);
