@@ -1,5 +1,6 @@
 import React from "react";
 import { Search, ArrowRight, BookOpen, HelpCircle, Shield, MessageCircle, Users, Instagram, ChevronRight, UserCheck, Link2, LogIn, Loader2 } from "lucide-react";
+import { Order, OrderStatus } from "../types";
 import { APP_CONFIG } from "../config";
 import { logoutLine } from "../services/lineIdentity";
 import { SectionHead } from "./Section";
@@ -14,6 +15,10 @@ interface Props {
   lineState: "loading" | "ready" | "can-login" | "unavailable";
   lineProfile?: { name?: string; picture?: string };
   quietLoading?: boolean;
+  previewOrders?: Order[];
+  totalOrders?: number;
+  onSeeAll?: () => void;
+  onOpenOrder?: (o: Order) => void;
   onLogin: () => void;
   onGuide: () => void;
   onFaq: () => void;
@@ -24,7 +29,7 @@ interface Props {
 //   已認出   → 直接查他自己的單（不用打暱稱）
 //   可登入   → 一顆登入鈕（從外面網址進來的人）
 //   認不出   → 退回手打暱稱（LIFF 起不來的環境，不能把人鎖在外面）
-const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, searchNotice, boundNick, lineState, lineProfile, quietLoading, onLogin, onGuide, onFaq, onAbout }) => {
+const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, searchNotice, boundNick, lineState, lineProfile, quietLoading, previewOrders = [], totalOrders = 0, onSeeAll, onOpenOrder, onLogin, onGuide, onFaq, onAbout }) => {
   const row = "flex items-center gap-3 px-5 py-4 border-t border-[#283d3e]/10 font-[900] text-[#283d3e] text-[15px] active:bg-[#283d3e]/5 transition";
 
   return (
@@ -112,6 +117,66 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
             </div>
             {searchNotice && <p className="text-[#e868a0] text-sm font-[900] mt-3 text-center tracking-widest">{searchNotice}</p>}
           </>
+        )}
+
+        {/* 訂單預覽：帳號頁只放 5 筆，完整列表一點就到。
+            訂單一長，下面的購物說明與聯絡方式就會被推到天邊沒人看得到 */}
+        {boundNick && (
+          <div className="mt-5">
+            <div className="flex items-baseline mb-2 px-1">
+              <span className="font-[900] text-[15px]">我的訂單</span>
+              {totalOrders > 0 && <span className="ml-2 font-[900] text-[12px] text-[#283d3e]/40">共 {totalOrders} 筆</span>}
+            </div>
+
+            {quietLoading && previewOrders.length === 0 ? (
+              <div className="bg-white rounded-3xl px-5 py-8 flex items-center justify-center gap-2 font-[900] text-[13px] text-[#283d3e]/45">
+                <Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />載入中…
+              </div>
+            ) : previewOrders.length === 0 ? (
+              <div className="bg-white rounded-3xl px-5 py-8 text-center font-[900] text-[13px] text-[#283d3e]/50">目前沒有訂單</div>
+            ) : (
+              <div className="bg-white rounded-3xl overflow-hidden">
+                {previewOrders.map((o) => {
+                  const pending = o.status === OrderStatus.PENDING;
+                  const ready = o.status === OrderStatus.PAID && o.shippingStatus.includes("已抵台") && !o.isShipped;
+                  return (
+                    <button
+                      key={o.id}
+                      onClick={() => onOpenOrder?.(o)}
+                      className="w-full text-left px-5 py-3.5 border-t border-[#283d3e]/[0.07] first:border-t-0 active:bg-[#283d3e]/[0.03] transition flex items-start gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <span className={`inline-flex items-center gap-1.5 border border-black/12 bg-white px-2 py-0.5 rounded-full text-[10.5px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${
+                          o.isShipped ? "before:bg-[#49d5df]" : pending ? "before:bg-[#e46b58]" : ready ? "before:bg-[#e868a0]" : "before:bg-[#283d3e]/35"
+                        }`}>
+                          {o.isShipped ? "已出貨" : pending ? "待付款" : ready ? "可出貨" : "尚未出貨"}
+                        </span>
+                        <div className="font-[900] text-[13.5px] leading-snug mt-1.5 line-clamp-2">{o.groupName}</div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        {/* 金額跟著狀態走：待付款看訂金、可出貨看尾款、其他看商品總額 */}
+                        <div className="font-bold text-[10.5px] text-[#283d3e]/40 leading-none">
+                          {pending ? "應付訂金" : ready ? "應付尾款" : "訂單金額"}
+                        </div>
+                        <div className="font-[900] text-[16px] tabular-nums leading-tight mt-0.5">
+                          ${pending ? o.depositAmount : ready ? o.balanceDue : o.productTotal}
+                        </div>
+                        <div className="font-bold text-[11px] text-[#283d3e]/40">{o.totalQuantity} 件</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 就算只有 5 筆也要給入口——完整列表才有狀態分頁與篩選 */}
+            {totalOrders > 0 && (
+              <button onClick={onSeeAll} className="mt-3 w-full h-11 rounded-full bg-white border border-black/10 font-[900] text-[13.5px] flex items-center justify-center gap-1 active:opacity-60 transition">
+                {totalOrders > previewOrders.length ? `查看全部 ${totalOrders} 筆訂單` : "查看完整訂單（可篩選）"}
+                <ChevronRight className="w-4 h-4 stroke-[3px]" />
+              </button>
+            )}
+          </div>
         )}
 
         {/* 沒綁定的人（不管從哪進來）都導向官賴綁定——綁定流程留在官賴，網站不另開一套 */}

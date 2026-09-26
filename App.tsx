@@ -133,6 +133,17 @@ const App: React.FC = () => {
   const [news, setNews] = useState<Announcement[]>([]);
   const [selectedNews, setSelectedNews] = useState<Announcement | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showAllOrders, setShowAllOrders] = useState(false);   // 帳號頁（預覽 5 筆）↔ 完整訂單列表
+  // 帳號頁只放 5 筆。「哪 5 筆」比「5 筆」重要——待付款是他真正要行動的，
+  // 放一堆已完成的舊訂單等於沒資訊。
+  const previewOrders = useMemo(() => {
+    const rank = (o: Order) => {
+      if (o.status === OrderStatus.PENDING) return 0;                                              // 待付款
+      if (o.status === OrderStatus.PAID && o.shippingStatus.includes("已抵台") && !o.isShipped) return 1;  // 可出貨
+      return 2;
+    };
+    return [...foundOrders].sort((a, b) => rank(a) - rank(b)).slice(0, 5);
+  }, [foundOrders]);
   const [searchNotice, setSearchNotice] = useState('');   // 查單重試三次都沒成功時，回到搜尋框給的一行提示
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('deposit');
@@ -313,7 +324,7 @@ const App: React.FC = () => {
   useEffect(() => subscribeCart(() => setCartCount(cartItemCount())), []);
   const goCart = () => { setMainView('cart'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/cart'); window.scrollTo(0, 0); };
   const goOrders = () => {
-    setMainView('orders'); setSelectedTeamCode(null); setIsMenuOpen(false); setHasSearched(false);
+    setMainView('orders'); setSelectedTeamCode(null); setIsMenuOpen(false); setHasSearched(false); setShowAllOrders(false);
     nav('/orders'); window.scrollTo(0, 0);
   };
   const goWorks = () => { setMainView('works'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/works'); window.scrollTo(0, 0); };
@@ -604,7 +615,7 @@ const App: React.FC = () => {
       <div className="w-full max-w-2xl min-h-screen relative flex flex-col pt-16 z-0 mx-auto px-6 md:px-12">
 
         <div className="w-full flex-1 relative z-10 flex flex-col items-center">
-          {mainView === 'orders' && !hasSearched && !boundNick ? (
+          {mainView === 'orders' && !showAllOrders ? (
             <OrdersPage
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -614,6 +625,10 @@ const App: React.FC = () => {
               lineState={lineState}
               lineProfile={lineProfile}
               quietLoading={quietLoading}
+              previewOrders={previewOrders}
+              totalOrders={foundOrders.length}
+              onSeeAll={() => { setShowAllOrders(true); window.scrollTo(0, 0); }}
+              onOpenOrder={(o) => { setSelectedDetailOrder(o); setIsDetailModalOpen(true); }}
               onLogin={loginWithLine}
               onGuide={() => { setMainView('guide'); nav('/guide'); window.scrollTo(0, 0); }}
               onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }}
@@ -621,6 +636,8 @@ const App: React.FC = () => {
             />
           ) : (mainView === 'query' || mainView === 'orders') ? (
             <>
+              {/* ⚠️ 一定要把 mainView 一起判斷：在「我的訂單」但還沒查完的那一瞬間，
+                  只看 hasSearched 會掉回來渲染首頁 —— 客人按了人頭會覺得沒反應 */}
               {!hasSearched ? (
                 // --- 🎯 首頁未搜尋狀態 ---
                 <div className="flex flex-col items-center animate-fade-in-up w-full">
@@ -821,36 +838,46 @@ const App: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* 2. 分頁標籤 */}
-                    <div className="flex justify-start sm:justify-center gap-3 overflow-x-auto w-full max-w-md no-scrollbar pb-1">
-                      {[
-                        ...(pendingSubs.length ? [{ id: 'pending', label: `尚未結單 ${pendingSubs.length}` }] : []),
-                        { id: 'deposit', label: '待付款訂單' },
-                        { id: 'balance', label: '可出貨訂單' },
-                        { id: 'completed', label: '已完成' },
-                        { id: 'all', label: '所有訂單' }
-                      ].map(tab => (
-                        <button
-                          key={tab.id}
-                          onClick={() => {
-                            setActiveTab(tab.id as TabType);
-                            setSelectedOrderIds(new Set());
-                            setVisibleLimit(10);
-                            if (tab.id !== 'all') { setCargoFilters([]); setDeliveryFilter(null); }
-                          }}
-                          className={`px-4 py-2 rounded-full font-[900] whitespace-nowrap transition-all border-2 text-[13px] tracking-widest ${activeTab === tab.id
-                            ? 'bg-[#49d5df] border-[#49d5df] text-[#283d3e]'
-                            : 'bg-transparent border-[#49d5df] text-[#49d5df] hover:bg-[#49d5df]/10'
-                            }`}
-                        >
-                          {tab.label}
-                        </button>
-                      ))}
+                    {/* 狀態分頁：底線式（蝦皮／momo 的訂單頁都是這種），
+                        5 顆大藥丸在手機上會擠到切掉；底線式字小、省空間、一眼看得出在哪一頁。
+                        切換時把當前那顆捲進視野，不然選到最後一頁會看不到自己在哪 */}
+                    <div className="w-full max-w-md -mx-1 overflow-x-auto no-scrollbar border-b border-[#283d3e]/10">
+                      <div className="flex gap-1 px-1 min-w-max">
+                        {[
+                          ...(pendingSubs.length ? [{ id: 'pending', label: '尚未結單', n: pendingSubs.length }] : []),
+                          { id: 'deposit', label: '待付款', n: 0 },
+                          { id: 'balance', label: '可出貨', n: 0 },
+                          { id: 'completed', label: '已完成', n: 0 },
+                          { id: 'all', label: '全部', n: 0 }
+                        ].map(tab => {
+                          const on = activeTab === tab.id;
+                          return (
+                            <button
+                              key={tab.id}
+                              ref={(el) => { if (el && on) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); }}
+                              onClick={() => {
+                                setActiveTab(tab.id as TabType);
+                                setSelectedOrderIds(new Set());
+                                setVisibleLimit(10);
+                                if (tab.id !== 'all') { setCargoFilters([]); setDeliveryFilter(null); }
+                              }}
+                              className={`shrink-0 px-3.5 pb-2.5 pt-1 font-[900] text-[14px] whitespace-nowrap border-b-2 -mb-px transition ${
+                                on ? 'text-[#283d3e] border-[#49d5df]' : 'text-[#283d3e]/40 border-transparent active:opacity-60'
+                              }`}
+                            >
+                              {tab.label}
+                              {tab.n > 0 && (
+                                <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded-full ${on ? 'bg-[#e868a0] text-[#283d3e]' : 'bg-[#283d3e]/10 text-[#283d3e]/50'}`}>{tab.n}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     {/* 3. 子搜尋框 */}
                     {foundOrders.length > 0 && (
-                      <div className="w-full max-w-md bg-white rounded-full p-1.5 flex items-center border-[4px] border-[#3be4d6] shadow-sm">
+                      <div className="w-full max-w-md bg-white rounded-full p-1.5 flex items-center border border-black/10 shadow-sm">
                         <input
                           type="text"
                           placeholder="在結果中搜尋團名和商品..."
@@ -1125,7 +1152,16 @@ const App: React.FC = () => {
                           </button>
                         </div>
                       )}
-                      <div className="pb-24"><SlimFooter /></div>
+                      {/* 完整版頁尾：登入的人跳過入口頁，購物說明與聯絡方式就會一起不見，
+                          這裡補回來（頁尾本來就有那幾條連結） */}
+                      <div className="pb-24">
+                        <Footer
+                          onGuide={() => { setMainView('guide'); nav('/guide'); window.scrollTo(0, 0); }}
+                          onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }}
+                          onAbout={() => { setMainView('about'); nav('/about'); window.scrollTo(0, 0); }}
+                          onNews={() => { setMainView('info'); nav('/news'); window.scrollTo(0, 0); }}
+                        />
+                      </div>
                     </div>
 
                   </div>
