@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import CartPage from "./components/CartPage";
 import { cartItemCount, subscribeCart } from "./services/cart";
+import { SlimFooter } from "./components/Footer";
 import Footer from "./components/Footer";
 import { SectionHead, MoreButton } from "./components/Section";
 import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock, User } from 'lucide-react';
@@ -21,7 +22,7 @@ import HomeHero from './components/HomeHero';
 import WorksPage from './components/WorksPage';
 import OrdersPage from './components/OrdersPage';
 import TopBar from './components/TopBar';
-import { LIFF_ID, getLineIdentity } from './services/lineIdentity';
+import { LIFF_ID, getLineIdentity, loginWithLine } from './services/lineIdentity';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
@@ -157,6 +158,7 @@ const App: React.FC = () => {
   const [teams, setTeams] = useState<GroupTeam[]>([]);
   const [groupProducts, setGroupProducts] = useState<GroupProduct[]>([]);
   const [orderTag, setOrderTag] = useState<string[]>([]);
+  const [lineState, setLineState] = useState<'loading' | 'ready' | 'can-login' | 'unavailable'>('loading');
   const [boundNick, setBoundNick] = useState<string | null>(null);   // LINE 認出來的綁定暱稱（我的訂單頁顯示）   // 首頁「動漫類別」點進填單專區時帶的作品篩選
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
   const [teamsLoading, setTeamsLoading] = useState(true);
@@ -235,7 +237,11 @@ const App: React.FC = () => {
     await Promise.all(jobs);
   }, [loadTeams, selectedTeamCode]);
 
-  useEffect(() => { getLineIdentity().then((id) => setBoundNick(id.nickname || null)).catch(() => {}); }, []);
+  useEffect(() => {
+    getLineIdentity()
+      .then((id) => { setBoundNick(id.nickname || null); setLineState(id.status); })
+      .catch(() => setLineState('unavailable'));
+  }, []);
 
   // 從左邊緣往右滑＝返回上一頁（iOS 的習慣手勢）。
   // LINE 內建瀏覽器沒有原生的邊緣手勢，客人只能按底部返回鍵，很多人不知道；自己補一個。
@@ -304,7 +310,10 @@ const App: React.FC = () => {
   const [cartCount, setCartCount] = useState(cartItemCount());   // 徽章顯示件數（一般購物車的慣例），不是團數
   useEffect(() => subscribeCart(() => setCartCount(cartItemCount())), []);
   const goCart = () => { setMainView('cart'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/cart'); window.scrollTo(0, 0); };
-  const goOrders = () => { setMainView('orders'); setSelectedTeamCode(null); setIsMenuOpen(false); setHasSearched(false); nav('/orders'); window.scrollTo(0, 0); };
+  const goOrders = () => {
+    setMainView('orders'); setSelectedTeamCode(null); setIsMenuOpen(false); setHasSearched(false);
+    nav('/orders'); window.scrollTo(0, 0);
+  };
   const goWorks = () => { setMainView('works'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/works'); window.scrollTo(0, 0); };
   // 首頁作品類別：點某部作品＝直接進填單專區篩該作品；點「全部作品」（空字串）＝進作品類別頁
   const goOrderTag = (tag: string) => { if (!tag) { goWorks(); return; } setOrderTag([tag]); goOrderList(); };
@@ -476,9 +485,20 @@ const App: React.FC = () => {
   };
 
   // 🌟 2. 手動搜尋的按鈕：給客人手動按 Enter 或點擊箭頭用的
-  const handleSearch = (e?: React.FormEvent) => {
+  // 認得出他是誰就自動查自己的單。用狀態驅動而不是掛在點擊上——
+  // 直接開 /orders 網址、或從 LINE 連結進來的人也要能自動查到。
+  const autoQueried = useRef<string>("");
+  useEffect(() => {
+    if (mainView !== 'orders' || !boundNick || hasSearched) return;
+    if (autoQueried.current === boundNick) return;
+    autoQueried.current = boundNick;
+    setSearchQuery(boundNick);
+    executeSearch(boundNick);
+  }, [mainView, boundNick, hasSearched]);
+
+  const handleSearch = (e?: React.FormEvent, override?: string) => {
     if (e) e.preventDefault();
-    executeSearch(searchQuery);
+    executeSearch(override ?? searchQuery);
   };
 
   const toggleOrderSelection = (id: string) => {
@@ -640,6 +660,8 @@ const App: React.FC = () => {
               onSearch={() => handleSearch()}
               searchNotice={searchNotice}
               boundNick={boundNick}
+              lineState={lineState}
+              onLogin={loginWithLine}
               onGuide={() => { setMainView('guide'); nav('/guide'); window.scrollTo(0, 0); }}
               onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }}
               onAbout={() => { setMainView('about'); nav('/about'); }}
@@ -818,15 +840,21 @@ const App: React.FC = () => {
                 // --- 🎯 搜尋結果頁面開始 (佔滿剩餘高度) ---
                 <div className="animate-fade-in w-full flex flex-col flex-1 h-full pt-2">
 
-                  <div className="w-full flex flex-col items-center px-2 mb-6 space-y-5">
+                  <div className="w-full flex flex-col items-center px-4 mb-6 space-y-4">
 
-                    {/* 🎯 1. 頂部暱稱藥丸與返回按鈕 (顯示客人暱稱) */}
-                    <div className="w-full max-w-md bg-white rounded-full p-2 pl-6 flex items-center justify-between border border-black">
-                      <h1 className="text-[#49d5df] font-[900] text-2xl tracking-widest truncate flex-1 mr-4">
-                        {searchQuery || 'Guest'}
-                      </h1>
-                      <button onClick={() => setHasSearched(false)} className="bg-[#e868a0] text-[#283d3e] w-10 h-10 rounded-full border-2 border-black flex items-center justify-center active:opacity-60 transition-all hover:bg-[#eb92e7] shrink-0">
-                        <X className="stroke-[3px]" />
+                    {/* 頁面標題：頂部列只放品牌，這一頁是誰的訂單要在這裡講 */}
+                    <div className="w-full max-w-md text-[#283d3e]">
+                      <SectionHead en="MY ORDERS" title="我的訂單" />
+                    </div>
+
+                    {/* 查的是誰 —— 跟其他頁一致的白卡，不再是黑框藥丸 */}
+                    <div className="w-full max-w-md bg-white rounded-2xl px-5 py-3.5 flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-[11.5px] text-[#283d3e]/50">{boundNick && boundNick === searchQuery ? '已綁定' : '查詢中的暱稱'}</div>
+                        <div className="font-[900] text-[17px] text-[#283d3e] truncate">{searchQuery || 'Guest'}</div>
+                      </div>
+                      <button onClick={() => setHasSearched(false)} className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60">
+                        換一個
                       </button>
                     </div>
 
@@ -1119,11 +1147,7 @@ const App: React.FC = () => {
                           </button>
                         </div>
                       )}
-                      {/* 🎯 專屬米色背景底部 Footer (跟著米色畫布一路延伸到底) */}
-                      <footer className="w-full pt-20 pb-32 text-center text-[#283d3e] text-[11px] font-[900] space-y-2 mt-auto opacity-80">
-                        <div>本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
-                        <p className="mt-2">© {new Date().getFullYear()} All Rights Reserved.</p>
-                      </footer>
+                      <div className="pb-24"><SlimFooter /></div>
                     </div>
 
                   </div>
