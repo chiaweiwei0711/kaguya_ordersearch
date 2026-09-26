@@ -4,7 +4,7 @@ import { cartItemCount, subscribeCart } from "./services/cart";
 import { SlimFooter } from "./components/Footer";
 import Footer from "./components/Footer";
 import { SectionHead, MoreButton } from "./components/Section";
-import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock, User } from 'lucide-react';
+import { Loader2, Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock, User } from 'lucide-react';
 import { Order, OrderStatus, Announcement, GroupTeam, GroupProduct, MySubmission } from './types';
 import PaymentModal from './components/PaymentModal';
 import OrderDetailModal from './components/OrderDetailModal';
@@ -21,7 +21,7 @@ import HomeHero from './components/HomeHero';
 import WorksPage from './components/WorksPage';
 import OrdersPage from './components/OrdersPage';
 import TopBar from './components/TopBar';
-import { LIFF_ID, getLineIdentity, loginWithLine } from './services/lineIdentity';
+import { LIFF_ID, getLineIdentity, loginWithLine, logoutLine } from './services/lineIdentity';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
@@ -604,7 +604,7 @@ const App: React.FC = () => {
       <div className="w-full max-w-2xl min-h-screen relative flex flex-col pt-16 z-0 mx-auto px-6 md:px-12">
 
         <div className="w-full flex-1 relative z-10 flex flex-col items-center">
-          {mainView === 'orders' && !hasSearched ? (
+          {mainView === 'orders' && !hasSearched && !boundNick ? (
             <OrdersPage
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -800,14 +800,24 @@ const App: React.FC = () => {
                       <SectionHead en="MY ORDERS" title="我的訂單" />
                     </div>
 
-                    {/* 查的是誰 —— 跟其他頁一致的白卡，不再是黑框藥丸 */}
+                    {/* 查的是誰。已登入就把 LINE 大頭貼與本名一起顯示，
+                        客人能一眼對照「我的 LINE ↔ 綁定的暱稱」對不對 */}
                     <div className="w-full max-w-md bg-white rounded-2xl px-5 py-3.5 flex items-center gap-3">
+                      {boundNick && lineProfile.picture && (
+                        <img src={lineProfile.picture} alt="" referrerPolicy="no-referrer" className="w-10 h-10 rounded-full object-cover shrink-0 bg-[#e9f5f6]" />
+                      )}
                       <div className="min-w-0 flex-1">
-                        <div className="font-bold text-[11.5px] text-[#283d3e]/50">{boundNick && boundNick === searchQuery ? '已綁定' : '查詢中的暱稱'}</div>
+                        <div className="font-bold text-[11.5px] text-[#283d3e]/50 truncate">
+                          {boundNick && boundNick === searchQuery ? `LINE：${lineProfile.name || '已登入'}` : '查詢中的暱稱'}
+                        </div>
                         <div className="font-[900] text-[17px] text-[#283d3e] truncate">{searchQuery || 'Guest'}</div>
                       </div>
-                      <button onClick={() => setHasSearched(false)} className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60">
-                        換一個
+                      {quietLoading && <Loader2 className="w-4 h-4 animate-spin stroke-[3px] text-[#283d3e]/35 shrink-0" />}
+                      <button
+                        onClick={() => { if (boundNick) { if (window.confirm("要換一個 LINE 帳號嗎？\n這會把你從這個網站登出，下次要重新登入。")) logoutLine(); } else setHasSearched(false); }}
+                        className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60"
+                      >
+                        {boundNick ? '不是我' : '換一個'}
                       </button>
                     </div>
 
