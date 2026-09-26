@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { SectionHead } from "./Section";
 import { ChevronLeft, Search, ShoppingBag, X } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
 import { isOpen } from "../services/groupOrderService";
@@ -65,7 +66,8 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
 
   return (
     <div className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
-      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-8 relative">
+      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-8 relative text-[#4c59a1]">
+        <SectionHead en="WORKS" title="作品類別" count={works.length} />
         {/* 作品多，給個搜尋比較快找到 */}
         <div className="bg-white rounded-full p-2 flex items-center gap-2 border border-black mb-6">
           <Search className="ml-3 text-[#f8a3f4] w-5 h-5 stroke-[3px] shrink-0" />

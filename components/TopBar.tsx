@@ -2,19 +2,18 @@ import React from "react";
 import { Menu, ChevronLeft, User } from "lucide-react";
 
 interface Props {
-  title: string;         // 這一頁在幹嘛（首頁就是品牌名）
   onHome: () => void;    // 回首頁
   onMenu: () => void;
   showBack?: boolean;    // 非首頁：左邊給一顆返回
-  subtitle?: string;     // 只有首頁才有：品牌標語，跟 KAGUYA 疊成一組
   onOrders: () => void;  // 我的訂單（七家電商都把它放頂部列，純圖示是通用慣例）
   tone: "light" | "dark";  // 頁面底色淺（黃）用深字、深（藍紫）用白字
 }
 
-// 一直都在的頂部列：大字寫著現在在哪一頁，右邊一顆選單。
+// 一直都在的頂部列：永遠是品牌（點一下回首頁），不換成頁面標題——
+// 七家日本電商的頂部列都固定放 logo，「這是哪一頁」交給頁面自己的大標題。
 // 兩顆各自浮動的圓鈕會跟頁面左上的返回鍵疊在一起，收成一條就不會再打架，
 // 也順便解決「捲到一半不知道自己在哪一頁」。
-const TopBar: React.FC<Props> = ({ title, subtitle, onHome, onMenu, showBack, tone, onOrders }) => {
+const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders }) => {
   const ICON = `w-10 h-10 shrink-0 flex items-center justify-center active:opacity-50 transition-opacity ${tone === "dark" ? "text-white" : "text-[#4c59a1]"}`;
   return (
     <header
@@ -39,10 +38,9 @@ const TopBar: React.FC<Props> = ({ title, subtitle, onHome, onMenu, showBack, to
         onClick={onHome}
         className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform ${tone === "dark" ? "text-white" : "text-[#4c59a1]"}`}
       >
-        <span className="font-[900] text-[22px] leading-none tracking-widest truncate max-w-full">{title}</span>
-        {subtitle && (
-          <span className="font-[900] text-[10px] leading-none tracking-[0.18em] opacity-75 truncate max-w-full">{subtitle}</span>
-        )}
+        {/* 日後有 logo icon 就放在文字左邊，這一行整組都是回首頁的按鈕 */}
+        <span className="font-[900] text-[22px] leading-none tracking-widest" style={{ fontFamily: '"Zen Maru Gothic", "Noto Sans TC", sans-serif' }}>KAGUYA</span>
+        <span className="font-[900] text-[10px] leading-none tracking-[0.18em] opacity-75">日本動漫周邊專業代購</span>
       </button>
 
       <button

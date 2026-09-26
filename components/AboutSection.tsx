@@ -41,15 +41,7 @@ const ADVANTAGES: { title: string; desc: string }[] = [
 const AboutSection: React.FC<Props> = ({ onBack }) => {
   return (
     <div className="fixed inset-0 z-40 bg-[#3ac0bf] overflow-y-auto">
-      <div className="w-full max-w-xl mx-auto px-5 sm:px-7 py-8">
-        <button
-          onClick={onBack}
-          aria-label="返回"
-          className="w-11 h-11 rounded-full bg-white text-[#3ac0bf] flex items-center justify-center shadow-md active:scale-90 transition mb-5"
-        >
-          <ChevronLeft className="w-6 h-6 stroke-[3px]" />
-        </button>
-
+      <div className="w-full max-w-xl mx-auto px-5 sm:px-7 pt-20 pb-8">
         <div className="text-center mb-6">
           <h2 className="text-[#fff170] font-[900] text-4xl sm:text-5xl tracking-widest">ABOUT</h2>
           <p className="text-white font-[900] text-sm tracking-[0.4em] mt-2">關於 KAGUYA</p>

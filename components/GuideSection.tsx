@@ -18,15 +18,7 @@ const STEPS: { title: string; desc: string; tags: string[]; warn?: string }[] = 
 const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
   return (
     <div className="fixed inset-0 z-40 bg-[#f8a3f4] overflow-y-auto">
-      <div className="w-full max-w-xl mx-auto px-5 sm:px-7 py-8">
-        <button
-          onClick={onBack}
-          aria-label="返回"
-          className="w-11 h-11 rounded-full bg-white text-[#f8a3f4] flex items-center justify-center shadow-md active:scale-90 transition mb-5"
-        >
-          <ChevronLeft className="w-6 h-6 stroke-[3px]" />
-        </button>
-
+      <div className="w-full max-w-xl mx-auto px-5 sm:px-7 pt-20 pb-8">
         <div className="text-center mb-8">
           <h2 className="text-[#4c59a1] font-[900] text-4xl sm:text-5xl tracking-widest pl-[0.1em]">購物流程</h2>
           <p className="text-[#4c59a1] font-[900] text-sm tracking-[0.4em] pl-[0.4em] mt-2">五步驟一次懂</p>

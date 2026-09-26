@@ -107,12 +107,8 @@ const OrderLookup: React.FC<Props> = ({ teams, onBack, initialNick }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-[#fff170] overflow-y-auto">
-      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-7 relative">
+      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-7 relative">
         {/* 返回 */}
-        <button onClick={onBack} aria-label="返回" className="w-11 h-11 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shadow-md active:scale-90 transition mb-4">
-          <ChevronLeft className="w-6 h-6 stroke-[3px]" />
-        </button>
-
         <h2 className="text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-6">
           填單明細查詢
         </h2>

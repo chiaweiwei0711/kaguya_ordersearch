@@ -27,11 +27,7 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
   return (
     <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
       {ptrIndicator}
-      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-8 relative">
-        <button onClick={onBack} aria-label="返回" className="absolute top-6 left-6 w-11 h-11 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shadow-md active:scale-90 transition">
-          <ChevronLeft className="w-6 h-6 stroke-[3px]" />
-        </button>
-
+      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-8 relative">
         <h2 className="text-[#4c59a1] font-[900] text-3xl sm:text-4xl tracking-widest text-center mb-6 mt-8 flex items-center justify-center gap-2.5">
           <AlarmClock className="w-8 h-8 stroke-[2.5px] text-[#f43f5e]" />
           即將結單

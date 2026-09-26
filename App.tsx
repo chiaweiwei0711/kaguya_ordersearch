@@ -566,20 +566,8 @@ const App: React.FC = () => {
       {/* 一直都在的頂部列：左品牌回首頁、右選單 */}
       {!isMenuOpen && (
         <TopBar
-          title={
-            mainView === 'works' ? '作品類別'
-            : mainView === 'order' ? (selectedTeamCode ? '填單' : '預購填單專區')
-            : mainView === 'orders' ? '我的訂單'
-            : mainView === 'faq' ? '常見問題'
-            : mainView === 'guide' ? '購物流程'
-            : mainView === 'about' ? '關於我們'
-            : mainView === 'closing' ? '即將結單'
-            : hasSearched ? '我的訂單'
-            : 'KAGUYA'
-          }
           onHome={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); nav('/'); window.scrollTo(0, 0); }}
           onMenu={() => setIsMenuOpen(true)}
-          subtitle={mainView === 'query' && !hasSearched ? '日本動漫周邊專業代購' : undefined}
           onOrders={goOrders}
           showBack={mainView !== 'query' || hasSearched}
           tone={mainView === 'works' || mainView === 'order' ? 'light' : 'dark'}
@@ -656,9 +644,9 @@ const App: React.FC = () => {
                 <div className="flex flex-col items-center animate-fade-in-up w-full">
 
                   {/* 第一屏：品牌列 ＋ 查訂單（不再是整屏的查單系統，首頁要先看到能買什麼） */}
-                  <div className="w-full flex flex-col items-center pb-4 pt-2">
+                  <div className="w-full flex flex-col items-center pb-0 pt-2">
 
-                    <div className="w-full max-w-lg flex flex-col gap-2.5 mb-4 mt-4 px-4 sm:px-0">
+                    <div className="w-full max-w-lg flex flex-col gap-2.5 mt-4 px-4 sm:px-0">
                       {/* 常駐搜尋框：movic／KADOKAWA／AMNIBUS 都放在頂部列正下方全寬一條，不藏進圖示 */}
                       <div className="w-full h-12 rounded-full bg-white border border-black/10 flex items-center gap-2.5 px-4">
                         <Search className="w-5 h-5 stroke-[3px] text-[#4c59a1]/40 shrink-0" />
@@ -703,7 +691,7 @@ const App: React.FC = () => {
                   </div>
 
                   {/* 第二屏：櫥窗（輪播＋動漫類別）→ 即將結單 → 開團方塊 → NEWS → SNS */}
-                  <div className="w-full space-y-10 flex flex-col items-center pt-10">
+                  <div className="w-full space-y-10 flex flex-col items-center pt-6">
                     <HomeHero
                       teams={teams}
                       products={groupProducts}

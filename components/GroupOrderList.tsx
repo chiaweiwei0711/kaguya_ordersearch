@@ -141,9 +141,9 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
 
   const inner = (
     <>
-      {preview && (
-        <SectionHead en="PRE-ORDER" title="預購填單專區" />
-      )}
+      <div className={preview ? "" : "text-[#4c59a1]"}>
+        <SectionHead en="PRE-ORDER" title="預購填單專區" count={preview ? undefined : filtered.length} />
+      </div>
 
       {/* 首頁預覽：最新 ↔ 熱銷。只是換排序，不多佔一塊版面 */}
       {preview && (
