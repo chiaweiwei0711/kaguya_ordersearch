@@ -60,6 +60,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
     return () => { alive = false; };
   }, [items.length]);
 
+  const [pay, setPay] = useState("");   // 送出前必選，套用清單內所有團
   const [sending, setSending] = useState(false);
   const [progress, setProgress] = useState("");
   const [results, setResults] = useState<Result[] | null>(null);
@@ -118,6 +119,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
     const outsider = !lineId?.inClient && lineId?.status !== "unavailable";
     if (outsider && (lineId?.status === "can-login" || (lineId?.status === "ready" && isFriend === false))) { setShowLineGate(true); return; }
     if (!nick.trim()) { alert("請先填社群暱稱"); return; }
+    if (!pay) { alert("請先選付款方式"); return; }
     if (!sendable.length) { alert("購物車裡沒有可以送出的團"); return; }
 
     setSending(true);
@@ -130,7 +132,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
       if (live && !isOpen(live)) { out.push({ code: c.code, name: c.name, ok: false, msg: "這團已結單" }); continue; }
       const oid = `${c.code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       let r: any = null;
-      try { r = await submitGroupOrder(live || ({ code: c.code, name: c.name } as GroupTeam), nick.trim(), c.items, c.pay, oid); }
+      try { r = await submitGroupOrder(live || ({ code: c.code, name: c.name } as GroupTeam), nick.trim(), c.items, pay, oid); }
       catch (_) { r = null; }
       if (r && r.ok === false) { out.push({ code: c.code, name: c.name, ok: false, msg: r.message || "送出失敗" }); continue; }
       if (r && r.ok) { out.push({ code: c.code, name: c.name, ok: true }); okCodes.push(c.code); continue; }
@@ -302,6 +304,18 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
               </div>
             </div>
             )}
+            <div className="bg-white rounded-3xl px-5 py-4 mt-3">
+              <div className="font-[900] text-[13px] text-[#283d3e] mb-2">付款方式<span className="text-[#e46b58]">*</span></div>
+              <div className="grid grid-cols-2 gap-2.5">
+                {["匯款", "無卡"].map((m) => (
+                  <button key={m} type="button" onClick={() => setPay(m)}
+                    className={`h-11 rounded-full font-[900] text-[14px] border transition active:opacity-60 ${pay === m ? "bg-[#49d5df] text-[#283d3e] border-[#49d5df]" : "bg-white text-[#283d3e]/70 border-[#283d3e]/20"}`}>
+                    {m}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11.5px] font-bold text-[#283d3e]/45 mt-2">整份清單用同一個付款方式送出</p>
+            </div>
             <SlimFooter />
           </>
         )}
@@ -317,10 +331,10 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
             </div>
             <button
               onClick={doSend}
-              disabled={sending || !sendable.length}
+              disabled={sending || !sendable.length || !pay}
               className="ml-auto h-12 px-7 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[16px] flex items-center gap-1.5 active:opacity-60 transition disabled:opacity-40"
             >
-              {sending ? <><Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />送出中…</> : <>一次送出<ChevronRight className="w-4 h-4 stroke-[3px]" /></>}
+              {sending ? <><Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />送出中…</> : !pay ? "請先選付款方式" : <>一次送出<ChevronRight className="w-4 h-4 stroke-[3px]" /></>}
             </button>
           </div>
           {progress && <div className="w-full max-w-lg mx-auto text-[11.5px] font-bold text-[#283d3e]/55 mt-1.5 text-center">{progress}　請不要關閉畫面</div>}

@@ -100,7 +100,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   //    而手指一拉畫面就重繪 → 每次重繪都給新函式＝拉第一下就斷（2026-09-12 這樣寫，訂單頁下拉重整整個失效）
   const refreshAll = React.useCallback(async () => { await Promise.all([onRefresh ? onRefresh() : null, loadStat(true)]); }, [onRefresh, loadStat]);
   const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(onRefresh ? refreshAll : undefined);
-  const [pay, setPay] = useState("匯款");
+  const [pay, setPay] = useState("");   // 送出前必選，不預設
   const [qty, setQty] = useState<Record<number, number>>({});
   const [activeCat, setActiveCat] = useState("");   // "" = 還沒選（預設吃第一個類別）；ALL_CAT = 全部
   const [showConfirm, setShowConfirm] = useState(false);
@@ -496,24 +496,6 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           );
         })}
 
-        {/* 3. 付款方式 */}
-        {teamOpen && (
-          <div className="mt-6">
-            <div className="font-[900] text-[#283d3e] text-lg mb-2">3. 付款方式<span className="text-[#e46b58]">*</span></div>
-            <div className="grid grid-cols-2 gap-3">
-              {["匯款", "無卡"].map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setPay(m)}
-                  className={`py-3.5 rounded-2xl font-[900] border-2 transition active:scale-95 ${pay === m ? "bg-[#49d5df] text-[#283d3e] border-[#49d5df]" : "bg-white text-[#283d3e] border-[#283d3e]/15"}`}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* 可以下單時用下面浮出來的結算列；已結單才在這裡說明 */}
         {!teamOpen && (
@@ -652,7 +634,19 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
         <div className="fixed inset-0 z-[100] bg-black/40 flex items-end sm:items-center justify-center p-3">
           <div className="bg-white rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto p-5">
             <div className="font-[900] text-[#283d3e] text-lg mb-1">確認填單</div>
-            <div className="text-sm text-gray-500 mb-3">暱稱：{nick}　·　付款方式：<span className="text-[#49d5df] font-[900]">{pay}</span></div>
+            <div className="text-sm text-gray-500 mb-3">暱稱：{nick}</div>
+            {/* 付款方式在送出前才選：挑商品時先選沒有意義，而且購物車是一次付款 */}
+            <div className="mb-4">
+              <div className="font-[900] text-[#283d3e] text-[14px] mb-2">付款方式<span className="text-[#e46b58]">*</span></div>
+              <div className="grid grid-cols-2 gap-2.5">
+                {["匯款", "無卡"].map((m) => (
+                  <button key={m} type="button" onClick={() => setPay(m)}
+                    className={`h-11 rounded-full font-[900] text-[14px] border transition active:opacity-60 ${pay === m ? "bg-[#49d5df] text-[#283d3e] border-[#49d5df]" : "bg-white text-[#283d3e]/70 border-[#283d3e]/20"}`}>
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
             {Object.entries(cartByType).map(([t, items]) => (
               <div key={t} className="mb-3">
                 <div className="font-[900] text-[#49d5df] text-sm mb-1">{t}（{items.length} 款）</div>
@@ -678,7 +672,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
 
             <div className="flex gap-3 mt-4">
               <button onClick={() => setShowConfirm(false)} disabled={submitting} className="flex-1 bg-white border-2 border-[#49d5df] text-[#283d3e] font-[900] py-3 rounded-full">修改訂單</button>
-              <button onClick={doSend} disabled={submitting} className="flex-1 bg-[#49d5df] text-[#283d3e] font-[900] py-3 rounded-full active:scale-95 transition">{submitting ? "送出中…" : "確認送出"}</button>
+              <button onClick={doSend} disabled={submitting || !pay} className="flex-1 bg-[#e868a0] text-[#283d3e] font-[900] py-3 rounded-full active:scale-95 transition disabled:opacity-40">{submitting ? "送出中…" : !pay ? "請先選付款方式" : "確認送出"}</button>
             </div>
             {submitting && <div className="text-xs text-gray-500 mt-2 text-center">正在寫入訂單並跟系統核對，請不要關閉畫面（最多約一分鐘）</div>}
             {sendNotice && <div className="text-[#e46b58] font-bold text-sm mt-2 text-center leading-relaxed">{sendNotice}</div>}
