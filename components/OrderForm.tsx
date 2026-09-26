@@ -286,11 +286,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   return (
     <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#fff170] overflow-y-auto overscroll-y-contain">
       {ptrIndicator}
-      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 py-7 relative">
-        {/* 返回 */}
-        <button onClick={onBack} aria-label="返回" className="w-11 h-11 rounded-full bg-[#3ac0bf] text-white flex items-center justify-center shadow-md active:scale-90 transition mb-4">
-          <ChevronLeft className="w-6 h-6 stroke-[3px]" />
-        </button>
+      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-7 relative">
 
         {/* 團資訊：橫向滑動卡片（右邊故意露出下一張的一角＝可以滑的暗示） */}
         {/* scroll-pl 一定要跟 px 一樣：不然 snap 會把左邊 padding 捲掉，卡片會比下面內容凸出去 */}

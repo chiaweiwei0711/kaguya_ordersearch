@@ -1,11 +1,13 @@
 import React from "react";
-import { Menu, ChevronLeft, User } from "lucide-react";
+import { Menu, ChevronLeft, User, ShoppingCart } from "lucide-react";
 
 interface Props {
   onHome: () => void;    // 回首頁
   onMenu: () => void;
   showBack?: boolean;    // 非首頁：左邊給一顆返回
-  onOrders: () => void;  // 我的訂單（七家電商都把它放頂部列，純圖示是通用慣例）
+  onOrders: () => void;
+  onCart?: () => void;   // 選購清單
+  cartCount?: number;    // 清單裡有幾團  // 我的訂單（七家電商都把它放頂部列，純圖示是通用慣例）
   tone: "light" | "dark";  // 頁面底色淺（黃）用深字、深（藍紫）用白字
 }
 
@@ -13,7 +15,7 @@ interface Props {
 // 七家日本電商的頂部列都固定放 logo，「這是哪一頁」交給頁面自己的大標題。
 // 兩顆各自浮動的圓鈕會跟頁面左上的返回鍵疊在一起，收成一條就不會再打架，
 // 也順便解決「捲到一半不知道自己在哪一頁」。
-const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders }) => {
+const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders, onCart, cartCount = 0 }) => {
   const ICON = `w-10 h-10 shrink-0 flex items-center justify-center active:opacity-50 transition-opacity ${tone === "dark" ? "text-white" : "text-[#4c59a1]"}`;
   return (
     <header
@@ -22,7 +24,7 @@ const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders }) =
       className="fixed top-0 inset-x-0 z-[80] h-16 flex items-center px-2.5 backdrop-blur-xl backdrop-saturate-150"
     >
       {/* 三欄：左返回、中標題、右選單。標題置中，左右兩顆一樣大，畫面才不會偏 */}
-      <div className="w-20 shrink-0 flex">
+      <div className="w-[120px] shrink-0 flex">
         {showBack && (
           <button
             onClick={() => window.history.back()}
@@ -42,6 +44,15 @@ const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders }) =
         <span className="font-[900] text-[22px] leading-none tracking-widest" style={{ fontFamily: '"Zen Maru Gothic", "Noto Sans TC", sans-serif' }}>KAGUYA</span>
         <span className="font-[900] text-[10px] leading-none tracking-[0.18em] opacity-75">日本動漫周邊專業代購</span>
       </button>
+
+      {onCart && (
+        <button onClick={onCart} aria-label="選購清單" className={`${ICON} relative`}>
+          <ShoppingCart className="w-[21px] h-[21px] stroke-[2.2px]" />
+          {cartCount > 0 && (
+            <span className="absolute top-1 right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-[#f43f5e] text-white text-[10px] font-[900] flex items-center justify-center">{cartCount}</span>
+          )}
+        </button>
+      )}
 
       <button
         onClick={onOrders}

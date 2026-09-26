@@ -270,11 +270,12 @@ const App: React.FC = () => {
       if (p.startsWith('/faq')) { setMainView('faq'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/guide')) { setMainView('guide'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/about')) { setMainView('about'); setSelectedTeamCode(null); return; }
+      if (p.startsWith('/news')) { setMainView('info'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/works')) { setMainView('works'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/orders')) { setMainView('orders'); setSelectedTeamCode(null); return; }   // ⚠️ 要排在 /order 之前，不然會被填單頁的規則吃掉
       const m = p.match(/^\/order(?:\/([^/?]+))?/);
       if (m) { setMainView('order'); setSelectedTeamCode(m[1] ? decodeURIComponent(m[1]) : null); }
-      else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' || mv === 'works' || mv === 'orders' ? 'query' : mv)); setSelectedTeamCode(null); }
+      else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' || mv === 'works' || mv === 'orders' || mv === 'info' ? 'query' : mv)); setSelectedTeamCode(null); }
     };
     applyPath();
     window.addEventListener('popstate', applyPath);   // 瀏覽器上一頁／下一頁
@@ -614,7 +615,7 @@ const App: React.FC = () => {
             <div>
               <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">其他</div>
               <div className="flex flex-col gap-3.5 font-[900] text-2xl tracking-widest">
-                <button onClick={() => { setMainView('query'); setHasSearched(false); setIsMenuOpen(false); setTimeout(() => document.getElementById('news-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="text-left active:scale-95 transition-transform">最新公告</button>
+                <button onClick={() => { setMainView('info'); setIsMenuOpen(false); nav('/news'); window.scrollTo(0, 0); }} className="text-left active:scale-95 transition-transform">最新公告</button>
                 <button onClick={() => { setMainView('query'); setHasSearched(false); setIsMenuOpen(false); setTimeout(() => document.getElementById('sns-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="text-left active:scale-95 transition-transform">連結專區</button>
               </div>
             </div>
@@ -762,7 +763,7 @@ const App: React.FC = () => {
                         {news.length === 0 && <p className="text-center opacity-70">載入中…</p>}
                       </div>
                       {/* 🎯 點擊 More 進入全新粉紅列表頁面 */}
-                      <button onClick={() => { setMainView('info'); window.scrollTo(0, 0); }} className="mt-8 ml-auto text-[#4c59a1] font-[900] text-lg flex items-center border-b-[3px] border-[#4c59a1] hover:opacity-70 active:translate-x-2 transition-all">
+                      <button onClick={() => { setMainView('info'); nav('/news'); window.scrollTo(0, 0); }} className="mt-8 ml-auto text-[#4c59a1] font-[900] text-lg flex items-center border-b-[3px] border-[#4c59a1] hover:opacity-70 active:translate-x-2 transition-all">
                         More... <ArrowRight className="ml-1 w-5 h-5 stroke-[3px]" />
                       </button>
                     </div>
@@ -1195,25 +1196,27 @@ const App: React.FC = () => {
       {/* 🎯 圖 3：全螢幕 NEWS 列表頁 (取代舊的 info) */}
       {/* ========================================= */}
       {mainView === 'info' && (
-        <div className="fixed inset-0 z-[80] bg-[#ffaefe] overflow-y-auto animate-fade-in flex flex-col items-center px-6 py-10">
-          <div className="w-full max-w-md flex flex-col items-center relative mb-12">
-            <button onClick={() => setMainView('query')} className="absolute left-0 top-0 w-10 h-10 bg-[#3ac0bf] rounded-full flex items-center justify-center text-white active:scale-95 transition-transform shadow-sm">
-              <ChevronLeft strokeWidth={3} size={24} />
-            </button>
-            <h2 className="text-[#4c59a1] font-[900] text-4xl tracking-widest border-b-[4px] border-[#4c59a1] px-4 pb-2">NEWS</h2>
+        <div className="fixed inset-0 z-[40] bg-[#ffaefe] overflow-y-auto animate-fade-in flex flex-col items-center px-6 pt-20 pb-10">
+          <div className="w-full max-w-md mb-8 text-[#4c59a1]">
+            <SectionHead en="NEWS" title="最新公告" count={news.filter(n => !n.title.includes("跑馬燈")).length} />
           </div>
 
-          <div className="w-full max-w-md space-y-6 pb-20">
+          <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden mb-20">
             {news.filter(n => !n.title.includes("跑馬燈")).map((item, idx) => (
-              <div
+              <button
                 key={idx}
                 onClick={() => setSelectedNews(item)}
-                className="flex justify-between items-center cursor-pointer hover:opacity-70 active:scale-95 transition-all text-[#4c59a1] font-[900] text-xl tracking-wider"
+                className="w-full text-left px-5 py-4 border-t border-[#4c59a1]/10 first:border-t-0 active:bg-[#4c59a1]/5 transition flex items-start gap-3"
               >
-                <span className="truncate mr-4 flex-1">{item.title}</span>
-                <span className="shrink-0">{item.date}</span>
-              </div>
+                <div className="min-w-0 flex-1">
+                  {/* 日期在上、標題在下且不截斷：舊版 truncate 會把長公告切掉，客人看不到重點 */}
+                  <div className="text-[12px] font-[900] text-[#4c59a1]/55 tracking-widest mb-1">{item.date}</div>
+                  <div className="font-[900] text-[15px] leading-snug text-[#4c59a1]">{item.title}</div>
+                </div>
+                <ChevronRight className="w-5 h-5 stroke-[3px] text-[#4c59a1]/30 shrink-0 mt-5" />
+              </button>
             ))}
+            {news.length === 0 && <p className="px-5 py-6 text-center font-[900] text-[#4c59a1]/60">載入中…</p>}
           </div>
         </div>
       )}
@@ -1224,20 +1227,20 @@ const App: React.FC = () => {
       {selectedNews && (
         <div className="fixed inset-0 z-[90] bg-[#ffaefe] overflow-y-auto animate-fade-in flex flex-col items-center p-6 md:p-12">
           <div className="relative flex items-center w-full max-w-md mx-auto mb-6">
-            <button onClick={() => setSelectedNews(null)} className="w-10 h-10 bg-[#3ac0bf] rounded-full flex items-center justify-center text-white active:scale-95 transition-transform shadow-sm shrink-0 border-2 border-[#3be4d6]">
-              <ChevronLeft strokeWidth={3} size={24} />
+            <button onClick={() => setSelectedNews(null)} aria-label="關閉" className="ml-auto w-10 h-10 rounded-full bg-white text-[#4c59a1] flex items-center justify-center active:opacity-60 transition shrink-0">
+              <X strokeWidth={3} size={22} />
             </button>
           </div>
 
           <div className="w-full max-w-md mx-auto flex flex-col flex-1 pb-20">
             {/* 標題與日期線 */}
-            <h2 className="text-[#4c59a1] font-[900] text-3xl mb-3 text-center leading-snug">{selectedNews.title}</h2>
-            <div className="text-right text-[#4c59a1] font-[900] text-xl mb-8 border-b-[4px] border-[#4c59a1] pb-4 tracking-widest">
+            <h2 className="text-[#4c59a1] font-[900] text-2xl mb-2 leading-snug">{selectedNews.title}</h2>
+            <div className="text-[#4c59a1]/60 font-[900] text-sm mb-6 border-b border-[#4c59a1]/20 pb-4 tracking-widest">
               {selectedNews.date}
             </div>
 
             {/* 內文 */}
-            <div className="text-[#4c59a1] font-[900] text-lg leading-loose whitespace-pre-wrap">
+            <div className="text-[#4c59a1] font-medium text-[16px] leading-[1.9] whitespace-pre-wrap">
               {selectedNews.content}
             </div>
 
