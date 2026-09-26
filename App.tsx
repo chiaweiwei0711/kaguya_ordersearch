@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import CartPage from "./components/CartPage";
+import { cartTeamCount, subscribeCart } from "./services/cart";
 import Footer from "./components/Footer";
 import { SectionHead, MoreButton } from "./components/Section";
 import { Search, ArrowRight, Check, MessageCircle, Truck, Box, Sparkles, Star, Instagram, ShoppingBag, Lock, CheckSquare, Square, ChevronRight, Hash, X, CheckCircle2, Circle, Menu, ExternalLink, Heart, ChevronLeft, AlarmClock, User } from 'lucide-react';
@@ -29,7 +31,7 @@ import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM, fetchMySubmissions, i
 import { getStorageInfo, balanceWithFee } from './services/storage';
 
 // --- 類型定義 ---
-type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing' | 'works' | 'orders';
+type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing' | 'works' | 'orders' | 'cart';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all' | 'pending';
 
 // --- 📅 倉儲倒數／倉儲費：算式統一在 services/storage.ts（30 天免費、之後每天 $5、收費 90 天後視為放棄） ---
@@ -272,11 +274,12 @@ const App: React.FC = () => {
       if (p.startsWith('/guide')) { setMainView('guide'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/about')) { setMainView('about'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/news')) { setMainView('info'); setSelectedTeamCode(null); return; }
+      if (p.startsWith('/cart')) { setMainView('cart'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/works')) { setMainView('works'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/orders')) { setMainView('orders'); setSelectedTeamCode(null); return; }   // ⚠️ 要排在 /order 之前，不然會被填單頁的規則吃掉
       const m = p.match(/^\/order(?:\/([^/?]+))?/);
       if (m) { setMainView('order'); setSelectedTeamCode(m[1] ? decodeURIComponent(m[1]) : null); }
-      else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' || mv === 'works' || mv === 'orders' || mv === 'info' ? 'query' : mv)); setSelectedTeamCode(null); }
+      else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' || mv === 'works' || mv === 'orders' || mv === 'info' || mv === 'cart' ? 'query' : mv)); setSelectedTeamCode(null); }
     };
     applyPath();
     window.addEventListener('popstate', applyPath);   // 瀏覽器上一頁／下一頁
@@ -298,6 +301,9 @@ const App: React.FC = () => {
   const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/order'); window.scrollTo(0, 0); };
   // ⚠️ setMainView 一定要留著：pushState 不像改 hash 會觸發事件，
   //    少了這行就只換網址不換畫面（從主頁的「即將結單」卡片點下去會沒反應）
+  const [cartCount, setCartCount] = useState(cartTeamCount());
+  useEffect(() => subscribeCart(() => setCartCount(cartTeamCount())), []);
+  const goCart = () => { setMainView('cart'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/cart'); window.scrollTo(0, 0); };
   const goOrders = () => { setMainView('orders'); setSelectedTeamCode(null); setIsMenuOpen(false); setHasSearched(false); nav('/orders'); window.scrollTo(0, 0); };
   const goWorks = () => { setMainView('works'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/works'); window.scrollTo(0, 0); };
   // 首頁作品類別：點某部作品＝直接進填單專區篩該作品；點「全部作品」（空字串）＝進作品類別頁
@@ -568,6 +574,8 @@ const App: React.FC = () => {
           onHome={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); nav('/'); window.scrollTo(0, 0); }}
           onMenu={() => setIsMenuOpen(true)}
           onOrders={goOrders}
+          onCart={goCart}
+          cartCount={cartCount}
           showBack={mainView !== 'query' || hasSearched}
           tone="light"
         />
@@ -1137,6 +1145,8 @@ const App: React.FC = () => {
             <div className="flex flex-col pt-4">
               <GuideSection onBack={() => { setMainView('query'); nav('/'); }} onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }} />
             </div>
+          ) : mainView === 'cart' ? (
+            <CartPage teams={teams} onSelectTeam={goOrderTeam} onBrowse={goOrderList} />
           ) : mainView === 'works' ? (
             <WorksPage teams={teams} products={groupProducts} loading={teamsLoading} onBack={exitOrderToQuery} onSelect={(tag) => { setOrderTag([tag]); goOrderList(); }} />
           ) : mainView === 'closing' ? (

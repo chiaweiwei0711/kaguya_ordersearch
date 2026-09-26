@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info, Check, Loader2, UserX, UserCheck } from "lucide-react";
+import { putTeam, teamInCart } from "../services/cart";
+import { ChevronLeft, ChevronRight, ZoomIn, X, CheckCircle2, AlertTriangle, Search, Info, Check, Loader2, UserX, UserCheck, ShoppingCart } from "lucide-react";
 import { GroupTeam, GroupProduct, GroupCartItem, MySubmission } from "../types";
 import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, fetchTeamStat, fetchMySubmissions, itemKey } from "../services/groupOrderService";
 import type { TeamStat } from "../services/groupOrderService";
@@ -177,6 +178,16 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const showJoinCard = people > 0 || teamOpen || statLoading;
   const hasMin = products.some((p) => (p.minQty ?? 1) > 1);   // 這團有商品有成團限制 → 團卡掛紅底提醒
 
+  const [added, setAdded] = useState(false);   // 加入後原地回饋
+  // 整組覆蓋而不是累加：客人回到這一團改數量，清單裡就該是他現在選的
+  const addToCart = () => {
+    if (!isOpen(liveTeam)) { alert("本團已結單，無法再下單囉"); return; }
+    if (!cart.length) { alert("還沒選任何商品"); return; }
+    putTeam(liveTeam, cart, pay, liveTeam.cover || products.find((x) => x.img)?.img);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  };
+
   const openConfirm = () => {
     if (!isOpen(liveTeam)) { alert("本團已結單，無法再下單囉"); return; }
     // 外面來的人：送出前要有 LINE 身分＋是官方帳號好友。
@@ -286,7 +297,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   return (
     <div ref={ptrRef} className="fixed inset-0 z-40 bg-[#f6f9f9] overflow-y-auto overscroll-y-contain">
       {ptrIndicator}
-      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-7 relative">
+      <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-36 relative">
 
         {/* 團資訊：橫向滑動卡片（右邊故意露出下一張的一角＝可以滑的暗示） */}
         {/* scroll-pl 一定要跟 px 一樣：不然 snap 會把左邊 padding 捲掉，卡片會比下面內容凸出去 */}
@@ -503,16 +514,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           </div>
         )}
 
-        {/* 底部：已選 / 清空 / 送出 */}
-        {teamOpen ? (
-          <div className="flex items-center justify-between gap-3 mt-6 pt-4 border-t-2 border-[#283d3e]/15">
-            <span className="font-[900] text-[#283d3e]">已選 {count} 件　約 ${total}</span>
-            <div className="flex gap-2">
-              <button onClick={clearAll} className="bg-gray-300 text-white font-[900] px-4 py-2.5 rounded-full active:opacity-60 transition-all">清空</button>
-              <button onClick={openConfirm} className="bg-[#49d5df] text-[#283d3e] font-[900] px-5 py-2.5 rounded-full active:opacity-60 transition-all">送出填單</button>
-            </div>
-          </div>
-        ) : (
+        {/* 可以下單時用下面浮出來的結算列；已結單才在這裡說明 */}
+        {!teamOpen && (
           <div className="mt-6 pt-4 border-t-2 border-[#283d3e]/15 text-center text-gray-500 font-[900]">本團已結單，無法再下單</div>
         )}
       </div>
@@ -612,6 +615,38 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       )}
 
       {/* 確認 modal */}
+      {/* 選了數量才浮出來：沒選之前不佔版面，選了就一直跟著捲動 */}
+      {teamOpen && count > 0 && (
+        <div className="fixed bottom-0 inset-x-0 z-[70] bg-white border-t border-[#283d3e]/10 px-4 pt-3 animate-fade-in-up"
+             style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}>
+          <div className="w-full max-w-lg mx-auto">
+            <div className="flex items-center gap-3">
+              <div className="min-w-0">
+                <div className="font-bold text-[11.5px] text-[#283d3e]/55">已選 {count} 件</div>
+                <div className="font-[900] text-[19px] text-[#283d3e] leading-tight">約 ${total}</div>
+              </div>
+              <button onClick={clearAll} className="text-[#283d3e]/40 font-[900] text-[12px] underline underline-offset-2 active:opacity-60 shrink-0">清空</button>
+              <div className="ml-auto flex gap-2">
+                <button
+                  onClick={addToCart}
+                  className={`h-12 px-4 rounded-full border font-[900] text-[14px] flex items-center gap-1.5 active:opacity-60 transition ${
+                    added ? "bg-[#49d5df] border-[#49d5df] text-[#283d3e]" : "bg-white border-[#283d3e]/20 text-[#283d3e]"
+                  }`}
+                >
+                  {added ? <><Check className="w-4 h-4 stroke-[3px]" />已加入</> : <><ShoppingCart className="w-4 h-4 stroke-[2.6px]" />加入清單</>}
+                </button>
+                <button onClick={openConfirm} className="h-12 px-5 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[14px] active:opacity-60 transition">
+                  直接送出
+                </button>
+              </div>
+            </div>
+            {teamInCart(liveTeam.code) && !added && (
+              <p className="text-[11.5px] font-bold text-[#283d3e]/45 mt-1.5">這團已在清單裡，再加入會整組覆蓋成現在選的品項</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {showConfirm && (
         <div className="fixed inset-0 z-[100] bg-black/40 flex items-end sm:items-center justify-center p-3">
           <div className="bg-white rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto p-5">
