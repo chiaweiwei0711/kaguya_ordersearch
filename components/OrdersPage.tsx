@@ -165,6 +165,9 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                           {o.isShipped ? "已出貨" : pending ? "待付款" : ready ? "可出貨" : "尚未出貨"}
                         </span>
                         <div className="font-[900] text-[13.5px] leading-snug mt-1.5 line-clamp-2">{o.groupName}</div>
+                        {o.createdAt && (
+                          <div className="font-bold text-[11px] text-[#283d3e]/40 mt-1">{String(o.createdAt).slice(0, 10)}</div>
+                        )}
                       </div>
                       <div className="shrink-0 text-right">
                         {/* 金額跟著狀態走：待付款看訂金、可出貨看尾款、其他看商品總額 */}

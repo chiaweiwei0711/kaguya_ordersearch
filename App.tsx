@@ -142,11 +142,24 @@ const App: React.FC = () => {
       if (o.status === OrderStatus.PAID && o.shippingStatus.includes("已抵台") && !o.isShipped) return 1;  // 可出貨
       return 2;
     };
-    return [...foundOrders].sort((a, b) => rank(a) - rank(b)).slice(0, 5);
+    // 同一組內照日期新到舊；沒有訂單日期的一定是舊單，一律排最後，
+    // 不然中間夾著沒日期的會看不出來是按最新排的
+    const ts = (o: Order) => { const t = new Date(o.createdAt || "").getTime(); return isNaN(t) ? -Infinity : t; };
+    return [...foundOrders].sort((a, b) => rank(a) - rank(b) || ts(b) - ts(a)).slice(0, 5);
   }, [foundOrders]);
   const [searchNotice, setSearchNotice] = useState('');   // 查單重試三次都沒成功時，回到搜尋框給的一行提示
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('deposit');
+
+  // 分頁列只捲自己（水平），絕不能用 scrollIntoView ——
+  // 寫在 ref callback 裡每次重繪都會跑，按「顯示更多訂單」就會把整頁拉回分頁列的位置
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const bar = tabBarRef.current;
+    if (!bar) return;
+    const el = bar.querySelector('[data-active="true"]') as HTMLElement | null;
+    if (el) bar.scrollTo({ left: el.offsetLeft - bar.clientWidth / 2 + el.clientWidth / 2, behavior: 'smooth' });
+  }, [activeTab, hasSearched, showAllOrders]);
   const [visibleLimit, setVisibleLimit] = useState(10); // 🎯 控制目前顯示幾筆訂單
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [cargoFilters, setCargoFilters] = useState<string[]>([]);
@@ -421,6 +434,11 @@ const App: React.FC = () => {
       });
     } else if (sortBy === 'strokes') {
       result.sort((a, b) => a.groupName.localeCompare(b.groupName, 'zh-TW'));
+    } else {
+      // 「預設排序(依時間)」原本什麼都沒排，只是照後端回傳的順序 —— 標籤寫依時間卻沒依時間。
+      // 新到舊；沒有訂單日期的一定是舊單，一律排最後，不然中間夾著沒日期的就看不出是按最新排的
+      const ts = (o: Order) => { const t = new Date(o.createdAt || '').getTime(); return isNaN(t) ? -Infinity : t; };
+      result.sort((a, b) => ts(b) - ts(a));
     }
     return result;
   }, [foundOrders, activeTab, cargoFilters, deliveryFilter, subQuery, sortBy]);
@@ -856,7 +874,7 @@ const App: React.FC = () => {
                     {/* 狀態分頁：底線式（蝦皮／momo 的訂單頁都是這種），
                         5 顆大藥丸在手機上會擠到切掉；底線式字小、省空間、一眼看得出在哪一頁。
                         切換時把當前那顆捲進視野，不然選到最後一頁會看不到自己在哪 */}
-                    <div className="w-full max-w-md -mx-1 overflow-x-auto no-scrollbar border-b border-[#283d3e]/10">
+                    <div ref={tabBarRef} className="w-full max-w-md -mx-1 overflow-x-auto no-scrollbar border-b border-[#283d3e]/10">
                       <div className="flex gap-1 px-1 min-w-max">
                         {[
                           ...(pendingSubs.length ? [{ id: 'pending', label: '尚未結單', n: pendingSubs.length }] : []),
@@ -869,7 +887,7 @@ const App: React.FC = () => {
                           return (
                             <button
                               key={tab.id}
-                              ref={(el) => { if (el && on) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); }}
+                              data-active={on ? 'true' : undefined}
                               onClick={() => {
                                 setActiveTab(tab.id as TabType);
                                 setSelectedOrderIds(new Set());
