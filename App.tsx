@@ -508,11 +508,10 @@ const App: React.FC = () => {
     <div
       className="min-h-screen font-sans text-black selection:bg-[#e891d4] relative flex justify-center overflow-x-hidden transition-colors duration-500"
       style={{
-        // 一頁一色：首頁紫／作品黃／填單粉／我的訂單薄荷
+        // 一頁一色：作品與填單專區用黃底，其餘（首頁、我的訂單、查單結果）維持品牌藍紫
         backgroundColor:
           mainView === 'works' ? '#fff170'
           : mainView === 'order' && !selectedTeamCode ? '#fff170'
-          : mainView === 'orders' && !hasSearched ? '#3ac0bf'
           : '#4c59a1',
         transitionTimingFunction: 'cubic-bezier(.32,.72,0,1)',
       }}
