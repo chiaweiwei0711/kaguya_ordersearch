@@ -290,6 +290,9 @@ const App: React.FC = () => {
   }, [teams]);
 
   const nav = (path: string) => window.history.pushState(null, '', path);
+  const [homeQuery, setHomeQuery] = useState('');     // 首頁常駐搜尋框
+  const [orderQuery, setOrderQuery] = useState('');   // 帶進預購填單專區的關鍵字
+  const goOrderSearch = (q: string) => { setOrderQuery(q.trim()); goOrderList(); };
   const goOrderList = () => { setMainView('order'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/order'); window.scrollTo(0, 0); };
   // ⚠️ setMainView 一定要留著：pushState 不像改 hash 會觸發事件，
   //    少了這行就只換網址不換畫面（從主頁的「即將結單」卡片點下去會沒反應）
@@ -576,6 +579,7 @@ const App: React.FC = () => {
           }
           onHome={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); nav('/'); window.scrollTo(0, 0); }}
           onMenu={() => setIsMenuOpen(true)}
+          onOrders={goOrders}
           showBack={mainView !== 'query' || hasSearched}
           tone={mainView === 'works' || mainView === 'order' ? 'light' : 'dark'}
         />
@@ -653,17 +657,23 @@ const App: React.FC = () => {
                   {/* 第一屏：品牌列 ＋ 查訂單（不再是整屏的查單系統，首頁要先看到能買什麼） */}
                   <div className="w-full flex flex-col items-center pb-4 pt-2">
 
-                    <div className="w-full max-w-lg flex items-center gap-3 mb-4 mt-6">
-                      <div className="min-w-0">
-                        {/* 品牌名在頂部列already有了，這裡只留一句話介紹 */}
-                        <div className="text-white/85 font-[900] text-[14px] tracking-widest">日本動漫周邊專業代購</div>
+                    <div className="w-full max-w-lg flex flex-col gap-2.5 mb-4 mt-6 px-4 sm:px-0">
+                      {/* 品牌名與我的訂單都在頂部列了，這裡只留一句話介紹 */}
+                      <div className="text-white/85 font-[900] text-[14px] tracking-widest">日本動漫周邊專業代購</div>
+                      {/* 常駐搜尋框：movic／KADOKAWA／AMNIBUS 都放在頂部列正下方全寬一條，不藏進圖示 */}
+                      <div className="w-full h-12 rounded-full bg-white border border-black/10 flex items-center gap-2.5 px-4">
+                        <Search className="w-5 h-5 stroke-[3px] text-[#4c59a1]/40 shrink-0" />
+                        <input
+                          value={homeQuery}
+                          onChange={(e) => setHomeQuery(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing && homeQuery.trim()) goOrderSearch(homeQuery); }}
+                          placeholder="搜團名、商品名"
+                          className="flex-1 min-w-0 bg-transparent outline-none font-[900] text-[15px] text-[#4c59a1] placeholder-[#4c59a1]/35"
+                        />
+                        {homeQuery.trim() && (
+                          <button onClick={() => goOrderSearch(homeQuery)} className="shrink-0 h-8 px-3.5 rounded-full bg-[#eef0fa] text-[#4c59a1] font-[900] text-[13px] active:opacity-60">搜尋</button>
+                        )}
                       </div>
-                      <button
-                        onClick={goOrders}
-                        className="ml-auto shrink-0 flex items-center gap-1.5 bg-white text-[#4c59a1] font-[900] text-sm px-4 py-2.5 rounded-full border border-black active:opacity-60 active:transition-all"
-                      >
-                        <User className="w-4 h-4 stroke-[3px]" />我的訂單
-                      </button>
                     </div>
 
                     {/* 查單已經搬到「我的訂單」頁（/orders），首頁不再內嵌 */}
@@ -1147,7 +1157,7 @@ const App: React.FC = () => {
                 const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
                 return t
                   ? <OrderForm team={t} products={teamItems} loadingItems={teamItemsLoading} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} onRefresh={refreshNow} />
-                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onRefresh={refreshNow} initialTags={orderTag} />;
+                  : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onRefresh={refreshNow} initialTags={orderTag} initialQuery={orderQuery} />;
               })()}
             </div>
           )}

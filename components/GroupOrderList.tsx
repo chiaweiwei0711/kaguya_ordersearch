@@ -17,6 +17,7 @@ interface Props {
   onLookup?: () => void; // 列表頁開「填單明細查詢」
   onRefresh?: () => Promise<any> | any; // 下拉重整：重抓團表（列表頁專用）
   initialTags?: string[];               // 從首頁「作品類別」點進來時，一進來就套用該作品篩選
+  initialQuery?: string;                // 從首頁常駐搜尋框帶進來的關鍵字
   openTagPanel?: boolean;               // 從首頁「全部作品」點進來時，直接把作品面板打開
 }
 
@@ -32,10 +33,10 @@ const PER_PAGE = 30;
 // 結單時間轉毫秒（無法解析＝最遠 Infinity）
 const closeMs = (t: GroupTeam) => { const ms = new Date(t.closeAt).getTime(); return isNaN(ms) ? Infinity : ms; };
 
-const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, preview, onMore, onBack, onLookup, onRefresh, initialTags, openTagPanel }) => {
+const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, preview, onMore, onBack, onLookup, onRefresh, initialTags, openTagPanel, initialQuery }) => {
   // 下拉重整只掛在整頁的列表（首頁預覽那張黃卡不是自己捲的容器）
   const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(preview ? undefined : onRefresh);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery || "");
   const [sortBy, setSortBy] = useState<SortKey>("default");
   const [hot, setHot] = useState(false);      // 首頁預覽：最新 ↔ 熱銷（熱銷＝跟團人數多的在前）
   // 首頁預覽吃自己的切換，列表頁吃排序選單
@@ -52,6 +53,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
   useEffect(() => { try { localStorage.setItem("kgy_order_view", viewMode); } catch {} }, [viewMode]);
 
   useEffect(() => { if (initialTags && initialTags.length) setPickedTags(initialTags); }, [initialTags]);
+  useEffect(() => { if (initialQuery) setQuery(initialQuery); }, [initialQuery]);
   useEffect(() => { if (openTagPanel) setFilterOpen(true); }, [openTagPanel]);
 
   // 作品標籤（後台「標籤」欄優先，沒填就從團名／品名推導）
