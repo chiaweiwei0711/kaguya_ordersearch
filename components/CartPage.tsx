@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Trash2, ShoppingCart, AlertTriangle, CheckCircle2, Loader2, ChevronRight } from "lucide-react";
+import { Trash2, ShoppingCart, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Plus, Minus, X } from "lucide-react";
 import { GroupTeam, GroupCartItem, MySubmission } from "../types";
 import { submitGroupOrder, isOpen, daysLeft, checkNickBound, fetchMySubmissions, fmtMDHM } from "../services/groupOrderService";
 import { getLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
 import type { LineIdentity } from "../services/lineIdentity";
-import { cartTeams, removeTeam, removeTeams, cartTotal, subscribeCart, CartTeam } from "../services/cart";
+import { cartTeams, removeTeam, removeTeams, cartTotal, subscribeCart, setItemQty, removeItem, stepOf, CartTeam } from "../services/cart";
 import { SectionHead } from "./Section";
 import { SlimFooter } from "./Footer";
 
@@ -198,12 +198,34 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
                     </button>
                   </div>
                   <div className="px-5 pb-4">
-                    {c.items.map((it, i) => (
-                      <div key={i} className="flex justify-between items-start text-[13px] py-1 text-[#283d3e]/85">
-                        <span className="min-w-0 break-words mr-2 leading-snug font-bold">{it.label}</span>
-                        <span className="shrink-0 font-[900]">×{it.qty}　${it.qty * it.price}</span>
-                      </div>
-                    ))}
+                    {c.items.map((it, i) => {
+                      const step = stepOf(c, i);
+                      return (
+                        <div key={i} className="py-2 border-b border-[#283d3e]/[0.06] last:border-b-0">
+                          <div className="flex items-start gap-2">
+                            <span className="min-w-0 flex-1 break-words leading-snug font-bold text-[13px] text-[#283d3e]/85">{it.label}</span>
+                            <button onClick={() => removeItem(c.code, i)} aria-label="移除這項" className="w-7 h-7 shrink-0 flex items-center justify-center text-[#283d3e]/30 active:opacity-60">
+                              <X className="w-4 h-4 stroke-[3px]" />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <div className="flex items-center rounded-full border border-[#283d3e]/15 overflow-hidden">
+                              <button onClick={() => setItemQty(c.code, i, it.qty - step)} aria-label="減少" disabled={isClosed}
+                                className="w-9 h-8 flex items-center justify-center text-[#283d3e]/70 active:opacity-50 disabled:opacity-25">
+                                <Minus className="w-3.5 h-3.5 stroke-[3px]" />
+                              </button>
+                              <span className="w-9 text-center font-[900] text-[13px] text-[#283d3e] tabular-nums">{it.qty}</span>
+                              <button onClick={() => setItemQty(c.code, i, it.qty + step)} aria-label="增加" disabled={isClosed}
+                                className="w-9 h-8 flex items-center justify-center text-[#283d3e]/70 active:opacity-50 disabled:opacity-25">
+                                <Plus className="w-3.5 h-3.5 stroke-[3px]" />
+                              </button>
+                            </div>
+                            {step > 1 && <span className="text-[11px] font-[900] text-[#e868a0]">{step} 件成團</span>}
+                            <span className="ml-auto font-[900] text-[13.5px] text-[#283d3e] tabular-nums">${it.qty * it.price}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                     <div className="flex justify-between font-[900] text-[#283d3e] border-t border-[#283d3e]/10 mt-2 pt-2 text-[14px]">
                       <span>小計</span><span>${cartTotal(c)}</span>
                     </div>

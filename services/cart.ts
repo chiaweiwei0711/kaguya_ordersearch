@@ -14,6 +14,7 @@ export interface CartTeam {
   closeAt: string;
   cover?: string;
   items: GroupCartItem[];
+  steps?: number[];      // 與 items 對齊：每項的成團級距（後台「成團數」）。清單裡改數量只能是它的倍數
   pay: string;
   addedAt: number;
 }
@@ -35,12 +36,34 @@ const write = (m: Record<string, CartTeam>) => {
 };
 
 // 同一團再加入＝整組覆蓋（客人回到那一團改數量，看到的就是他現在選的）
-export const putTeam = (team: GroupTeam, items: GroupCartItem[], pay: string, cover?: string) => {
+export const putTeam = (team: GroupTeam, items: GroupCartItem[], pay: string, cover?: string, steps?: number[]) => {
   const m = loadCart();
   if (!items.length) delete m[team.code];
-  else m[team.code] = { code: team.code, name: team.name, closeAt: team.closeAt, cover, items, pay, addedAt: Date.now() };
+  else m[team.code] = { code: team.code, name: team.name, closeAt: team.closeAt, cover, items, steps, pay, addedAt: Date.now() };
   write(m);
 };
+
+// 清單內改數量：一律走級距的倍數（有成團數的商品不能被改成不成立的數字）。
+// 歸零＝移除該品項；整團空了就把整團移除。
+export const stepOf = (t: CartTeam, i: number) => Math.max(1, t.steps?.[i] ?? 1);
+
+export const setItemQty = (code: string, index: number, qty: number) => {
+  const m = loadCart();
+  const t = m[code];
+  if (!t || !t.items[index]) return;
+  const step = Math.max(1, t.steps?.[index] ?? 1);
+  const q = Math.max(0, Math.round(qty / step) * step);
+  if (q === 0) {
+    t.items.splice(index, 1);
+    if (t.steps) t.steps.splice(index, 1);
+  } else {
+    t.items[index] = { ...t.items[index], qty: q };
+  }
+  if (!t.items.length) delete m[code];
+  write(m);
+};
+
+export const removeItem = (code: string, index: number) => setItemQty(code, index, 0);
 
 export const removeTeam = (code: string) => { const m = loadCart(); delete m[code]; write(m); };
 export const removeTeams = (codes: string[]) => { const m = loadCart(); codes.forEach((c) => delete m[c]); write(m); };

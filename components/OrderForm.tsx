@@ -183,7 +183,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const addToCart = () => {
     if (!isOpen(liveTeam)) { alert("本團已結單，無法再下單囉"); return; }
     if (!cart.length) { alert("還沒選任何商品"); return; }
-    putTeam(liveTeam, cart, pay, liveTeam.cover || products.find((x) => x.img)?.img);
+    const steps = products.map((x, i) => ({ x, i, q: qty[i] || 0 })).filter((r) => r.q >= 1).map((r) => Math.max(1, r.x.minQty ?? 1));
+    putTeam(liveTeam, cart, pay, liveTeam.cover || products.find((x) => x.img)?.img, steps);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   };
