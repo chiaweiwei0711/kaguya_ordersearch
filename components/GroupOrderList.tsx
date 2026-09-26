@@ -14,7 +14,6 @@ interface Props {
   preview?: boolean;     // 首頁預覽模式（黃色圓角卡）
   onMore?: () => void;   // 預覽的 More 進完整列表
   onBack?: () => void;   // 列表頁返回首頁
-  onLookup?: () => void; // 列表頁開「填單明細查詢」
   onRefresh?: () => Promise<any> | any; // 下拉重整：重抓團表（列表頁專用）
   initialTags?: string[];               // 從首頁「作品類別」點進來時，一進來就套用該作品篩選
   initialQuery?: string;                // 從首頁常駐搜尋框帶進來的關鍵字
@@ -33,7 +32,7 @@ const PER_PAGE = 30;
 // 結單時間轉毫秒（無法解析＝最遠 Infinity）
 const closeMs = (t: GroupTeam) => { const ms = new Date(t.closeAt).getTime(); return isNaN(ms) ? Infinity : ms; };
 
-const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, preview, onMore, onBack, onLookup, onRefresh, initialTags, openTagPanel, initialQuery }) => {
+const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, preview, onMore, onBack, onRefresh, initialTags, openTagPanel, initialQuery }) => {
   // 下拉重整只掛在整頁的列表（首頁預覽那張黃卡不是自己捲的容器）
   const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(preview ? undefined : onRefresh);
   const [query, setQuery] = useState(initialQuery || "");
@@ -166,15 +165,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
         </div>
       )}
 
-      {!preview && onLookup && (
-        <button onClick={onLookup} className="w-full bg-white border border-black rounded-full px-3 py-2 flex items-center gap-3 mb-5 active:opacity-60 active:transition-all">
-          <span className="w-9 h-9 rounded-full bg-[#49d5df] text-[#283d3e] flex items-center justify-center shrink-0">
-            <Search className="w-5 h-5 stroke-[3px]" />
-          </span>
-          <span className="flex-1 text-left text-[#283d3e] font-[900] text-base tracking-widest">填單明細查詢</span>
-          <ChevronRight className="w-5 h-5 text-[#283d3e] stroke-[3px] shrink-0" />
-        </button>
-      )}
+      {/* 「填單明細查詢」已整併到「我的訂單 → 尚未結單」——同一件事不該有兩個入口 */}
 
       {/* 列表頁：主畫面只留搜尋 ＋ 一顆篩選；狀態／作品／排序／檢視全部收進底部面板，
           不然這裡會同時擠著六種控制項，客人第一眼看不出哪個才是重點 */}

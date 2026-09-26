@@ -35,6 +35,8 @@ export interface LineIdentity {
   inClient?: boolean;         // 在 LINE App 裡面開的（社群／官賴點進來）＝自己人，送出前不擋
   userId?: string;
   nickname?: string | null;   // 會員表查到的社群暱稱；登入了但沒綁定就是 null
+  displayName?: string;       // LINE 本名 —— 讓客人一眼確認「這是我的 LINE 帳號沒錯」
+  picture?: string;           // LINE 大頭貼
 }
 
 // 一個 session 只問一次，多個元件共用同一個結果
@@ -49,7 +51,7 @@ export const getLineIdentity = (): Promise<LineIdentity> => {
       if (!liff.isLoggedIn()) return { status: "can-login", inClient };
       const profile = await liff.getProfile();
       const nickname = await fetchNicknameByLineId(profile.userId);
-      return { status: "ready", inClient, userId: profile.userId, nickname };
+      return { status: "ready", inClient, userId: profile.userId, nickname, displayName: profile.displayName, picture: profile.pictureUrl };
     } catch (e) {
       // 社群點進來會走到這裡。預期中的情況，不是錯誤 → 只留 console，畫面什麼都不做。
       console.warn("[LIFF] 拿不到 LINE 身分，填單頁維持手打暱稱：", String(e));

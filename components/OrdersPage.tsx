@@ -12,6 +12,7 @@ interface Props {
   searchNotice?: string;
   boundNick?: string | null;
   lineState: "loading" | "ready" | "can-login" | "unavailable";
+  lineProfile?: { name?: string; picture?: string };
   onLogin: () => void;
   onGuide: () => void;
   onFaq: () => void;
@@ -22,7 +23,7 @@ interface Props {
 //   已認出   → 直接查他自己的單（不用打暱稱）
 //   可登入   → 一顆登入鈕（從外面網址進來的人）
 //   認不出   → 退回手打暱稱（LIFF 起不來的環境，不能把人鎖在外面）
-const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, searchNotice, boundNick, lineState, onLogin, onGuide, onFaq, onAbout }) => {
+const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, searchNotice, boundNick, lineState, lineProfile, onLogin, onGuide, onFaq, onAbout }) => {
   const row = "flex items-center gap-3 px-5 py-4 border-t border-[#283d3e]/10 font-[900] text-[#283d3e] text-[15px] active:bg-[#283d3e]/5 transition";
 
   return (
@@ -32,14 +33,26 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
 
         {/* ① 認出來了：顯示身分，訂單在下面自動列出 */}
         {boundNick ? (
-          <div className="bg-white rounded-3xl px-5 py-4 flex items-center gap-3">
-            <UserCheck className="w-5 h-5 stroke-[2.6px] text-[#49d5df] shrink-0" />
-            <div className="min-w-0 flex-1">
-              <div className="font-bold text-[11.5px] text-[#283d3e]/50">已綁定</div>
-              <div className="font-[900] text-[16px] truncate">{boundNick}</div>
+          <div className="bg-white rounded-3xl px-5 py-4">
+            <div className="flex items-center gap-3">
+              {/* 大頭貼＋LINE 本名：讓他一眼確認「這是我的 LINE 帳號」，
+                  再對照下面綁定的社群暱稱對不對 */}
+              {lineProfile?.picture
+                ? <img src={lineProfile.picture} alt="" referrerPolicy="no-referrer" className="w-11 h-11 rounded-full object-cover shrink-0 bg-[#e9f5f6]" />
+                : <div className="w-11 h-11 rounded-full bg-[#e9f5f6] flex items-center justify-center shrink-0"><UserCheck className="w-5 h-5 stroke-[2.6px] text-[#49d5df]" /></div>}
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-[11.5px] text-[#283d3e]/50 truncate">
+                  LINE：{lineProfile?.name || "已登入"}
+                </div>
+                <div className="font-[900] text-[16px] truncate leading-tight mt-0.5">{boundNick}</div>
+                <div className="font-bold text-[11px] text-[#49d5df] mt-0.5">已綁定的社群暱稱</div>
+              </div>
             </div>
-            <button onClick={logoutLine} className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60">
-              不是我
+            <button
+              onClick={() => { if (window.confirm("要換一個 LINE 帳號嗎？\n這會把你從這個網站登出，下次要重新登入。")) logoutLine(); }}
+              className="mt-3 w-full h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[12.5px] text-[#283d3e]/60 active:opacity-60 transition"
+            >
+              不是我？換 LINE 帳號
             </button>
           </div>
         ) : lineState === "loading" ? (

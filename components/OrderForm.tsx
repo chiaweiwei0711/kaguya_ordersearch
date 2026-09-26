@@ -54,7 +54,7 @@ interface Props {
   loadingItems?: boolean;   // 商品是點進來才抓的，抓的期間要有回饋
   onBack: () => void;
   onGoQuery?: () => void;
-  onPreview?: (nick: string) => void;   // 帶暱稱去「填單明細查詢」自動查
+  onPreview?: (nick: string) => void;   // 去「我的訂單 → 尚未結單」看自己填了什麼
   onRefresh?: () => Promise<any> | any; // 下拉重整：重抓這團的商品與人數
 }
 
@@ -283,8 +283,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
             <span>結單後收到訂購付款通知才查得到訂單！請記得去貼文留言「已填單」！</span>
           </div>
           <div className="flex gap-3 mt-2">
-            <button onClick={() => onPreview?.(nick.trim())} className="bg-white border border-black text-[#283d3e] font-[900] px-5 py-3 rounded-full active:opacity-60 active:transition flex items-center gap-2">
-              <Search className="w-4 h-4 stroke-[3px]" /> 填單明細查詢
+            <button onClick={() => onPreview?.(nick.trim())} className="bg-white border border-[#283d3e]/15 text-[#283d3e] font-[900] px-5 py-3 rounded-full active:opacity-60 transition flex items-center gap-2">
+              <Search className="w-4 h-4 stroke-[3px]" /> 查看我的填單
             </button>
             <button onClick={onGoQuery ?? onBack} className="bg-[#49d5df] text-[#283d3e] font-[900] px-7 py-3 rounded-full active:scale-95 transition">回到首頁</button>
           </div>

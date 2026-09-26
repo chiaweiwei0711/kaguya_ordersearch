@@ -27,7 +27,6 @@ import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
 import OrderForm from './components/OrderForm';
-import OrderLookup from './components/OrderLookup';
 import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM, fetchMySubmissions, isOpen } from './services/groupOrderService';
 import { getStorageInfo, balanceWithFee } from './services/storage';
 
@@ -159,7 +158,8 @@ const App: React.FC = () => {
   const [groupProducts, setGroupProducts] = useState<GroupProduct[]>([]);
   const [orderTag, setOrderTag] = useState<string[]>([]);
   const [lineState, setLineState] = useState<'loading' | 'ready' | 'can-login' | 'unavailable'>('loading');
-  const [boundNick, setBoundNick] = useState<string | null>(null);   // LINE 認出來的綁定暱稱（我的訂單頁顯示）   // 首頁「動漫類別」點進填單專區時帶的作品篩選
+  const [boundNick, setBoundNick] = useState<string | null>(null);
+  const [lineProfile, setLineProfile] = useState<{ name?: string; picture?: string }>({});   // LINE 認出來的綁定暱稱（我的訂單頁顯示）   // 首頁「動漫類別」點進填單專區時帶的作品篩選
   const [selectedTeamCode, setSelectedTeamCode] = useState<string | null>(null);
   const [teamsLoading, setTeamsLoading] = useState(true);
 
@@ -176,14 +176,12 @@ const App: React.FC = () => {
       if (!n) return false;
       // 完全相同、或其中一邊包含另一邊（團名有時會多／少後綴）都算同一團
       for (const o of ordered) { if (o === n || o.includes(n) || n.includes(o)) return false; }
-      const t = teams.find((x) => x.code === s.team);
-      if (t && !isOpen(t)) return false;
+      // 已結單但還沒訂購完成的也要留著——那段空窗期客人本來就該看得到自己填了什麼
+      // （原本這裡把已結單的整批濾掉，整併填單明細查詢後會讓那一類完全消失）
       return true;
     });
   }, [mySubs, foundOrders, teams]);
 
-  const [showLookup, setShowLookup] = useState(false); // 填單明細查詢
-  const [lookupInitialNick, setLookupInitialNick] = useState(''); // 從填單成功頁帶入的暱稱
 
   // 載入時抓一次開團資料（首頁卡片＋列表共用）。products 是輕量索引：一團一筆，只夠搜尋／封面／標籤用
   // 抽成函式，下拉重整與「切回分頁自動更新」共用同一條路
@@ -239,7 +237,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     getLineIdentity()
-      .then((id) => { setBoundNick(id.nickname || null); setLineState(id.status); })
+      .then((id) => { setBoundNick(id.nickname || null); setLineState(id.status); setLineProfile({ name: id.displayName, picture: id.picture }); })
       .catch(() => setLineState('unavailable'));
   }, []);
 
@@ -581,8 +579,8 @@ const App: React.FC = () => {
             <div className="w-3 h-6 bg-[#f6f9f9] rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
             <div className="w-3 h-10 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
           </div>
-          <p className="text-white font-[900] text-lg tracking-widest mt-6">LINE 自動登入中</p>
-          <p className="text-[#f6f9f9] font-[900] text-sm tracking-widest mt-2">正在為您查詢訂單，請稍候…</p>
+          <p className="text-white font-[900] text-lg tracking-widest mt-6">LINE 登入中</p>
+          <p className="text-[#f6f9f9]/70 font-[900] text-sm tracking-widest mt-2">正在確認你的身分，請稍候…</p>
         </div>
       )}
 
@@ -661,6 +659,7 @@ const App: React.FC = () => {
               searchNotice={searchNotice}
               boundNick={boundNick}
               lineState={lineState}
+              lineProfile={lineProfile}
               onLogin={loginWithLine}
               onGuide={() => { setMainView('guide'); nav('/guide'); window.scrollTo(0, 0); }}
               onFaq={() => { setMainView('faq'); nav('/faq'); window.scrollTo(0, 0); }}
@@ -1005,26 +1004,33 @@ const App: React.FC = () => {
                     {activeTab === 'pending' && (
                       <div className="w-full max-w-md space-y-4">
                         <p className="text-[#283d3e]/75 font-bold text-[12.5px] leading-relaxed px-1">
-                          這些是你送出、但團還沒結單的填單。結單後我們會推播「訂購付款通知」，那時才會變成訂單。
+                          這裡可以看<b className="text-[#e46b58]">尚未結單</b>與<b className="text-[#e46b58]">已結單尚未訂購完成</b>的填單。
+                          尚未結單的如需修改請洽官賴；<b className="text-[#e46b58]">結單且訂購完成後，訂單才正式成立</b>，
+                          我們會通知你，並顯示在上面的「待付款訂單」。
                         </p>
                         {pendingSubs.map((sub, i) => {
                           const key = sub.team + '_' + i;
                           const open = openSub === key;
+                          // 兩類混在一起 → 每張卡要標清楚，客人才知道哪些還能改
+                          const subTeam = teams.find((x) => x.code === sub.team);
+                          const stillOpen = subTeam ? isOpen(subTeam) : true;
                           return (
                             <div
                               key={key}
                               onClick={() => setOpenSub(open ? null : key)}
-                              className={`bg-white border-[2.5px] border-black rounded-[24px] p-5 cursor-pointer transition-all relative overflow-hidden ${open ? '-translate-y-1 border-[#49d5df]' : 'hover:-translate-y-1 hover:active:translate-y-0 active:'}`}
+                              className={`bg-white rounded-3xl p-5 cursor-pointer transition-all relative overflow-hidden border ${open ? 'border-[#49d5df] ring-2 ring-[#49d5df]/30' : 'border-black/[0.07] active:opacity-70'}`}
                             >
                               <div className="flex flex-wrap gap-2 mb-3">
-                                <span className="bg-[#e868a0] text-[#283d3e] px-3 py-1.5 rounded-full text-[11px] font-[900]">尚未結單</span>
-                                <span className="bg-[#f6f9f9] text-black px-3 py-1.5 rounded-full text-[11px] font-[900]">{fmtMDHM(sub.time)} 填單</span>
+                                <span className={`inline-flex items-center gap-1.5 border border-black/12 bg-white text-[#283d3e] px-2.5 py-1 rounded-full text-[11px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${stillOpen ? 'before:bg-[#e868a0]' : 'before:bg-[#283d3e]/35'}`}>
+                                  {stillOpen ? '尚未結單' : '已結單・訂購統計中'}
+                                </span>
+                                <span className="inline-flex items-center border border-black/12 bg-white text-[#283d3e]/65 px-2.5 py-1 rounded-full text-[11px] font-[900]">{fmtMDHM(sub.time)} 填單</span>
                               </div>
 
-                              <h3 className="text-xl font-[900] text-black leading-snug mb-4">{sub.teamName}</h3>
+                              <h3 className="text-[16px] font-[900] text-[#283d3e] leading-snug mb-3">{sub.teamName}</h3>
 
                               <div className="flex justify-between items-end">
-                                <span className="text-black text-[11px] font-[900] bg-white border-2 border-black px-3 py-1.5 rounded-full leading-none">
+                                <span className="text-[#283d3e]/55 text-[12px] font-[900] leading-none">
                                   共 {sub.items.reduce((n, it) => n + it.qty, 0)} 件
                                 </span>
                                 <div className="text-right">
@@ -1048,12 +1054,18 @@ const App: React.FC = () => {
                                   <p className="text-[11.5px] font-bold text-[#283d3e]/55 mt-3 leading-relaxed">
                                     金額是填單當下的商品小計，不含境內運費與倉儲費；正式金額以結單後的訂購付款通知為準。
                                   </p>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); goOrderTeam(sub.team); }}
-                                    className="mt-3 w-full bg-[#49d5df] text-[#283d3e] font-[900] py-3 rounded-full border-[2.5px] border-black active:opacity-60 active:transition-all"
-                                  >
-                                    去這團的填單頁（可以加單）
-                                  </button>
+                                  {stillOpen ? (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); goOrderTeam(sub.team); }}
+                                      className="mt-3 w-full bg-[#49d5df] text-[#283d3e] font-[900] py-3 rounded-full active:opacity-60 transition"
+                                    >
+                                      去這團的填單頁（可以加單）
+                                    </button>
+                                  ) : (
+                                    <p className="mt-3 text-[12px] font-bold text-[#283d3e]/55 leading-relaxed text-center">
+                                      商品已結單，正在統計訂購中，已無法修改填單。訂購完成後我們會通知你來付款。
+                                    </p>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -1182,7 +1194,7 @@ const App: React.FC = () => {
               {(() => {
                 const t = selectedTeamCode ? teams.find(x => x.code === selectedTeamCode) : null;
                 return t
-                  ? <OrderForm team={t} products={teamItems} loadingItems={teamItemsLoading} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={(nick) => { setLookupInitialNick(nick); setShowLookup(true); }} onRefresh={refreshNow} />
+                  ? <OrderForm team={t} products={teamItems} loadingItems={teamItemsLoading} onBack={goOrderList} onGoQuery={exitOrderToQuery} onPreview={() => goOrders()} onRefresh={refreshNow} />
                   : <GroupOrderList teams={teams} products={groupProducts} onSelect={goOrderTeam} onBack={exitOrderToQuery} loading={teamsLoading} onRefresh={refreshNow} initialTags={orderTag} initialQuery={orderQuery} />;
               })()}
             </div>
@@ -1228,7 +1240,6 @@ const App: React.FC = () => {
       <AdminDashboard isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} />
 
       {/* 填單明細查詢（整頁黃底，覆蓋在預購填單專區上） */}
-      {showLookup && <OrderLookup teams={teams} initialNick={lookupInitialNick} onBack={() => setShowLookup(false)} />}
 
       {/* ========================================= */}
       {/* 🎯 圖 3：全螢幕 NEWS 列表頁 (取代舊的 info) */}
