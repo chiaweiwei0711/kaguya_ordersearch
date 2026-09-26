@@ -1,5 +1,5 @@
 import React from "react";
-import { MessageCircle, Users, Instagram, BookOpen, HelpCircle, Shield, Megaphone } from "lucide-react";
+import { MessageCircle, Users, Instagram, BookOpen, HelpCircle, Shield, Megaphone, ArrowUp } from "lucide-react";
 import { APP_CONFIG } from "../config";
 
 interface Props {
@@ -12,9 +12,19 @@ interface Props {
 // 頁尾：七家日本電商都有（特定商取引法表示／会社概要／プライバシーポリシー）。
 // 我們對應的是通訊交易的資訊揭露 —— 商號、統編、退換貨與倉儲規則。
 // 這些規則現在只寫在社群的規則文裡，網站上完全沒有。
+const ToTop: React.FC = () => (
+  <button
+    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    className="w-full flex items-center justify-center gap-1.5 py-3 font-[900] text-[12.5px] text-[#283d3e]/60 active:opacity-60 transition"
+  >
+    <ArrowUp className="w-4 h-4 stroke-[3px]" />回到最上面
+  </button>
+);
+
 // 細長條版：其他頁只需要商號與版權，不用整組連結也不用卡片框
 export const SlimFooter: React.FC = () => (
-  <div className="w-full mt-10 pt-5 pb-8 border-t border-[#283d3e]/10 text-center">
+  <div className="w-full mt-10 pt-2 pb-8 border-t border-[#283d3e]/10 text-center">
+    <ToTop />
     <div className="font-[900] text-[11.5px] text-[#283d3e]/55 tracking-wide">瓦多次元工作室 · 統一編號 60071756</div>
     <div className="font-bold text-[11px] text-[#283d3e]/35 mt-1">© {new Date().getFullYear()} KAGUYA 日本動漫周邊專業代購</div>
   </div>
@@ -44,7 +54,8 @@ const Footer: React.FC<Props> = ({ onGuide, onFaq, onAbout, onNews }) => {
           </div>
         </div>
 
-        <div className="mt-7 pt-5 border-t border-[#283d3e]/10 text-center">
+        <div className="mt-5 pt-2 border-t border-[#283d3e]/10 text-center">
+          <ToTop />
           <div className="font-[900] text-[12px] text-[#283d3e]/70">瓦多次元工作室</div>
           <div className="font-bold text-[11.5px] text-[#283d3e]/50 mt-0.5">統一編號 60071756</div>
           <div className="font-bold text-[11px] text-[#283d3e]/35 mt-2">© {new Date().getFullYear()} KAGUYA 日本動漫周邊專業代購</div>

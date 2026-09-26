@@ -101,29 +101,33 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                   onFocus={() => setIdx(i)}
                   className="snap-center shrink-0 w-full text-left rounded-[28px] overflow-hidden bg-white shadow-[0_10px_24px_rgba(0,0,0,0.22)] active:scale-[0.985] transition-transform"
                 >
-                  <div className="relative w-full aspect-[4/3] bg-[#e9f5f6]">
+                  <div className="relative w-full aspect-square bg-[#e9f5f6]">
                     {cover
                       ? <img src={cover} alt="" referrerPolicy="no-referrer" loading={i === 0 ? "eager" : "lazy"} className="absolute inset-0 w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-12 h-12 text-[#283d3e]/25 stroke-[2px]" /></div>}
-                    {/* 底部漸層讓白字看得清楚 */}
-                    <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
+                      : <div className="absolute inset-0 flex items-center justify-center"><ShoppingBag className="w-12 h-12 text-[#283d3e]/25 stroke-[2px]" /></div>}
+
+                    {/* 遮罩＝整張卡的形狀：資訊列也放進圖裡，遮罩的下緣就是卡片的圓角，
+                        不會再出現一塊方形色塊壓在圓角卡上 */}
+                    <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/90 via-black/55 to-transparent" />
+
                     <span className="absolute top-3 left-3 text-[12px] font-[900] text-[#283d3e] before:bg-[#49d5df] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">開團中</span>
                     <span className="absolute top-3 right-3 text-[12px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">剩 {left} 天結單</span>
-                    <div className="absolute inset-x-0 bottom-0 p-4">
+
+                    <div className="absolute inset-x-0 bottom-0 px-4 pb-3.5">
                       {ip && <div className="text-[#49d5df] font-[900] text-[13px] leading-none mb-1.5">{ip}</div>}
-                      <div className="text-white font-[900] text-lg leading-tight line-clamp-2">{t.name}</div>
+                      <div className="text-white font-[900] text-[18px] leading-snug line-clamp-2">{t.name}</div>
                       {(t.joinPeople ?? 0) > 0 && (
                         <span className="mt-2 text-[12px] font-[900] text-[#283d3e] before:bg-[#e868a0] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">
                           {t.joinPeople} 人填單{(t.joinQty ?? 0) > 0 ? ` · ${t.joinQty} 件` : ""}
                         </span>
                       )}
+                      <div className="flex items-center mt-3 pt-2.5 border-t border-white/25">
+                        <span className="text-white/75 font-[900] text-[12.5px]">{t.shipInfo ? `預計 ${t.shipInfo} 發貨` : "點進來看商品"}</span>
+                        <span className="ml-auto flex items-center gap-1 text-white font-[900] text-[13.5px]">
+                          去填單 <ChevronRight className="w-4 h-4 stroke-[3px]" />
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center px-4 py-3">
-                    <span className="text-[#283d3e]/70 font-[900] text-[13px]">{t.shipInfo ? `預計 ${t.shipInfo} 發貨` : "點進來看商品"}</span>
-                    <span className="ml-auto flex items-center gap-1 text-[#283d3e] font-[900] text-sm">
-                      去填單 <ChevronRight className="w-4 h-4 stroke-[3px]" />
-                    </span>
                   </div>
                 </button>
               );
