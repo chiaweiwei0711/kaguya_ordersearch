@@ -15,7 +15,10 @@ import { fetchNicknameByLineId } from "./googleSheetService";
 // 這裡用「網域」在執行時決定用哪一個：同一份 build 上正式站用正式 LIFF、
 // 上 netlify.app 預覽站用開發 LIFF。不能用 build 時的環境變數，因為預覽與正式是同一次 build。
 const PROD_LIFF_ID = "2009367290-DGz77pHN";
-const DEV_LIFF_ID = (import.meta as any).env?.VITE_LIFF_ID || "";   // 開發用 LIFF（Endpoint 指到 main--kaguyagoods-order-search.netlify.app）
+// 開發用 LIFF：Endpoint 指到 main--kaguyagoods-order-search.netlify.app（2026-09-26 建）
+// LIFF ID 不是機密（本來就會打包進前端），直接寫死比設環境變數簡單，
+// 而且下面的網域判斷保證正式站永遠不會用到它。
+const DEV_LIFF_ID = (import.meta as any).env?.VITE_LIFF_ID || "2009367290-c5lGu3Xc";
 
 export const LIFF_ID = (() => {
   try {
