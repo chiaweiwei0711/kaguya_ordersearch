@@ -10,7 +10,10 @@
 import liff from "@line/liff";
 import { fetchNicknameByLineId } from "./googleSheetService";
 
-const LIFF_ID = "2009367290-DGz77pHN";   // 與查單頁同一個 LIFF（App.tsx）
+// 正式 LIFF。要在本機或臨時網址測登入時，建一個「開發用 LIFF」把它的 Endpoint 指到那個網址，
+// 然後在 .env.local 寫 VITE_LIFF_ID=<開發用 LIFF ID> 就好——不要去改正式 LIFF 的 Endpoint，
+// 那會讓線上客人的登入跳到開發網址。
+export const LIFF_ID = (import.meta as any).env?.VITE_LIFF_ID || "2009367290-DGz77pHN";
 
 export type LineStatus = "ready" | "can-login" | "unavailable";
 

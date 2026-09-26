@@ -21,7 +21,7 @@ import HomeHero from './components/HomeHero';
 import WorksPage from './components/WorksPage';
 import OrdersPage from './components/OrdersPage';
 import TopBar from './components/TopBar';
-import { getLineIdentity } from './services/lineIdentity';
+import { LIFF_ID, getLineIdentity } from './services/lineIdentity';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
@@ -363,7 +363,7 @@ const App: React.FC = () => {
       if (isOrderOrClosing) return;
 
       try {
-        await liff.init({ liffId: '2009367290-DGz77pHN' });
+        await liff.init({ liffId: LIFF_ID });
 
         // 唯一該自動查單的情境：透過 LIFF（查訂單按鈕）進到查單首頁、且已登入
         if (liff.isLoggedIn()) {
