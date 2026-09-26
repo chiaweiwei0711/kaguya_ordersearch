@@ -745,28 +745,29 @@ const App: React.FC = () => {
                     {(teamsLoading || teams.length > 0) && (
                       <GroupOrderList teams={teams} products={groupProducts} preview loading={teamsLoading} onSelect={goOrderTeam} onMore={goOrderList} />
                     )}
-                    <div id="news-section" className="w-full max-w-lg bg-[#f6f9f9] rounded-[40px] px-6 py-10 flex flex-col items-center">
-                      <h2 className="text-[#283d3e] font-[900] text-4xl mb-6 tracking-widest">NEWS</h2>
-                      <div className="w-full space-y-4 text-[#283d3e] font-[900] text-base md:text-lg">
+                    {/* 公告：原本也是「跟頁面同色的圓角卡」＝隱形卡片，改成跟其他區塊同一套文法 */}
+                    <div id="news-section" className="w-full max-w-lg px-4 sm:px-0">
+                      <SectionHead en="NEWS" title="最新公告" />
+                      <div className="bg-white rounded-3xl overflow-hidden">
                         {news.slice(0, 3).map((item, idx) => (
-                          <div
+                          <button
                             key={idx}
                             onClick={() => setSelectedNews(item)}
-                            className="flex justify-between items-center border-b-[3px] border-[#283d3e]/20 pb-3 cursor-pointer hover:opacity-70 active:scale-95 transition-all"
+                            className="w-full text-left px-5 py-4 border-t border-[#283d3e]/10 first:border-t-0 active:bg-[#283d3e]/5 transition flex items-start gap-3"
                           >
-                            <span className="truncate mr-4 flex-1">{item.title}</span>
-                            <span className="shrink-0">{item.date}</span>
-                          </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[12px] font-[900] text-[#283d3e]/55 tracking-widest mb-1">{item.date}</div>
+                              <div className="font-[900] text-[15px] leading-snug text-[#283d3e]">{item.title}</div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 stroke-[3px] text-[#283d3e]/30 shrink-0 mt-5" />
+                          </button>
                         ))}
-                        {news.length === 0 && <p className="text-center opacity-70">載入中…</p>}
+                        {news.length === 0 && <p className="px-5 py-6 text-center font-[900] text-[#283d3e]/60">載入中…</p>}
                       </div>
-                      {/* 🎯 點擊 More 進入全新粉紅列表頁面 */}
-                      <button onClick={() => { setMainView('info'); nav('/news'); window.scrollTo(0, 0); }} className="mt-8 ml-auto text-[#283d3e] font-[900] text-lg flex items-center border-b-[3px] border-[#283d3e] hover:opacity-70 active:translate-x-2 transition-all">
-                        More... <ArrowRight className="ml-1 w-5 h-5 stroke-[3px]" />
-                      </button>
+                      <MoreButton label="看全部公告" onClick={() => { setMainView('info'); nav('/news'); window.scrollTo(0, 0); }} />
                     </div>
 
-                    <div id="sns-section" className="w-full max-w-lg bg-[#49d5df] rounded-[40px] px-6 py-10 flex flex-col items-center">
+                    <div id="sns-section" className="w-full max-w-lg px-4 sm:px-0"><div className="bg-[#49d5df] rounded-3xl px-6 py-9 flex flex-col items-center">
                       <h2 className="text-[#283d3e] font-[900] text-4xl mb-8 tracking-widest">SNS</h2>
                       <div className="w-full space-y-4">
                         <a href={APP_CONFIG.LINE_URL} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full bg-white text-black font-[900] text-lg px-6 py-4 rounded-full active:opacity-60 transition-all hover:bg-gray-50">
@@ -794,6 +795,7 @@ const App: React.FC = () => {
                           <ExternalLink className="w-5 h-5 opacity-40" />
                         </a>
                       </div>
+                    </div>
                     </div>
                   </div>
 
