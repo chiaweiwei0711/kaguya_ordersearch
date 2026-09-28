@@ -3,6 +3,7 @@ import { X, Sparkles, CheckCircle, Truck, ArrowRight, Copy, MessageCircle, Credi
 import { Order } from '../types';
 import { APP_CONFIG } from '../config';
 import { balanceWithFee } from '../services/storage';
+import { reportShipIntent } from '../services/googleSheetService';
 
 const transferBanks = [
   { name: '中信', code: '822', account: '0000783540394603' },
@@ -72,6 +73,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
     };
 
     if (isShipping) {
+      // 下單意向：跳去賣貨便之前，先把「他勾了哪幾筆」記給後台。
+      // 後台原本是事後用金額反推客人付了哪幾團 —— 很多團尾款都是 100，湊得出好幾組解。
+      // 這裡把答案直接送出去，比對就不用猜。送不出去也不擋跳轉（純粹是讓對帳更準）。
+      try {
+        const intentTotal = orders.reduce((sum, o) => sum + balanceWithFee(o), 0);
+        reportShipIntent(orders[0]?.customerPhone || '', orders, intentTotal);
+      } catch (e) {
+        console.warn('[下單意向] 略過：', e);
+      }
       // 賣貨便出貨
       navigator.clipboard.writeText(generateDetailMessage())
         .then(executeJump)

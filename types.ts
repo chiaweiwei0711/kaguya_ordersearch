@@ -32,6 +32,7 @@ export interface Order {
   domesticShipping?: number;        // 境內運費（已含在 productTotal 內，但獨立顯示給客人看）
   internationalShipping?: number;   // 國際運費（加在尾款上）
   notes?: string;                   // 備註（補充說明）
+  orderKey?: string;                // KG-xxxxxx 不可變主鍵（2026-09 搬遷後才有；舊單可能沒有）
 }
 
 export interface Announcement {

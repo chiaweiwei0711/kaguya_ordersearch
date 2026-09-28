@@ -82,6 +82,7 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
           depositAmount: depositAmount, balanceDue: balanceDue, status: status, shippingStatus: String(row[map.shippingStatus] || ""),
           isShipped: isShipped, shippingDate: String(row[map.shippingDate] || ""), paymentMethod: paymentMethod, arrivalDate: arrivalDate,
           domesticShipping: domesticShipping, internationalShipping: internationalShipping, notes: notes,
+          orderKey: String(row["訂單鍵"] || ""),
           createdAt: new Date().toISOString().split('T')[0]
         });
       }
@@ -129,6 +130,40 @@ export const incrementAnnouncementLike = async (newsId: string) => {
   } catch (error) {
     console.error('按讚 API 呼叫失敗:', error);
     throw error;
+  }
+};
+
+// --- 3.5 下單意向：跳去賣貨便之前，先把「他勾了哪幾筆」記給後台 ---
+// 以前是等瓦多匯入賣貨便 xlsx 之後「用金額反推」客人付了哪幾團 —— 那本來就是猜的：
+// 很多團尾款都是 100，湊得出好幾組解；退而求其次靠客人貼的明細，但賣貨便有字數限制、
+// 買多的人貼不全，而且是靜默失敗（後台不會知道自己猜錯）。
+// 改成按下按鈕的當下就把答案送出去，比對時直接查。
+//
+// 刻意做成「送不出去也不擋跳轉」：這只是讓後台比對更準，不是付款流程的一環，
+// 絕對不能因為這支 API 慢或掛掉就讓客人下不了單。
+export const reportShipIntent = async (
+  nick: string,
+  orders: { orderKey?: string; groupName: string }[],
+  amount: number
+): Promise<void> => {
+  try {
+    const keys = orders.map(o => (o.orderKey || "").trim()).filter(Boolean);
+    if (!nick || keys.length === 0) return;            // 舊單沒有訂單鍵就不送，後台會退回推論
+    const groups = orders.map(o => o.groupName).join("、").slice(0, 300);
+    await fetch(APP_CONFIG.API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        type: "shipIntent",
+        nick,
+        keys: keys.join(","),
+        amount: String(Math.round(amount)),
+        groups,
+      }),
+      keepalive: true,        // 送出後馬上跳轉去賣貨便，要讓請求在頁面卸載後還能送完
+    });
+  } catch (e) {
+    console.warn("[下單意向] 送出失敗，後台會退回用金額推論：", e);
   }
 };
 
