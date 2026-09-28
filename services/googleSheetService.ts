@@ -83,6 +83,9 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
           isShipped: isShipped, shippingDate: String(row[map.shippingDate] || ""), paymentMethod: paymentMethod, arrivalDate: arrivalDate,
           domesticShipping: domesticShipping, internationalShipping: internationalShipping, notes: notes,
           orderKey: String(row["訂單鍵"] || ""),
+          // 後台免除／改過的倉儲費。空字串＝沒動過（要照算），0＝真的被清 0，兩者不能混為一談
+          storageFeeAdjust: (row["倉儲費調整"] === "" || row["倉儲費調整"] === null || row["倉儲費調整"] === undefined)
+            ? undefined : Number(row["倉儲費調整"]),
           createdAt: new Date().toISOString().split('T')[0]
         });
       }

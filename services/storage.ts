@@ -64,11 +64,14 @@ export const getStorageInfo = (arrivalDate?: string, today: Date = new Date()): 
 };
 
 // 這張訂單現在要收的倉儲費（已出貨的不再變動；出貨當下的金額由後台凍結進 Sheet）
-export const storageFeeOf = (order: Pick<Order, 'arrivalDate' | 'isShipped'>): number => {
+// storageFeeAdjust 是瓦多在後台「倉儲費審核」頁免除或改過的金額 —— 有值就以它為準。
+// 一定要用 undefined 判斷不能用 falsy：0 是「真的清 0」，跟「沒動過」是兩回事。
+export const storageFeeOf = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'storageFeeAdjust'>): number => {
   if (order.isShipped) return 0;
+  if (order.storageFeeAdjust !== undefined && !isNaN(order.storageFeeAdjust)) return order.storageFeeAdjust;
   return getStorageInfo(order.arrivalDate)?.fee ?? 0;
 };
 
 // 賣貨便要下單的金額＝原尾款（含二補）＋倉儲費
-export const balanceWithFee = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'balanceDue'>): number =>
+export const balanceWithFee = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'balanceDue' | 'storageFeeAdjust'>): number =>
   order.balanceDue + storageFeeOf(order);
