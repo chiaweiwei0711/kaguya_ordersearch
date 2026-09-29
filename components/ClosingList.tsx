@@ -44,28 +44,31 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
           </div>
         )}
 
-        <div className="space-y-3">
+        {/* 跟填單專區（開團列表）同一種卡：兩欄格狀、正方形封面、結單狀態貼在圖上。
+            原本是一列一列的條列式，跟那邊不一致，瓦多要求統一。 */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {list.map(({ t, when }) => {
             const img = imgOf(t.code);
             return (
               <button
                 key={t.code}
                 onClick={() => onSelect(t.code)}
-                className="w-full text-left bg-white rounded-2xl p-3 flex items-center gap-3.5 active:opacity-60 transition-all"
+                className="text-left rounded-2xl overflow-hidden flex flex-col border-2 border-transparent bg-white active:opacity-60 transition-all"
               >
-                <div className="relative w-20 h-20 rounded-xl bg-[#e9f5f6] overflow-hidden shrink-0 flex items-center justify-center">
+                <div className="relative aspect-square bg-[#e9f5f6]">
                   {img
-                    ? <img src={img} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} className="absolute inset-0 w-full h-full object-cover" />
-                    : <ShoppingBag className="w-8 h-8 text-[#283d3e]/30 stroke-[2px]" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <span className={`inline-block text-[11px] font-[900] px-2.5 py-0.5 rounded-full mb-1 ${when === "today" ? "bg-[#e46b58] text-[#283d3e]" : "bg-[#283d3e] text-white"}`}>
+                    ? <img src={img} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-[#283d3e]/25 stroke-[2px]" /></div>}
+                  <span className={`absolute top-2 left-2 text-[12px] font-[900] px-3 py-1 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 ${
+                    when === "today" ? "bg-white text-[#e46b58] before:bg-[#e46b58]" : "bg-white text-[#283d3e] before:bg-[#49d5df]"
+                  }`}>
                     {when === "today" ? "今日結單" : "明日結單"}
                   </span>
-                  <div className="font-[900] text-[#283d3e] text-base leading-snug line-clamp-2">{t.name}</div>
-                  <div className="text-[12px] font-[900] text-[#e46b58] mt-1">{fmtMDHM(t.closeAt)} 止</div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-[#283d3e] stroke-[3px] shrink-0" />
+                <div className="p-3 flex flex-col gap-1.5 flex-1">
+                  <div className="font-[900] text-[13.5px] leading-tight line-clamp-3 min-h-[51px] text-[#283d3e]">{t.name}</div>
+                  <span className="mt-auto text-[12px] font-[900] text-[#e46b58] leading-none">{fmtMDHM(t.closeAt)} 止</span>
+                </div>
               </button>
             );
           })}
