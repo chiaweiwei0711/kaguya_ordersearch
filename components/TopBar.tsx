@@ -43,7 +43,7 @@ const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders, onC
       >
         {/* 日後有 logo icon 就放在文字左邊，這一行整組都是回首頁的按鈕 */}
         <span className="font-[900] text-[22px] leading-none tracking-widest" style={{ fontFamily: '"Zen Maru Gothic", "Noto Sans TC", sans-serif' }}>KAGUYA</span>
-        <span className="font-[900] text-[10px] leading-none tracking-[0.18em] text-[#283d3e]/50">日本動漫周邊專業代購</span>
+        <span className="font-[900] text-[11.5px] leading-none tracking-[0.18em] text-[#283d3e]/50">日本動漫周邊專業代購</span>
       </button>
 
       <div className="shrink-0 flex items-center">
@@ -51,7 +51,7 @@ const TopBar: React.FC<Props> = ({ onHome, onMenu, showBack, tone, onOrders, onC
         <button onClick={onCart} aria-label="購物車" className={`${ICON} relative`}>
           <ShoppingCart className="w-[21px] h-[21px] stroke-[2.2px]" />
           {cartCount > 0 && (
-            <span className="absolute top-1 right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-[#e46b58] text-[#283d3e] text-[10px] font-[900] flex items-center justify-center">{cartCount}</span>
+            <span className="absolute top-1 right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-[#e46b58] text-[#283d3e] text-[11.5px] font-[900] flex items-center justify-center">{cartCount}</span>
           )}
         </button>
       )}

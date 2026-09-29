@@ -83,26 +83,26 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
                   {/* 底墊永遠在，圖掛掉(onError 隱藏)就露出來，不會只剩一塊空色塊 */}
                   <div className="absolute inset-0 flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-[#283d3e]/25 stroke-[2px]" /></div>
                   {img && <img src={img} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />}
-                  <span className={`absolute top-2 left-2 text-[12px] font-[900] px-3 py-1 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 ${
+                  <span className={`absolute top-2 left-2 text-[13px] font-[900] px-3 py-1 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 ${
                     when === "today" ? "bg-white text-[#e46b58] before:bg-[#e46b58]" : "bg-white text-[#283d3e] before:bg-[#49d5df]"
                   }`}>
                     {when === "today" ? "今日結單" : "明日結單"}
                   </span>
                 </div>
                 <div className="p-3 flex flex-col gap-1.5 flex-1">
-                  <div className="font-[900] text-[13.5px] leading-tight line-clamp-3 min-h-[51px] text-[#283d3e]">{t.name}</div>
+                  <div className="font-[900] text-[14.5px] leading-tight line-clamp-3 min-h-[55px] text-[#283d3e]">{t.name}</div>
                   <div className="mt-auto pt-1 flex flex-wrap gap-1.5">
                     {cd && (
-                      <span className={`text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap tabular-nums before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 ${
+                      <span className={`text-[12.5px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap tabular-nums before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 ${
                         cd.urgent ? "bg-[#fdecea] text-[#c4362a] before:bg-[#e46b58] motion-safe:before:animate-pulse" : "bg-[#f0f4f4] text-[#283d3e] before:bg-[#e46b58]"
                       }`}>{cd.text}</span>
                     )}
                     {(t.joinPeople ?? 0) > 0 && (
-                      <span className="text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap bg-[#fce7f3] text-[#a3346b] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 before:bg-[#e868a0]">{t.joinPeople} 人跟團</span>
+                      <span className="text-[12.5px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap bg-[#fce7f3] text-[#a3346b] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 before:bg-[#e868a0]">{t.joinPeople} 人跟團</span>
                     )}
                   </div>
-                  <span className="text-[12px] font-[900] text-[#e46b58] leading-none">{fmtMDHM(t.closeAt)} 止</span>
-                  {t.openAt && <span className="text-[11px] font-bold text-black/65 tabular-nums">開團日期：{fmtYMD(t.openAt)}</span>}
+                  <span className="text-[13px] font-[900] text-[#e46b58] leading-none">{fmtMDHM(t.closeAt)} 止</span>
+                  {t.openAt && <span className="text-[12.5px] font-bold text-black/65 tabular-nums whitespace-nowrap">開團日期：{fmtYMD(t.openAt)}</span>}
                 </div>
               </button>
             );

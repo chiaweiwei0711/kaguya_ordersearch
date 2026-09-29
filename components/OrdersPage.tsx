@@ -31,7 +31,7 @@ interface Props {
 //   可登入   → 一顆登入鈕（從外面網址進來的人）
 //   認不出   → 退回手打暱稱（LIFF 起不來的環境，不能把人鎖在外面）
 const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, searchNotice, boundNick, lineState, lineProfile, quietLoading, previewOrders = [], totalOrders = 0, onSeeAll, onOpenOrder, isStaff, onLogin, onGuide, onFaq, onAbout }) => {
-  const row = "flex items-center gap-3 px-5 py-4 border-t border-[#283d3e]/10 font-[900] text-[#283d3e] text-[15px] active:bg-[#283d3e]/5 transition";
+  const row = "flex items-center gap-3 px-5 py-4 border-t border-[#283d3e]/10 font-[900] text-[#283d3e] text-[16px] active:bg-[#283d3e]/5 transition";
 
   return (
     <div className="flex flex-col items-center w-full animate-fade-in-up pt-20 pb-4 text-[#283d3e]">
@@ -48,15 +48,15 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                 ? <img src={lineProfile.picture} alt="" referrerPolicy="no-referrer" className="w-11 h-11 rounded-full object-cover shrink-0 bg-[#e9f5f6]" />
                 : <div className="w-11 h-11 rounded-full bg-[#e9f5f6] flex items-center justify-center shrink-0"><UserCheck className="w-5 h-5 stroke-[2.6px] text-[#49d5df]" /></div>}
               <div className="min-w-0 flex-1">
-                <div className="font-bold text-[11.5px] text-[#283d3e]/50 truncate">
+                <div className="font-bold text-[13px] text-[#283d3e]/50 truncate">
                   LINE：{lineProfile?.name || "已登入"}
                 </div>
-                <div className="font-[900] text-[16px] truncate leading-tight mt-0.5">{boundNick}</div>
-                <div className="font-bold text-[11px] text-[#49d5df] mt-0.5">已綁定的社群暱稱</div>
+                <div className="font-[900] text-[17px] truncate leading-tight mt-0.5">{boundNick}</div>
+                <div className="font-bold text-[12.5px] text-[#49d5df] mt-0.5">已綁定的社群暱稱</div>
               </div>
             </div>
             {quietLoading && (
-              <div className="mt-3 flex items-center justify-center gap-2 font-[900] text-[12.5px] text-[#283d3e]/45">
+              <div className="mt-3 flex items-center justify-center gap-2 font-[900] text-[13.5px] text-[#283d3e]/45">
                 <Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />正在載入你的訂單…
               </div>
             )}
@@ -64,8 +64,8 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                 已登入的人查詢逾時會看到一片空白，完全不知道發生什麼事 */}
             {!quietLoading && searchNotice && (
               <div className="mt-3 text-center">
-                <p className="font-[900] text-[13px] text-[#e46b58]">{searchNotice}</p>
-                <button onClick={onSearch} className="mt-2 h-10 px-5 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[13px] active:opacity-60 transition">
+                <p className="font-[900] text-[14px] text-[#e46b58]">{searchNotice}</p>
+                <button onClick={onSearch} className="mt-2 h-10 px-5 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[14px] active:opacity-60 transition">
                   再查一次
                 </button>
               </div>
@@ -77,13 +77,13 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                 href={APP_CONFIG.LINE_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[12.5px] text-[#283d3e]/60 flex items-center justify-center active:opacity-60 transition"
+                className="h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[13.5px] text-[#283d3e]/60 flex items-center justify-center active:opacity-60 transition"
               >
                 綁錯暱稱？去改
               </a>
               <button
                 onClick={() => { if (window.confirm("確定要登出嗎？\n下次進來要重新用 LINE 登入。")) logoutLine(); }}
-                className="h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[12.5px] text-[#283d3e]/60 active:opacity-60 transition"
+                className="h-10 rounded-full border border-[#283d3e]/15 font-[900] text-[13.5px] text-[#283d3e]/60 active:opacity-60 transition"
               >
                 登出
               </button>
@@ -97,15 +97,15 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
           /* ② 從外面網址進來的：訂單是個人資料，要先認得出你才給看 */
           <div className="bg-white rounded-3xl px-5 py-6 text-center">
             <LogIn className="w-9 h-9 mx-auto text-[#49d5df] stroke-[2px]" />
-            <p className="font-[900] text-[16px] mt-3">用 LINE 登入查看你的訂單</p>
+            <p className="font-[900] text-[17px] mt-3">用 LINE 登入查看你的訂單</p>
             {/* 會看到這張卡的人就是不在 LINE 裡的人 —— 只對他說話，不要解釋別人的情況 */}
-            <p className="font-bold text-[13px] text-[#283d3e]/55 mt-2 leading-relaxed">
+            <p className="font-bold text-[14px] text-[#283d3e]/55 mt-2 leading-relaxed">
               訂單裡有你買了什麼、要付多少錢，所以要先確認是你本人。
             </p>
-            <p className="font-bold text-[12.5px] text-[#283d3e]/45 mt-1.5 leading-relaxed">
+            <p className="font-bold text-[13.5px] text-[#283d3e]/45 mt-1.5 leading-relaxed">
               登入後就不用再打暱稱，下次自動認出你。
             </p>
-            <button onClick={onLogin} className="mt-5 w-full h-12 rounded-full bg-[#06C755] text-white font-[900] text-[15px] active:opacity-60 transition">
+            <button onClick={onLogin} className="mt-5 w-full h-12 rounded-full bg-[#06C755] text-white font-[900] text-[16px] active:opacity-60 transition">
               用 LINE 登入
             </button>
           </div>
@@ -120,7 +120,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="請輸入您的社群暱稱"
-                  className="w-full pl-11 pr-3 py-2.5 bg-transparent outline-none text-[15px] font-[900] placeholder-[#283d3e]/30"
+                  className="w-full pl-11 pr-3 py-2.5 bg-transparent outline-none text-[16px] font-[900] placeholder-[#283d3e]/30"
                   onKeyDown={(e) => { if (e.key === "Enter" && !(e.nativeEvent as any).isComposing) onSearch(); }}
                 />
               </div>
@@ -137,16 +137,16 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
         {boundNick && (
           <div className="mt-5">
             <div className="flex items-baseline mb-2 px-1">
-              <span className="font-[900] text-[15px]">我的訂單</span>
-              {totalOrders > 0 && <span className="ml-2 font-[900] text-[12px] text-[#283d3e]/40">共 {totalOrders} 筆</span>}
+              <span className="font-[900] text-[16px]">我的訂單</span>
+              {totalOrders > 0 && <span className="ml-2 font-[900] text-[13px] text-[#283d3e]/40">共 {totalOrders} 筆</span>}
             </div>
 
             {quietLoading && previewOrders.length === 0 ? (
-              <div className="bg-white rounded-3xl px-5 py-8 flex items-center justify-center gap-2 font-[900] text-[13px] text-[#283d3e]/45">
+              <div className="bg-white rounded-3xl px-5 py-8 flex items-center justify-center gap-2 font-[900] text-[14px] text-[#283d3e]/45">
                 <Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />載入中…
               </div>
             ) : previewOrders.length === 0 ? (
-              <div className="bg-white rounded-3xl px-5 py-8 text-center font-[900] text-[13px] text-[#283d3e]/50">目前沒有訂單</div>
+              <div className="bg-white rounded-3xl px-5 py-8 text-center font-[900] text-[14px] text-[#283d3e]/50">目前沒有訂單</div>
             ) : (
               <div className="bg-white rounded-3xl overflow-hidden">
                 {previewOrders.map((o) => {
@@ -164,9 +164,9 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                         }`}>
                           {o.isShipped ? "已出貨" : pending ? "待付款" : ready ? "可出貨" : "尚未出貨"}
                         </span>
-                        <div className="font-[900] text-[13.5px] leading-snug mt-1.5 line-clamp-2">{o.groupName}</div>
+                        <div className="font-[900] text-[14.5px] leading-snug mt-1.5 line-clamp-2">{o.groupName}</div>
                         {o.createdAt && (
-                          <div className="font-bold text-[11px] text-[#283d3e]/40 mt-1">{String(o.createdAt).slice(0, 10)}</div>
+                          <div className="font-bold text-[12.5px] text-[#283d3e]/40 mt-1">{String(o.createdAt).slice(0, 10)}</div>
                         )}
                       </div>
                       <div className="shrink-0 text-right">
@@ -174,10 +174,10 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                         <div className="font-bold text-[10.5px] text-[#283d3e]/40 leading-none">
                           {pending ? "應付訂金" : ready ? "應付尾款" : "訂單金額"}
                         </div>
-                        <div className="font-[900] text-[16px] tabular-nums leading-tight mt-0.5">
+                        <div className="font-[900] text-[17px] tabular-nums leading-tight mt-0.5">
                           ${pending ? o.depositAmount : ready ? o.balanceDue : o.productTotal}
                         </div>
-                        <div className="font-bold text-[11px] text-[#283d3e]/40">{o.totalQuantity} 件</div>
+                        <div className="font-bold text-[12.5px] text-[#283d3e]/40">{o.totalQuantity} 件</div>
                       </div>
                     </button>
                   );
@@ -187,7 +187,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
 
             {/* 就算只有 5 筆也要給入口——完整列表才有狀態分頁與篩選 */}
             {totalOrders > 0 && (
-              <button onClick={onSeeAll} className="mt-3 w-full h-11 rounded-full bg-white border border-black/10 font-[900] text-[13.5px] flex items-center justify-center gap-1 active:opacity-60 transition">
+              <button onClick={onSeeAll} className="mt-3 w-full h-11 rounded-full bg-white border border-black/10 font-[900] text-[14.5px] flex items-center justify-center gap-1 active:opacity-60 transition">
                 {totalOrders > previewOrders.length ? `查看全部 ${totalOrders} 筆訂單` : "查看完整訂單（可篩選）"}
                 <ChevronRight className="w-4 h-4 stroke-[3px]" />
               </button>
@@ -201,7 +201,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
           <div className="mt-5">
             <div className="flex items-center gap-2 mb-2 px-1">
               <ShieldCheck className="w-4 h-4 stroke-[2.6px] text-[#e868a0]" />
-              <span className="font-[900] text-[13px] text-[#e868a0]">員工：查其他人的訂單</span>
+              <span className="font-[900] text-[14px] text-[#e868a0]">員工：查其他人的訂單</span>
             </div>
             <div className="bg-white rounded-full p-2 flex items-center gap-2">
               <div className="relative flex-1 flex items-center pl-1">
@@ -211,7 +211,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="輸入對方的社群暱稱"
-                  className="w-full pl-11 pr-3 py-2.5 bg-transparent outline-none text-[15px] font-[900] placeholder-[#283d3e]/30"
+                  className="w-full pl-11 pr-3 py-2.5 bg-transparent outline-none text-[16px] font-[900] placeholder-[#283d3e]/30"
                   onKeyDown={(e) => { if (e.key === "Enter" && !(e.nativeEvent as any).isComposing) onSearch(); }}
                 />
               </div>
@@ -225,7 +225,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
         {/* 沒綁定的人（不管從哪進來）都導向官賴綁定——綁定流程留在官賴，網站不另開一套 */}
         {!boundNick && lineState !== "loading" && (
           <a href={APP_CONFIG.LINE_URL} target="_blank" rel="noreferrer"
-             className="mt-3 w-full h-12 rounded-full bg-white border border-[#283d3e]/15 flex items-center justify-center gap-2 font-[900] text-[14px] active:opacity-60 transition">
+             className="mt-3 w-full h-12 rounded-full bg-white border border-[#283d3e]/15 flex items-center justify-center gap-2 font-[900] text-[15px] active:opacity-60 transition">
             <Link2 className="w-4 h-4 stroke-[2.6px] text-[#49d5df]" />還沒綁定暱稱？去官賴綁定
           </a>
         )}
@@ -233,7 +233,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
 
       <div className="w-full max-w-md px-4 mt-7">
         <div className="bg-white rounded-3xl overflow-hidden">
-          <div className="px-5 pt-4 pb-2 font-[900] text-[11px] tracking-[0.2em] text-[#283d3e]/40">購物說明</div>
+          <div className="px-5 pt-4 pb-2 font-[900] text-[12.5px] tracking-[0.2em] text-[#283d3e]/40">購物說明</div>
           <button onClick={onGuide} className={`w-full ${row}`}>
             <BookOpen className="w-5 h-5 stroke-[2.6px] opacity-60" />購物流程
             <ChevronRight className="w-5 h-5 stroke-[3px] ml-auto opacity-25" />
@@ -247,7 +247,7 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
             <ChevronRight className="w-5 h-5 stroke-[3px] ml-auto opacity-25" />
           </button>
 
-          <div className="px-5 pt-4 pb-2 font-[900] text-[11px] tracking-[0.2em] text-[#283d3e]/40 border-t border-[#283d3e]/10">聯絡我們</div>
+          <div className="px-5 pt-4 pb-2 font-[900] text-[12.5px] tracking-[0.2em] text-[#283d3e]/40 border-t border-[#283d3e]/10">聯絡我們</div>
           <a href={APP_CONFIG.LINE_URL} target="_blank" rel="noreferrer" className={row}>
             <MessageCircle className="w-5 h-5 stroke-[2.6px] opacity-60" />官方 LINE
             <ChevronRight className="w-5 h-5 stroke-[3px] ml-auto opacity-25" />

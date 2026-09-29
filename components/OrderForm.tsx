@@ -25,7 +25,7 @@ const MinBar: React.FC<{ min: number; ordered: number; big?: boolean }> = ({ min
   for (let t = m; t < target; t += m) ticks.push(t);
   return (
     <div className={big ? "mt-2" : "mt-1"}>
-      <div className={`flex justify-between items-baseline font-[900] leading-none ${big ? "text-sm" : "text-[11px]"}`}>
+      <div className={`flex justify-between items-baseline font-[900] leading-none ${big ? "text-sm" : "text-[12.5px]"}`}>
         <span className="truncate">
           {reached > 0 && <span style={{ color: G }}>已成團{reached}</span>}
           {!done && (
@@ -67,6 +67,9 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   const [bypass, setBypass] = useState(false);             // 客人自己確認「我有綁定」→ 這次放行
   const nickRef = useRef<HTMLInputElement>(null);
   const nickSeq = useRef(0);
+  const [coverFailed, setCoverFailed] = useState(false);
+  // 封面＝後台「封面圖」欄；沒填就退而用這團第一張商品圖（跟首頁、填單專區同一套規則）
+  const cover = useMemo(() => team.cover || (products || []).find((x) => x.img)?.img || "", [team.cover, products]);
   const [autoNick, setAutoNick] = useState(false);   // 暱稱是 LINE 身分自動帶入的（不是客人自己打的）
   const nickTouched = useRef(false);                 // 客人只要動過這格，就不再被自動帶入蓋掉
   // 外面來的陌生人：商品全部看得到，按「送出填單」才要求 LINE 登入＋加官方帳號好友。
@@ -306,6 +309,26 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
       {ptrIndicator}
       <div className="w-full max-w-lg mx-auto px-5 sm:px-7 pt-20 pb-36 relative">
 
+        {/* 封面：整頁最上面一條，滿版（-mx 把容器的左右留白吃掉）。
+            海報常常是直式，object-cover 會把字切掉 —— 所以同一張圖模糊墊底、真圖 contain 疊上去，
+            直式橫式都不裁切、也不會留兩條空白帶。圖掛掉就整條不顯示，不留空盒子。 */}
+        {cover && !coverFailed && (
+          <div className="-mx-5 sm:-mx-7 -mt-4 mb-4 relative overflow-hidden bg-[#e9f5f6]">
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-center bg-cover blur-2xl scale-125 opacity-70"
+              style={{ backgroundImage: `url("${cover}")` }}
+            />
+            <img
+              src={cover}
+              alt=""
+              referrerPolicy="no-referrer"
+              onError={() => setCoverFailed(true)}
+              className="relative block w-full max-h-[320px] object-contain"
+            />
+          </div>
+        )}
+
         {/* 團資訊：橫向滑動卡片（右邊故意露出下一張的一角＝可以滑的暗示） */}
         {/* scroll-pl 一定要跟 px 一樣：不然 snap 會把左邊 padding 捲掉，卡片會比下面內容凸出去 */}
         <div className="mb-4 -mx-5 sm:-mx-7 px-5 sm:px-7 scroll-pl-5 sm:scroll-pl-7 overflow-x-auto snap-x snap-mandatory no-scrollbar">
@@ -319,13 +342,13 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
               <div className="text-[#283d3e] font-[900] text-xl leading-snug mt-0.5">{team.name}</div>
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 {teamOpen && left > 0 && (
-                  <span className="text-[11px] font-[900] text-[#e46b58] border-2 border-[#e46b58] bg-white px-2.5 py-0.5 rounded-full">剩餘{left}天結單</span>
+                  <span className="text-[12.5px] font-[900] text-[#e46b58] border-2 border-[#e46b58] bg-white px-2.5 py-0.5 rounded-full">剩餘{left}天結單</span>
                 )}
                 {team.shipInfo && (
-                  <span className="text-[11px] font-[900] text-[#e46b58] border-2 border-[#e46b58] bg-white px-2.5 py-0.5 rounded-full">預計{team.shipInfo}發貨</span>
+                  <span className="text-[12.5px] font-[900] text-[#e46b58] border-2 border-[#e46b58] bg-white px-2.5 py-0.5 rounded-full">預計{team.shipInfo}發貨</span>
                 )}
                 {hasMin && (
-                  <span className="text-[11px] font-[900] text-white bg-[#e46b58] border-2 border-[#e46b58] px-2.5 py-0.5 rounded-full">成團限制</span>
+                  <span className="text-[12.5px] font-[900] text-white bg-[#e46b58] border-2 border-[#e46b58] px-2.5 py-0.5 rounded-full">成團限制</span>
                 )}
                 {teamOpen
                   ? <span className="text-sm font-[900] text-white bg-[#49d5df] px-4 py-1 rounded-full">開團中</span>
@@ -342,7 +365,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                 已結單又沒人填單就整張不顯示（那團已經不能跟了，講「當第一個」很怪） */}
             {showJoinCard && (
             <div className="snap-start shrink-0 w-[87%] bg-[#49d5df] rounded-2xl px-6 py-5 flex flex-col justify-center">
-              <span className="self-start bg-white text-[#283d3e] text-[13px] font-[900] px-3 py-1 rounded-full">填單統計</span>
+              <span className="self-start bg-white text-[#283d3e] text-[14px] font-[900] px-3 py-1 rounded-full">填單統計</span>
               {people > 0 ? (
                 <div className="mt-4 text-[#283d3e] font-[900] text-xl">
                   <div className="flex items-baseline">
@@ -455,7 +478,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                 >
                   {label}
                   {picked > 0 && (
-                    <span className="bg-[#f6f9f9] text-[#283d3e] text-[11px] px-1.5 py-0.5 rounded-full">{picked}</span>
+                    <span className="bg-[#f6f9f9] text-[#283d3e] text-[12.5px] px-1.5 py-0.5 rounded-full">{picked}</span>
                   )}
                 </button>
               );
@@ -482,8 +505,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                           <ProductCarousel images={p.images} onTap={() => teamOpen && setQ(idx, q >= 1 ? 0 : 1)} className={teamOpen ? "cursor-pointer" : ""} />
                           <button type="button" aria-label="看大圖" onClick={(e) => { e.stopPropagation(); setZoomP(p); setZoomIdx(0); }} className="absolute top-1 right-1 w-9 h-9 rounded-full bg-black/35 text-white flex items-center justify-center backdrop-blur-sm active:scale-90 transition"><ZoomIn size={16} /></button>
                         </div>
-                        <div className="text-[13px] text-[#283d3e] font-bold mt-1 leading-tight truncate">#{p.no} {p.name}</div>
-                        {p.spec && <div className="text-[11px] text-[#283d3e]/60 font-bold leading-tight truncate">{p.spec}</div>}
+                        <div className="text-[14px] text-[#283d3e] font-bold mt-1 leading-tight truncate">#{p.no} {p.name}</div>
+                        {p.spec && <div className="text-[12.5px] text-[#283d3e]/60 font-bold leading-tight truncate">{p.spec}</div>}
                         <div className="text-[#283d3e] font-[900] text-base">${p.price}</div>
                         {(p.minQty ?? 1) > 1 && <MinBar min={p.minQty!} ordered={stats[itemKey(p)] || 0} />}
                         {teamOpen && (
@@ -620,26 +643,26 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           <div className="w-full max-w-lg mx-auto">
             <div className="flex items-center gap-3">
               <div className="min-w-0">
-                <div className="font-bold text-[11.5px] text-[#283d3e]/55">已選 {count} 件</div>
-                <div className="font-[900] text-[19px] text-[#283d3e] leading-tight">約 ${total}</div>
+                <div className="font-bold text-[13px] text-[#283d3e]/55">已選 {count} 件</div>
+                <div className="font-[900] text-[20px] text-[#283d3e] leading-tight">約 ${total}</div>
               </div>
-              <button onClick={clearAll} className="text-[#283d3e]/40 font-[900] text-[12px] underline underline-offset-2 active:opacity-60 shrink-0">清空</button>
+              <button onClick={clearAll} className="text-[#283d3e]/40 font-[900] text-[13px] underline underline-offset-2 active:opacity-60 shrink-0">清空</button>
               <div className="ml-auto flex gap-2">
                 <button
                   onClick={addToCart}
-                  className={`h-12 px-4 rounded-full border font-[900] text-[14px] flex items-center gap-1.5 active:opacity-60 transition ${
+                  className={`h-12 px-4 rounded-full border font-[900] text-[15px] flex items-center gap-1.5 active:opacity-60 transition ${
                     added ? "bg-[#49d5df] border-[#49d5df] text-[#283d3e]" : "bg-white border-[#283d3e]/20 text-[#283d3e]"
                   }`}
                 >
                   {added ? <><Check className="w-4 h-4 stroke-[3px]" />已加入</> : <><ShoppingCart className="w-4 h-4 stroke-[2.6px]" />加入購物車</>}
                 </button>
-                <button onClick={openConfirm} className="h-12 px-5 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[14px] active:opacity-60 transition">
+                <button onClick={openConfirm} className="h-12 px-5 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[15px] active:opacity-60 transition">
                   直接送出
                 </button>
               </div>
             </div>
             {teamInCart(liveTeam.code) && !added && (
-              <p className="text-[11.5px] font-bold text-[#283d3e]/45 mt-1.5">這團已在購物車裡，再加入會整組覆蓋成現在選的品項</p>
+              <p className="text-[13px] font-bold text-[#283d3e]/45 mt-1.5">這團已在購物車裡，再加入會整組覆蓋成現在選的品項</p>
             )}
           </div>
         </div>
@@ -652,11 +675,11 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
             <div className="text-sm text-gray-500 mb-3">暱稱：{nick}</div>
             {/* 付款方式在送出前才選：挑商品時先選沒有意義，而且購物車是一次付款 */}
             <div className="mb-4">
-              <div className="font-[900] text-[#283d3e] text-[14px] mb-2">付款方式<span className="text-[#e46b58]">*</span></div>
+              <div className="font-[900] text-[#283d3e] text-[15px] mb-2">付款方式<span className="text-[#e46b58]">*</span></div>
               <div className="grid grid-cols-2 gap-2.5">
                 {["匯款", "無卡"].map((m) => (
                   <button key={m} type="button" onClick={() => setPay(m)}
-                    className={`h-11 rounded-full font-[900] text-[14px] border transition active:opacity-60 ${pay === m ? "bg-[#49d5df] text-[#283d3e] border-[#49d5df]" : "bg-white text-[#283d3e]/70 border-[#283d3e]/20"}`}>
+                    className={`h-11 rounded-full font-[900] text-[15px] border transition active:opacity-60 ${pay === m ? "bg-[#49d5df] text-[#283d3e] border-[#49d5df]" : "bg-white text-[#283d3e]/70 border-[#283d3e]/20"}`}>
                     {m}
                   </button>
                 ))}
@@ -676,11 +699,11 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
             <div className="flex justify-between font-[900] text-[#283d3e] border-t-2 border-[#e9f5f6] pt-2 text-lg">
               <span>總金額</span><span>${total}</span>
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">實際金額以訂購完成之查詢表確認為準</div>
+            <div className="text-[12.5px] text-gray-400 mt-1">實際金額以訂購完成之查詢表確認為準</div>
             <div className="bg-white border-2 border-[#e46b58] text-[#e46b58] font-bold text-xs rounded-xl px-3 py-2.5 mt-3 leading-relaxed flex items-start gap-2"><AlertTriangle className="w-4 h-4 shrink-0 stroke-[2.5px] mt-0.5" /><span>送出完成後，請務必至留言區回覆「已填單」！未回覆已填單者不會計算訂購！！</span></div>
             {/* 告知義務：依通訊交易解除權合理例外情事適用準則，排除七天解除權必須「經企業經營者告知消費者」。
                 放在送出前的確認視窗，比藏在頁尾有效得多——這是客人真正會看到、也是真正做出承諾的那一刻。 */}
-            <div className="bg-[#f6f9f9] rounded-xl px-3 py-2.5 mt-3 text-[11.5px] leading-relaxed font-bold text-[#283d3e]/70">
+            <div className="bg-[#f6f9f9] rounded-xl px-3 py-2.5 mt-3 text-[13px] leading-relaxed font-bold text-[#283d3e]/70">
               本團為日本代購預購，結單後即向日本方下訂，<span className="text-[#e46b58]">送出後恕不接受取消</span>。
               商品抵台後提供 30 天免費倉儲，逾期每件每天酌收 5 元。日方若砍單或缺貨，我們會主動通知並全額退還該品項款項。
             </div>

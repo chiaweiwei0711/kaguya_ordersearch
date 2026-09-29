@@ -567,7 +567,7 @@ const App: React.FC = () => {
   };
 
   const footerContent = (
-    <footer className="pt-12 pb-8 text-center text-gray-600 text-[11px] font-bold space-y-2 opacity-70">
+    <footer className="pt-12 pb-8 text-center text-gray-600 text-[12.5px] font-bold space-y-2 opacity-70">
       <div className="footer text-gray-500 font-black">本網頁由 Kaguyaさま日本動漫周邊代購 設計 <br /> 統編：60071756</div>
       <p className="mt-2">© {new Date().getFullYear()} All Rights Reserved.</p>
       <button onClick={() => setIsAdminOpen(true)} className="mt-4 opacity-20"><Lock size={12} /></button>
@@ -639,7 +639,7 @@ const App: React.FC = () => {
           <div className="w-full max-w-xs px-6 space-y-7 text-[#283d3e]">
             {/* 分成四組：逛的、我的、看說明的、對外連結 */}
             <div>
-              <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">逛商品</div>
+              <div className="font-[900] text-[14px] tracking-[0.25em] opacity-45 mb-3">逛商品</div>
               <div className="flex flex-col gap-3.5 font-[900] text-2xl tracking-widest">
                 <button onClick={() => { setMainView('query'); setHasSearched(false); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/'); window.scrollTo(0, 0); }} className="text-left active:scale-95 transition-transform">首頁</button>
                 <button onClick={goWorks} className="text-left active:scale-95 transition-transform">作品類別</button>
@@ -648,14 +648,14 @@ const App: React.FC = () => {
             </div>
 
             <div>
-              <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">我的</div>
+              <div className="font-[900] text-[14px] tracking-[0.25em] opacity-45 mb-3">我的</div>
               <div className="flex flex-col gap-3.5 font-[900] text-2xl tracking-widest">
                 <button onClick={goOrders} className="text-left active:scale-95 transition-transform">我的訂單</button>
               </div>
             </div>
 
             <div>
-              <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">購物說明</div>
+              <div className="font-[900] text-[14px] tracking-[0.25em] opacity-45 mb-3">購物說明</div>
               <div className="flex flex-col gap-3.5 font-[900] text-2xl tracking-widest">
                 <button onClick={() => { setMainView('guide'); setIsMenuOpen(false); nav('/guide'); window.scrollTo(0, 0); }} className="text-left active:scale-95 transition-transform">購物流程</button>
                 <button onClick={() => { setMainView('faq'); setIsMenuOpen(false); nav('/faq'); window.scrollTo(0, 0); }} className="text-left active:scale-95 transition-transform">常見問題</button>
@@ -664,7 +664,7 @@ const App: React.FC = () => {
             </div>
 
             <div>
-              <div className="font-[900] text-[13px] tracking-[0.25em] opacity-45 mb-3">其他</div>
+              <div className="font-[900] text-[14px] tracking-[0.25em] opacity-45 mb-3">其他</div>
               <div className="flex flex-col gap-3.5 font-[900] text-2xl tracking-widest">
                 <button onClick={() => { setMainView('info'); setIsMenuOpen(false); nav('/news'); window.scrollTo(0, 0); }} className="text-left active:scale-95 transition-transform">最新公告</button>
                 <button onClick={() => { setMainView('query'); setHasSearched(false); setIsMenuOpen(false); setTimeout(() => document.getElementById('sns-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="text-left active:scale-95 transition-transform">連結專區</button>
@@ -718,10 +718,10 @@ const App: React.FC = () => {
                           onChange={(e) => setHomeQuery(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter' && !(e.nativeEvent as any).isComposing && homeQuery.trim()) goOrderSearch(homeQuery); }}
                           placeholder="搜團名、商品名"
-                          className="flex-1 min-w-0 bg-transparent outline-none font-[900] text-[15px] text-[#283d3e] placeholder-[#283d3e]/35"
+                          className="flex-1 min-w-0 bg-transparent outline-none font-[900] text-[16px] text-[#283d3e] placeholder-[#283d3e]/35"
                         />
                         {homeQuery.trim() && (
-                          <button onClick={() => goOrderSearch(homeQuery)} className="shrink-0 h-8 px-3.5 rounded-full bg-[#e9f5f6] text-[#283d3e] font-[900] text-[13px] active:opacity-60">搜尋</button>
+                          <button onClick={() => goOrderSearch(homeQuery)} className="shrink-0 h-8 px-3.5 rounded-full bg-[#e9f5f6] text-[#283d3e] font-[900] text-[14px] active:opacity-60">搜尋</button>
                         )}
                       </div>
                     </div>
@@ -791,13 +791,13 @@ const App: React.FC = () => {
                                       <ShoppingBag className="w-9 h-9 stroke-[2px]" />
                                     </div>
                                   )}
-                                  <span className={`absolute top-1.5 left-1.5 text-[10px] font-[900] px-2 py-0.5 rounded-full shadow-sm border border-black/12 bg-white text-[#283d3e] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${when === 'today' ? 'before:bg-[#e46b58]' : 'before:bg-[#49d5df]'}`}>
+                                  <span className={`absolute top-1.5 left-1.5 text-[11.5px] font-[900] px-2 py-0.5 rounded-full shadow-sm border border-black/12 bg-white text-[#283d3e] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${when === 'today' ? 'before:bg-[#e46b58]' : 'before:bg-[#49d5df]'}`}>
                                     {when === 'today' ? '今日結單' : '明日結單'}
                                   </span>
                                 </div>
                                 <div className="px-2.5 py-2">
-                                  <div className="font-[900] text-[12px] text-[#283d3e] leading-tight line-clamp-2 min-h-[30px]">{team.name}</div>
-                                  <div className="text-[10px] font-[900] text-[#e46b58] mt-1">{fmtMDHM(team.closeAt)} 止</div>
+                                  <div className="font-[900] text-[13px] text-[#283d3e] leading-tight line-clamp-2 min-h-[30px]">{team.name}</div>
+                                  <div className="text-[11.5px] font-[900] text-[#e46b58] mt-1">{fmtMDHM(team.closeAt)} 止</div>
                                 </div>
                               </button>
                             );
@@ -820,8 +820,8 @@ const App: React.FC = () => {
                             className="w-full text-left px-5 py-4 border-t border-[#283d3e]/10 first:border-t-0 active:bg-[#283d3e]/5 transition flex items-start gap-3"
                           >
                             <div className="min-w-0 flex-1">
-                              <div className="text-[12px] font-[900] text-[#283d3e]/55 tracking-widest mb-1">{item.date}</div>
-                              <div className="font-[900] text-[15px] leading-snug text-[#283d3e]">{item.title}</div>
+                              <div className="text-[13px] font-[900] text-[#283d3e]/55 tracking-widest mb-1">{item.date}</div>
+                              <div className="font-[900] text-[16px] leading-snug text-[#283d3e]">{item.title}</div>
                             </div>
                             <ChevronRight className="w-5 h-5 stroke-[3px] text-[#283d3e]/30 shrink-0 mt-5" />
                           </button>
@@ -893,7 +893,7 @@ const App: React.FC = () => {
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <div className="font-bold text-[11.5px] text-[#283d3e]/50 truncate">
+                        <div className="font-bold text-[13px] text-[#283d3e]/50 truncate">
                           {boundNick && boundNick === searchQuery ? `LINE：${lineProfile.name || '已登入'}` : (isStaff ? '員工查詢 · 別人的訂單' : '查詢中的暱稱')}
                         </div>
                         <div className="font-[900] text-[17px] text-[#283d3e] truncate">{searchQuery || 'Guest'}</div>
@@ -903,14 +903,14 @@ const App: React.FC = () => {
                       {boundNick && searchQuery === boundNick ? (
                         <button
                           onClick={() => { if (window.confirm("確定要登出嗎？\n下次進來要重新用 LINE 登入。")) logoutLine(); }}
-                          className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60"
+                          className="shrink-0 font-[900] text-[13px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60"
                         >
                           登出
                         </button>
                       ) : (
                         <button
                           onClick={() => { setShowAllOrders(false); setHasSearched(false); }}
-                          className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60"
+                          className="shrink-0 font-[900] text-[13px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60"
                         >
                           換一個
                         </button>
@@ -941,13 +941,13 @@ const App: React.FC = () => {
                                 setVisibleLimit(10);
                                 if (tab.id !== 'all') { setCargoFilters([]); setDeliveryFilter(null); }
                               }}
-                              className={`shrink-0 px-3.5 pb-2.5 pt-1 font-[900] text-[14px] whitespace-nowrap border-b-2 -mb-px transition ${
+                              className={`shrink-0 px-3.5 pb-2.5 pt-1 font-[900] text-[15px] whitespace-nowrap border-b-2 -mb-px transition ${
                                 on ? 'text-[#283d3e] border-[#49d5df]' : 'text-[#283d3e]/40 border-transparent active:opacity-60'
                               }`}
                             >
                               {tab.label}
                               {tab.n > 0 && (
-                                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[11px] leading-none font-[900] ${tab.hot ? 'bg-[#e5484d] text-white' : (on ? 'bg-[#283d3e]/10 text-[#283d3e]' : 'bg-[#283d3e]/10 text-[#283d3e]/50')}`}>{tab.n}</span>
+                                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[12.5px] leading-none font-[900] ${tab.hot ? 'bg-[#e5484d] text-white' : (on ? 'bg-[#283d3e]/10 text-[#283d3e]' : 'bg-[#283d3e]/10 text-[#283d3e]/50')}`}>{tab.n}</span>
                               )}
                             </button>
                           );
@@ -980,20 +980,20 @@ const App: React.FC = () => {
                           <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value as any)}
-                            className="pl-4 pr-8 py-2 bg-white border border-black/10 text-[#283d3e] rounded-full text-[13px] font-[900] outline-none appearance-none cursor-pointer"
+                            className="pl-4 pr-8 py-2 bg-white border border-black/10 text-[#283d3e] rounded-full text-[14px] font-[900] outline-none appearance-none cursor-pointer"
                           >
                             <option value="default">預設排序(依時間)</option>
                             <option value="price_desc">金額：由高至低</option>
                             <option value="price_asc">金額：由低至高</option>
                             <option value="strokes">團名：依筆畫</option>
                           </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#283d3e]/40 font-[900] text-[10px]">▼</div>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#283d3e]/40 font-[900] text-[11.5px]">▼</div>
                         </div>
 
                         {/* 右側：智慧切換全選或數量 */}
                         {/* 全選：純文字＋勾選圈，不要藥丸框；已選幾筆下面的結帳條會講，這裡不重複 */}
                         {(activeTab === 'deposit' || activeTab === 'balance') ? (
-                          <button onClick={handleSelectAll} className="flex items-center gap-2 text-[13px] font-[900] text-[#283d3e]/70 active:opacity-50 transition pr-1">
+                          <button onClick={handleSelectAll} className="flex items-center gap-2 text-[14px] font-[900] text-[#283d3e]/70 active:opacity-50 transition pr-1">
                             <span className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition ${
                               filteredOrders.length > 0 && filteredOrders.every(o => selectedOrderIds.has(o.id))
                                 ? 'bg-[#49d5df] border-[#49d5df] text-white'
@@ -1004,7 +1004,7 @@ const App: React.FC = () => {
                             {filteredOrders.length > 0 && filteredOrders.every(o => selectedOrderIds.has(o.id)) ? '取消全選' : '全選'}
                           </button>
                         ) : (
-                          <span className="text-[#283d3e]/55 font-[900] tracking-widest text-[13px] pr-1">
+                          <span className="text-[#283d3e]/55 font-[900] tracking-widest text-[14px] pr-1">
                             共 {filteredOrders.length} 個訂單
                           </span>
                         )}
@@ -1019,7 +1019,7 @@ const App: React.FC = () => {
 
                         {/* 貨況篩選：使用粉紫色標題 */}
                         <div className="mb-6">
-                          <h4 className="text-[#283d3e] font-[900] text-[13px] mb-3 flex items-center gap-2 tracking-widest">
+                          <h4 className="text-[#283d3e] font-[900] text-[14px] mb-3 flex items-center gap-2 tracking-widest">
                             <Box className="w-4 h-4 stroke-[2.6px] text-[#e868a0]" /> 貨況篩選
                           </h4>
                           <div className="flex flex-wrap gap-2.5">
@@ -1030,7 +1030,7 @@ const App: React.FC = () => {
                                   key={status}
                                   onClick={() => toggleCargoFilter(status)}
                                   // 🎯 圓角藥丸、撞色風格 (選中是粉色solid，未選是米色+黑框)
-                                  className={`px-3.5 py-2 rounded-full text-[12.5px] font-[900] border transition flex items-center gap-1.5 active:opacity-60 ${isSelected
+                                  className={`px-3.5 py-2 rounded-full text-[13.5px] font-[900] border transition flex items-center gap-1.5 active:opacity-60 ${isSelected
                                     ? 'bg-[#e868a0] border-[#e868a0] text-[#283d3e]'
                                     : 'bg-white border-[#283d3e]/15 text-[#283d3e]/70'
                                     }`}
@@ -1045,7 +1045,7 @@ const App: React.FC = () => {
 
                         {/* 出貨篩選：使用薄荷綠標題 */}
                         <div>
-                          <h4 className="text-[#283d3e] font-[900] text-[13px] mb-3 flex items-center gap-2 tracking-widest">
+                          <h4 className="text-[#283d3e] font-[900] text-[14px] mb-3 flex items-center gap-2 tracking-widest">
                             <Truck className="w-6 h-6 stroke-[3px] text-[#49d5df]" /> 出貨篩選
                           </h4>
                           <div className="flex flex-wrap gap-2.5">
@@ -1056,7 +1056,7 @@ const App: React.FC = () => {
                                   key={status}
                                   onClick={() => toggleDeliveryFilter(status)}
                                   // 🎯 圓角藥丸、撞色風格 (選中是薄荷綠solid，未選是米色+黑框)
-                                  className={`px-3.5 py-2 rounded-full text-[12.5px] font-[900] border transition flex items-center gap-1.5 active:opacity-60 ${isSelected
+                                  className={`px-3.5 py-2 rounded-full text-[13.5px] font-[900] border transition flex items-center gap-1.5 active:opacity-60 ${isSelected
                                     ? 'bg-[#49d5df] border-[#49d5df] text-[#283d3e]'
                                     : 'bg-white border-[#283d3e]/15 text-[#283d3e]/70'
                                     }`}
@@ -1075,7 +1075,7 @@ const App: React.FC = () => {
                         卡片做成跟訂單卡同一套（白卡＋黑框＋硬陰影），點一下展開自己填了什麼 */}
                     {activeTab === 'pending' && (
                       <div className="w-full max-w-md space-y-4">
-                        <p className="text-[#283d3e]/75 font-bold text-[12.5px] leading-relaxed px-1">
+                        <p className="text-[#283d3e]/75 font-bold text-[13.5px] leading-relaxed px-1">
                           這裡可以看<b className="text-[#e46b58]">尚未結單</b>與<b className="text-[#e46b58]">已結單尚未訂購完成</b>的填單。
                           尚未結單的如需修改請洽官賴；<b className="text-[#e46b58]">結單且訂購完成後，訂單才正式成立</b>，
                           我們會通知你，並顯示在上面的「待付款訂單」。
@@ -1093,20 +1093,20 @@ const App: React.FC = () => {
                               className={`bg-white rounded-3xl p-5 cursor-pointer transition-all relative overflow-hidden border ${open ? 'border-[#49d5df] ring-2 ring-[#49d5df]/30' : 'border-black/[0.07] active:opacity-70'}`}
                             >
                               <div className="flex flex-wrap gap-2 mb-3">
-                                <span className={`inline-flex items-center gap-1.5 border border-black/12 bg-white text-[#283d3e] px-2.5 py-1 rounded-full text-[11px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${stillOpen ? 'before:bg-[#e868a0]' : 'before:bg-[#283d3e]/35'}`}>
+                                <span className={`inline-flex items-center gap-1.5 border border-black/12 bg-white text-[#283d3e] px-2.5 py-1 rounded-full text-[12.5px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${stillOpen ? 'before:bg-[#e868a0]' : 'before:bg-[#283d3e]/35'}`}>
                                   {stillOpen ? '尚未結單' : '已結單・訂購統計中'}
                                 </span>
-                                <span className="inline-flex items-center border border-black/12 bg-white text-[#283d3e]/65 px-2.5 py-1 rounded-full text-[11px] font-[900]">{fmtMDHM(sub.time)} 填單</span>
+                                <span className="inline-flex items-center border border-black/12 bg-white text-[#283d3e]/65 px-2.5 py-1 rounded-full text-[12.5px] font-[900]">{fmtMDHM(sub.time)} 填單</span>
                               </div>
 
-                              <h3 className="text-[16px] font-[900] text-[#283d3e] leading-snug mb-3">{sub.teamName}</h3>
+                              <h3 className="text-[17px] font-[900] text-[#283d3e] leading-snug mb-3">{sub.teamName}</h3>
 
                               <div className="flex justify-between items-end">
-                                <span className="text-[#283d3e]/55 text-[12px] font-[900] leading-none">
+                                <span className="text-[#283d3e]/55 text-[13px] font-[900] leading-none">
                                   共 {sub.items.reduce((n, it) => n + it.qty, 0)} 件
                                 </span>
                                 <div className="text-right">
-                                  <div className="text-[11px] font-[900] text-[#283d3e]/55 leading-none mb-1">填單金額</div>
+                                  <div className="text-[12.5px] font-[900] text-[#283d3e]/55 leading-none mb-1">填單金額</div>
                                   <div className="text-2xl font-[900] text-[#283d3e] leading-none">${sub.subtotal}</div>
                                 </div>
                               </div>
@@ -1116,14 +1116,14 @@ const App: React.FC = () => {
                                 <div className="mt-4 pt-4 border-t-2 border-dashed border-black/15">
                                   <div className="space-y-2">
                                     {sub.items.map((it, k) => (
-                                      <div key={k} className="flex items-baseline gap-2 text-[13.5px]">
+                                      <div key={k} className="flex items-baseline gap-2 text-[14.5px]">
                                         <span className="font-[900] text-[#283d3e] flex-1 leading-snug">{it.type ? it.type + ' ' : ''}{it.label}</span>
                                         <span className="font-[900] text-black/55 shrink-0">×{it.qty}</span>
                                         <span className="font-[900] text-black shrink-0 w-16 text-right">${it.qty * it.price}</span>
                                       </div>
                                     ))}
                                   </div>
-                                  <p className="text-[11.5px] font-bold text-[#283d3e]/55 mt-3 leading-relaxed">
+                                  <p className="text-[13px] font-bold text-[#283d3e]/55 mt-3 leading-relaxed">
                                     金額是填單當下的商品小計，不含境內運費與倉儲費；正式金額以結單後的訂購付款通知為準。
                                   </p>
                                   {stillOpen ? (
@@ -1134,7 +1134,7 @@ const App: React.FC = () => {
                                       去這團的填單頁（可以加單）
                                     </button>
                                   ) : (
-                                    <p className="mt-3 text-[12px] font-bold text-[#283d3e]/55 leading-relaxed text-center">
+                                    <p className="mt-3 text-[13px] font-bold text-[#283d3e]/55 leading-relaxed text-center">
                                       商品已結單，正在統計訂購中，已無法修改填單。訂購完成後我們會通知你來付款。
                                     </p>
                                   )}
@@ -1175,16 +1175,23 @@ const App: React.FC = () => {
 
                               <div className="flex-1 min-w-0">
                                 {/* 🎯 究極進化：無黑框撞色標籤區 */}
-                                <div className="flex flex-wrap gap-2 mb-3">
+                                <div className="flex flex-wrap gap-2 empty:hidden mb-3">
 
                                   {/* 🎯 1 & 2: 已出貨 -> 薄荷綠solid 配白字，無黑框 */}
-                                  <span className={`inline-flex items-center gap-1.5 border border-black/12 bg-white text-[#283d3e] px-2.5 py-1 rounded-full text-[11px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${order.isShipped ? 'before:bg-[#49d5df]' : 'before:bg-[#283d3e]/35'}`}>
+                                  {activeTab === 'all' && (
+                                  <span className={`inline-flex items-center gap-1.5 border border-black/12 bg-white text-[#283d3e] px-2.5 py-1 rounded-full text-[12.5px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${order.isShipped ? 'before:bg-[#49d5df]' : 'before:bg-[#283d3e]/35'}`}>
                                     {order.isShipped ? '已出貨' : '尚未出貨'}
                                   </span>
+                                  )}
 
                                   {/* 🎯 2: 白底標籤 (已抵台等) -> 亮黃底 `#f6f9f9` 配黑字，無黑框 */}
-                                  {order.shippingStatus && (
-                                    <span className="inline-flex items-center gap-1.5 border border-black/12 bg-white text-[#283d3e] px-2.5 py-1 rounded-full text-[11px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-[#e868a0]">
+                                  {order.shippingStatus && !(
+                                    // 這顆只在「跟這個分頁的預設不同」時才有資訊：
+                                    // 待付款裡每張都是「已訂購」、可出貨裡每張都是「已抵台」，寫了等於沒寫
+                                    (activeTab === 'deposit' && order.shippingStatus === '已訂購') ||
+                                    (activeTab === 'balance')
+                                  ) && (
+                                    <span className="inline-flex items-center gap-1.5 border border-black/12 bg-white text-[#283d3e] px-2.5 py-1 rounded-full text-[12.5px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-[#e868a0]">
                                       {order.shippingStatus}
                                     </span>
                                   )}
@@ -1194,7 +1201,7 @@ const App: React.FC = () => {
                                     const storageStatus = order.status === OrderStatus.PAID ? getStorageStatus(order.arrivalDate) : null;
                                     if (storageStatus && !order.isShipped) {
                                       return (
-                                        <span className={`${storageStatus.className} px-3 py-1.5 rounded-full text-[11px] font-[900]`}>
+                                        <span className={`${storageStatus.className} px-3 py-1.5 rounded-full text-[12.5px] font-[900]`}>
                                           {storageStatus.label}
                                         </span>
                                       );
@@ -1203,16 +1210,16 @@ const App: React.FC = () => {
                                   })()}
                                 </div>
 
-                                <h3 className="text-[16px] font-[900] text-[#283d3e] leading-snug mb-3">{order.groupName}</h3>
+                                <h3 className="text-[18px] font-bold text-[#283d3e] leading-snug mb-1.5">{order.groupName}</h3>
 
                                 <div className="flex justify-between items-end">
                                   {/* 🎯 共 1 件 (白底 + 黑邊框 + 無陰影) */}
-                                  <span className="text-[#283d3e]/55 text-[12px] font-[900] leading-none">共 {order.totalQuantity} 件</span>
+                                  <span className="text-[#283d3e]/55 text-[13.5px] font-bold leading-none pb-1">共 {order.totalQuantity} 件</span>
 
                                   <div className="text-right flex flex-col items-end">
-                                    <span className="text-[10px] text-gray-600 font-[900] mb-0.5">{activeTab === 'deposit' ? '應付訂金' : activeTab === 'balance' ? '應付餘款' : '商品總額'}</span>
-                                    {/* 🎯 拔掉黑邊框的粉紫色金額 #e868a0 */}
-                                    <span className="text-4xl font-[900] text-[#283d3e] tracking-tighter leading-none">
+                                    <span className="text-[12.5px] text-[#283d3e]/55 font-bold mb-0.5">{activeTab === 'deposit' ? '應付訂金' : activeTab === 'balance' ? '應付餘款' : '商品總額'}</span>
+                                    {/* 金額縮一級：本來 text-4xl 跟團名互相打架，眼睛沒地方停 */}
+                                    <span className="text-[28px] font-[900] text-[#283d3e] tracking-tight leading-none">
                                       ${(activeTab === 'deposit' ? order.depositAmount : activeTab === 'balance' ? balanceWithFee(order) : order.productTotal).toLocaleString()}
                                     </span>
                                   </div>
@@ -1340,8 +1347,8 @@ const App: React.FC = () => {
               >
                 <div className="min-w-0 flex-1">
                   {/* 日期在上、標題在下且不截斷：舊版 truncate 會把長公告切掉，客人看不到重點 */}
-                  <div className="text-[12px] font-[900] text-[#283d3e]/55 tracking-widest mb-1">{item.date}</div>
-                  <div className="font-[900] text-[15px] leading-snug text-[#283d3e]">{item.title}</div>
+                  <div className="text-[13px] font-[900] text-[#283d3e]/55 tracking-widest mb-1">{item.date}</div>
+                  <div className="font-[900] text-[16px] leading-snug text-[#283d3e]">{item.title}</div>
                 </div>
                 <ChevronRight className="w-5 h-5 stroke-[3px] text-[#283d3e]/30 shrink-0 mt-5" />
               </button>
@@ -1370,7 +1377,7 @@ const App: React.FC = () => {
             </div>
 
             {/* 內文 */}
-            <div className="text-[#283d3e] font-medium text-[16px] leading-[1.9] whitespace-pre-wrap">
+            <div className="text-[#283d3e] font-medium text-[17px] leading-[1.9] whitespace-pre-wrap">
               {selectedNews.content}
             </div>
 

@@ -41,6 +41,18 @@
         fontFamily: {
           /* 🍎 終極咒語：優先呼叫 Apple 設備的『蘋方體』，沒有的話就用『思源黑體』！ */
           sans: ['-apple-system', 'BlinkMacSystemFont', '"PingFang TC"', '"Noto Sans TC"', 'sans-serif'],
+        },
+        extend: {
+          /* 瓦多：手機上字太小。整級放大——小字加得多一點（最難讀的是它們），
+             大標題本來就夠大只微調。用 extend 才不會把 3xl 以上的預設砍掉。 */
+          fontSize: {
+            xs:    ['13px', '17px'],
+            sm:    ['15px', '21px'],
+            base:  ['17px', '25px'],
+            lg:    ['19px', '28px'],
+            xl:    ['21px', '29px'],
+            '2xl': ['25px', '33px'],
+          }
         }
       }
     }

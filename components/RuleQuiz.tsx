@@ -109,7 +109,7 @@ const RuleQuiz: React.FC = () => {
 
           {picked !== null && (
             <>
-              <p className="mt-4 rounded-[16px] bg-[#e9f5f6] text-[#1f7f8a] font-bold text-[13px] leading-relaxed px-4 py-3">{cur.why}</p>
+              <p className="mt-4 rounded-[16px] bg-[#e9f5f6] text-[#1f7f8a] font-bold text-[14px] leading-relaxed px-4 py-3">{cur.why}</p>
               <button
                 onClick={() => { setPicked(null); setIdx((n) => n + 1); }}
                 className="mt-4 w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#49d5df] text-white font-[900] active:scale-95 transition"

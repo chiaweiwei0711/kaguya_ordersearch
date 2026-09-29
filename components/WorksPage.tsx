@@ -92,7 +92,7 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
                 <button
                   key={g.key}
                   onClick={() => document.getElementById(`works-${g.key}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-[900] border border-black active:opacity-60 transition-all ${
+                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-[14px] font-[900] border border-black active:opacity-60 transition-all ${
                     g.key === "open" ? "bg-[#49d5df] text-[#283d3e]" : "bg-white text-[#283d3e]"
                   }`}
                 >
@@ -125,11 +125,11 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
                       ? <img src={w.cover} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                       : <ShoppingBag className="w-8 h-8 text-[#283d3e]/25 stroke-[2px]" />}
                   {w.open > 0 && (
-                    <span className="absolute inset-x-0 bottom-0 bg-[#49d5df]/95 text-[#283d3e] text-[10px] font-[900] text-center py-0.5">開團中 {w.open}</span>
+                    <span className="absolute inset-x-0 bottom-0 bg-[#49d5df]/95 text-[#283d3e] text-[11.5px] font-[900] text-center py-0.5">開團中 {w.open}</span>
                   )}
                 </span>
-                <span className="font-[900] text-[#283d3e] text-[12px] leading-tight text-center line-clamp-2">{w.name}</span>
-                <span className="font-[900] text-[#283d3e]/45 text-[11px] -mt-1.5">{w.total} 團</span>
+                <span className="font-[900] text-[#283d3e] text-[13px] leading-tight text-center line-clamp-2">{w.name}</span>
+                <span className="font-[900] text-[#283d3e]/45 text-[12.5px] -mt-1.5">{w.total} 團</span>
               </button>
             ))}
             </div>

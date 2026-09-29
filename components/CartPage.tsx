@@ -22,12 +22,12 @@ type Result = { code: string; name: string; ok: boolean; msg?: string };
 // 未送出時不能說「你是第 N 件」——那還沒算數，講了會誤導。
 const GroupState: React.FC<{ step: number; ordered: number | undefined; mine: number }> = ({ step, ordered, mine }) => {
   if (step <= 1) return null;
-  if (ordered == null) return <div className="text-[11px] font-[900] text-[#283d3e]/35 mt-1">{step} 件成團 · 目前件數更新中</div>;
+  if (ordered == null) return <div className="text-[12.5px] font-[900] text-[#283d3e]/35 mt-1">{step} 件成團 · 目前件數更新中</div>;
   const after = ordered + mine;
   const done = after > 0 && after % step === 0;
   const need = done ? 0 : Math.ceil(after / step) * step - after;
   return (
-    <div className="text-[11px] font-[900] mt-1 leading-relaxed">
+    <div className="text-[12.5px] font-[900] mt-1 leading-relaxed">
       <span className="text-[#283d3e]/45">目前 {ordered} 件</span>
       <span className="text-[#283d3e]/25"> → </span>
       <span className="text-[#283d3e]/70">加上你的 {mine} 件＝{after} 件</span>
@@ -176,8 +176,8 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
                   ? <CheckCircle2 className="w-5 h-5 stroke-[3px] text-[#49d5df] shrink-0 mt-0.5" />
                   : <AlertTriangle className="w-5 h-5 stroke-[3px] text-[#e46b58] shrink-0 mt-0.5" />}
                 <div className="min-w-0 flex-1">
-                  <div className="font-[900] text-[14px] text-[#283d3e] leading-snug">{r.name}</div>
-                  <div className={`font-bold text-[12px] mt-0.5 ${r.ok ? "text-[#283d3e]/50" : "text-[#e46b58]"}`}>
+                  <div className="font-[900] text-[15px] text-[#283d3e] leading-snug">{r.name}</div>
+                  <div className={`font-bold text-[13px] mt-0.5 ${r.ok ? "text-[#283d3e]/50" : "text-[#e46b58]"}`}>
                     {r.ok ? "已送出，系統已記錄" : r.msg}
                   </div>
                 </div>
@@ -185,11 +185,11 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
             ))}
           </div>
           {ok.length > 0 && (
-            <div className="bg-white rounded-2xl px-5 py-4 mt-3 font-bold text-[12.5px] text-[#283d3e]/70 leading-relaxed">
+            <div className="bg-white rounded-2xl px-5 py-4 mt-3 font-bold text-[13.5px] text-[#283d3e]/70 leading-relaxed">
               送出完成後，請記得回到該團的開團貼文留言「已填單」，未留言不會計算訂購。
             </div>
           )}
-          <button onClick={() => { setResults(null); onBrowse(); }} className="mt-5 w-full h-12 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[16px] active:opacity-60 transition">
+          <button onClick={() => { setResults(null); onBrowse(); }} className="mt-5 w-full h-12 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[17px] active:opacity-60 transition">
             繼續逛其他團
           </button>
           <SlimFooter />
@@ -222,16 +222,16 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
                 <div key={c.code} className={`rounded-3xl overflow-hidden mb-3 ${isClosed ? "bg-gray-100" : "bg-white"}`}>
                   <div className="px-5 pt-4 pb-3 flex items-start gap-3">
                     <div className="min-w-0 flex-1">
-                      <button onClick={() => onSelectTeam(c.code)} className="text-left font-[900] text-[15px] leading-snug text-[#283d3e] active:opacity-60">
+                      <button onClick={() => onSelectTeam(c.code)} className="text-left font-[900] text-[16px] leading-snug text-[#283d3e] active:opacity-60">
                         {c.name}
                       </button>
                       <div className="mt-1.5">
                         {isClosed ? (
-                          <span className="inline-flex items-center gap-1.5 text-[11.5px] font-[900] text-[#e46b58] bg-white border border-[#e46b58]/30 px-2.5 py-0.5 rounded-full">
+                          <span className="inline-flex items-center gap-1.5 text-[13px] font-[900] text-[#e46b58] bg-white border border-[#e46b58]/30 px-2.5 py-0.5 rounded-full">
                             <AlertTriangle className="w-3.5 h-3.5 stroke-[3px]" />這團已結單，無法送出
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-[11.5px] font-[900] text-[#283d3e] border border-black/12 bg-white px-2.5 py-0.5 rounded-full">
+                          <span className="inline-flex items-center gap-1.5 text-[13px] font-[900] text-[#283d3e] border border-black/12 bg-white px-2.5 py-0.5 rounded-full">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#e46b58]" />
                             {left === 0 ? `今天 ${live ? fmtMDHM(live.closeAt).slice(-5) : ""} 結單` : `剩 ${left} 天結單`}
                           </span>
@@ -248,7 +248,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
                       return (
                         <div key={i} className="py-2 border-b border-[#283d3e]/[0.06] last:border-b-0">
                           <div className="flex items-start gap-2">
-                            <span className="min-w-0 flex-1 break-words leading-snug font-bold text-[13px] text-[#283d3e]/85">{it.label}</span>
+                            <span className="min-w-0 flex-1 break-words leading-snug font-bold text-[14px] text-[#283d3e]/85">{it.label}</span>
                             <button onClick={() => removeItem(c.code, i)} aria-label="移除這項" className="w-7 h-7 shrink-0 flex items-center justify-center text-[#283d3e]/30 active:opacity-60">
                               <X className="w-4 h-4 stroke-[3px]" />
                             </button>
@@ -259,20 +259,20 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
                                 className="w-9 h-8 flex items-center justify-center text-[#283d3e]/70 active:opacity-50 disabled:opacity-25">
                                 <Minus className="w-3.5 h-3.5 stroke-[3px]" />
                               </button>
-                              <span className="w-9 text-center font-[900] text-[13px] text-[#283d3e] tabular-nums">{it.qty}</span>
+                              <span className="w-9 text-center font-[900] text-[14px] text-[#283d3e] tabular-nums">{it.qty}</span>
                               <button onClick={() => setItemQty(c.code, i, it.qty + step)} aria-label="增加" disabled={isClosed}
                                 className="w-9 h-8 flex items-center justify-center text-[#283d3e]/70 active:opacity-50 disabled:opacity-25">
                                 <Plus className="w-3.5 h-3.5 stroke-[3px]" />
                               </button>
                             </div>
-                            {step > 1 && <span className="text-[11px] font-[900] text-[#e868a0]">{step} 件成團</span>}
-                            <span className="ml-auto font-[900] text-[13.5px] text-[#283d3e] tabular-nums">${it.qty * it.price}</span>
+                            {step > 1 && <span className="text-[12.5px] font-[900] text-[#e868a0]">{step} 件成團</span>}
+                            <span className="ml-auto font-[900] text-[14.5px] text-[#283d3e] tabular-nums">${it.qty * it.price}</span>
                           </div>
                           <GroupState step={step} ordered={stats[c.code]?.[`${it.type}|${it.label}`]} mine={it.qty} />
                         </div>
                       );
                     })}
-                    <div className="flex justify-between font-[900] text-[#283d3e] border-t border-[#283d3e]/10 mt-2 pt-2 text-[14px]">
+                    <div className="flex justify-between font-[900] text-[#283d3e] border-t border-[#283d3e]/10 mt-2 pt-2 text-[15px]">
                       <span>小計</span><span>${cartTotal(c)}</span>
                     </div>
                   </div>
@@ -281,7 +281,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
             })}
 
             {closed.length > 0 && (
-              <button onClick={() => removeTeams(closed.map((c) => c.code))} className="w-full h-11 rounded-full bg-white border border-[#e46b58]/40 text-[#e46b58] font-[900] text-[13px] mb-3 active:opacity-60">
+              <button onClick={() => removeTeams(closed.map((c) => c.code))} className="w-full h-11 rounded-full bg-white border border-[#e46b58]/40 text-[#e46b58] font-[900] text-[14px] mb-3 active:opacity-60">
                 移除已結單的 {closed.length} 團
               </button>
             )}
@@ -294,23 +294,23 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
               <div className="bg-white rounded-3xl px-5 py-4 mt-4 flex items-center gap-3">
                 <UserCheck className="w-5 h-5 stroke-[2.6px] text-[#49d5df] shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <div className="font-bold text-[11.5px] text-[#283d3e]/50">以這個身分送出</div>
-                  <div className="font-[900] text-[15px] text-[#283d3e] truncate">{nick}</div>
+                  <div className="font-bold text-[13px] text-[#283d3e]/50">以這個身分送出</div>
+                  <div className="font-[900] text-[16px] text-[#283d3e] truncate">{nick}</div>
                 </div>
-                <button onClick={() => { nickTouched.current = true; setNick(""); }} className="shrink-0 font-[900] text-[12px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60">
+                <button onClick={() => { nickTouched.current = true; setNick(""); }} className="shrink-0 font-[900] text-[13px] text-[#283d3e]/45 underline underline-offset-2 active:opacity-60">
                   不是我
                 </button>
               </div>
             ) : (
             <div className="bg-white rounded-3xl px-5 py-4 mt-4">
-              <div className="font-[900] text-[13px] text-[#283d3e] mb-2">社群暱稱</div>
+              <div className="font-[900] text-[14px] text-[#283d3e] mb-2">社群暱稱</div>
               <input
                 value={nick}
                 onChange={(e) => { nickTouched.current = true; setNick(e.target.value); }}
                 placeholder="請輸入你在社群的完整暱稱"
-                className="w-full h-11 px-4 rounded-full bg-[#f6f9f9] outline-none font-[900] text-[15px] text-[#283d3e] placeholder-[#283d3e]/30"
+                className="w-full h-11 px-4 rounded-full bg-[#f6f9f9] outline-none font-[900] text-[16px] text-[#283d3e] placeholder-[#283d3e]/30"
               />
-              <div className="mt-2 text-[12px] font-bold min-h-[18px]">
+              <div className="mt-2 text-[13px] font-bold min-h-[18px]">
                 {nickState === "checking" && <span className="text-[#283d3e]/45">確認綁定中…</span>}
                 {nickState === "ok" && <span className="text-[#49d5df]">✓ 已綁定</span>}
                 {nickState === "unbound" && <span className="text-[#e46b58]">查不到這個暱稱的綁定，送出前請先到官賴綁定</span>}
@@ -318,16 +318,16 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
             </div>
             )}
             <div className="bg-white rounded-3xl px-5 py-4 mt-3">
-              <div className="font-[900] text-[13px] text-[#283d3e] mb-2">付款方式<span className="text-[#e46b58]">*</span></div>
+              <div className="font-[900] text-[14px] text-[#283d3e] mb-2">付款方式<span className="text-[#e46b58]">*</span></div>
               <div className="grid grid-cols-2 gap-2.5">
                 {["匯款", "無卡"].map((m) => (
                   <button key={m} type="button" onClick={() => setPay(m)}
-                    className={`h-11 rounded-full font-[900] text-[14px] border transition active:opacity-60 ${pay === m ? "bg-[#49d5df] text-[#283d3e] border-[#49d5df]" : "bg-white text-[#283d3e]/70 border-[#283d3e]/20"}`}>
+                    className={`h-11 rounded-full font-[900] text-[15px] border transition active:opacity-60 ${pay === m ? "bg-[#49d5df] text-[#283d3e] border-[#49d5df]" : "bg-white text-[#283d3e]/70 border-[#283d3e]/20"}`}>
                     {m}
                   </button>
                 ))}
               </div>
-              <p className="text-[11.5px] font-bold text-[#283d3e]/45 mt-2">整份清單用同一個付款方式送出</p>
+              <p className="text-[13px] font-bold text-[#283d3e]/45 mt-2">整份清單用同一個付款方式送出</p>
             </div>
             <SlimFooter />
           </>
@@ -339,18 +339,18 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white border-t border-[#283d3e]/10 px-4 pt-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}>
           <div className="w-full max-w-lg mx-auto flex items-center gap-3">
             <div className="min-w-0">
-              <div className="font-bold text-[11.5px] text-[#283d3e]/55">{sendable.length} 團 · {grandQty} 件</div>
-              <div className="font-[900] text-[19px] text-[#283d3e] leading-tight">${grandTotal}</div>
+              <div className="font-bold text-[13px] text-[#283d3e]/55">{sendable.length} 團 · {grandQty} 件</div>
+              <div className="font-[900] text-[20px] text-[#283d3e] leading-tight">${grandTotal}</div>
             </div>
             <button
               onClick={doSend}
               disabled={sending || !sendable.length || !pay}
-              className="ml-auto h-12 px-7 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[16px] flex items-center gap-1.5 active:opacity-60 transition disabled:opacity-40"
+              className="ml-auto h-12 px-7 rounded-full bg-[#e868a0] text-[#283d3e] font-[900] text-[17px] flex items-center gap-1.5 active:opacity-60 transition disabled:opacity-40"
             >
               {sending ? <><Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />送出中…</> : !pay ? "請先選付款方式" : <>一次送出<ChevronRight className="w-4 h-4 stroke-[3px]" /></>}
             </button>
           </div>
-          {progress && <div className="w-full max-w-lg mx-auto text-[11.5px] font-bold text-[#283d3e]/55 mt-1.5 text-center">{progress}　請不要關閉畫面</div>}
+          {progress && <div className="w-full max-w-lg mx-auto text-[13px] font-bold text-[#283d3e]/55 mt-1.5 text-center">{progress}　請不要關閉畫面</div>}
         </div>
       )}
 
@@ -360,7 +360,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
             <div className="font-[900] text-[#283d3e] text-lg mb-1.5">
               {nickOwner === "taken" ? "這個暱稱已經有人使用" : "要先綁定暱稱才能下單"}
             </div>
-            <p className="font-bold text-[13px] text-[#283d3e]/65 leading-relaxed mb-5">
+            <p className="font-bold text-[14px] text-[#283d3e]/65 leading-relaxed mb-5">
               {nickOwner === "taken"
                 ? <>「<span className="text-[#e46b58] font-[900]">{nick.trim()}</span>」已經綁在另一個 LINE 帳號上。如果那是你，請私訊官賴協助處理。</>
                 : <>「<span className="text-[#e46b58] font-[900]">{nick.trim()}</span>」還沒綁定。綁定後付款提醒與到貨通知才會一對一推播給你。</>}
@@ -378,7 +378,7 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
         <div className="fixed inset-0 z-[100] bg-black/40 flex items-end sm:items-center justify-center p-3">
           <div className="bg-white rounded-3xl w-full max-w-sm p-6 text-center">
             <div className="font-[900] text-[#283d3e] text-lg mb-1.5">送出前請先用 LINE 登入</div>
-            <p className="font-bold text-[13px] text-[#283d3e]/65 leading-relaxed mb-5">
+            <p className="font-bold text-[14px] text-[#283d3e]/65 leading-relaxed mb-5">
               登入後我們才認得出你是誰、之後的付款與到貨通知也才推得到你。順便會問你要不要加官方帳號好友。
             </p>
             <button onClick={loginWithLine} className="w-full h-12 rounded-full bg-[#06C755] text-white font-[900] active:opacity-60 transition">用 LINE 登入</button>

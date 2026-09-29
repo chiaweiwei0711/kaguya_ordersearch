@@ -54,7 +54,7 @@ const NewsModal: React.FC<NewsModalProps> = ({ news, isOpen, onClose }) => {
             最新公告
           </h1>
 
-          <div className="flex items-center gap-2 text-gray-500 text-[10px] font-black uppercase tracking-widest mb-3 px-2">
+          <div className="flex items-center gap-2 text-gray-500 text-[11.5px] font-black uppercase tracking-widest mb-3 px-2">
             <Calendar size={12} className="text-pink-500/50" />
             {news.date}
           </div>
@@ -89,7 +89,7 @@ const NewsModal: React.FC<NewsModalProps> = ({ news, isOpen, onClose }) => {
               />
               <span className="font-black text-xl tracking-tighter">{likes}</span>
             </button>
-            <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest mt-3">
+            <p className="text-gray-600 text-[11.5px] font-black uppercase tracking-widest mt-3">
               {hasLiked ? '感謝您的喜愛！' : '覺得這則公告有幫助嗎？'}
             </p>
           </div>

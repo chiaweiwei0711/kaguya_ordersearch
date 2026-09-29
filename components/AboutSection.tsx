@@ -56,7 +56,7 @@ const AboutSection: React.FC<Props> = ({ onBack }) => {
 
         <div className="bg-white rounded-[28px] px-6 py-7 sm:px-8">
           <div className="inline-block bg-[#f6f9f9] text-[#283d3e] font-[900] text-sm px-4 py-1.5 rounded-full mb-5">我們是誰</div>
-          <div className="space-y-4 text-[#283d3e] font-bold text-[15px] leading-relaxed">
+          <div className="space-y-4 text-[#283d3e] font-bold text-[16px] leading-relaxed">
             {STORY.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
@@ -73,8 +73,8 @@ const AboutSection: React.FC<Props> = ({ onBack }) => {
                   {i + 1}
                 </span>
                 <div className="min-w-0">
-                  <div className="text-[#283d3e] font-[900] text-[15px] leading-snug">{a.title}</div>
-                  <p className="text-[#283d3e]/75 font-bold text-[13px] leading-relaxed mt-1">{a.desc}</p>
+                  <div className="text-[#283d3e] font-[900] text-[16px] leading-snug">{a.title}</div>
+                  <p className="text-[#283d3e]/75 font-bold text-[14px] leading-relaxed mt-1">{a.desc}</p>
                 </div>
               </div>
             ))}

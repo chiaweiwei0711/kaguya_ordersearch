@@ -52,7 +52,7 @@ const ProductCarousel: React.FC<Props> = ({ images, onTap, className = "" }) => 
         ))}
       </div>
       {imgs.length > 1 && (
-        <span className="absolute left-1.5 bottom-1.5 bg-black/45 text-white text-[11px] font-bold px-2 py-0.5 rounded-full pointer-events-none">
+        <span className="absolute left-1.5 bottom-1.5 bg-black/45 text-white text-[12.5px] font-bold px-2 py-0.5 rounded-full pointer-events-none">
           {cur + 1}/{imgs.length}
         </span>
       )}

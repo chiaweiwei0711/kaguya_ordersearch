@@ -110,20 +110,20 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                         不會再出現一塊方形色塊壓在圓角卡上 */}
                     <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/90 via-black/55 to-transparent" />
 
-                    <span className="absolute top-3 left-3 text-[12px] font-[900] text-[#283d3e] before:bg-[#49d5df] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">開團中</span>
-                    <span className="absolute top-3 right-3 text-[12px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">剩 {left} 天結單</span>
+                    <span className="absolute top-3 left-3 text-[13px] font-[900] text-[#283d3e] before:bg-[#49d5df] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">開團中</span>
+                    <span className="absolute top-3 right-3 text-[13px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">剩 {left} 天結單</span>
 
                     <div className="absolute inset-x-0 bottom-0 px-4 pb-3.5">
-                      {ip && <div className="text-[#49d5df] font-[900] text-[13px] leading-none mb-1.5">{ip}</div>}
+                      {ip && <div className="text-[#49d5df] font-[900] text-[14px] leading-none mb-1.5">{ip}</div>}
                       <div className="text-white font-[900] text-[18px] leading-snug line-clamp-2">{t.name}</div>
                       {(t.joinPeople ?? 0) > 0 && (
-                        <span className="mt-2 text-[12px] font-[900] text-[#283d3e] before:bg-[#e868a0] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">
+                        <span className="mt-2 text-[13px] font-[900] text-[#283d3e] before:bg-[#e868a0] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-3 py-1 rounded-full">
                           {t.joinPeople} 人填單{(t.joinQty ?? 0) > 0 ? ` · ${t.joinQty} 件` : ""}
                         </span>
                       )}
                       <div className="flex items-center mt-3 pt-2.5 border-t border-white/25">
-                        <span className="text-white/75 font-[900] text-[12.5px]">{t.shipInfo ? `預計 ${t.shipInfo} 發貨` : "點進來看商品"}</span>
-                        <span className="ml-auto flex items-center gap-1 text-white font-[900] text-[13.5px]">
+                        <span className="text-white/75 font-[900] text-[13.5px]">{t.shipInfo ? `預計 ${t.shipInfo} 發貨` : "點進來看商品"}</span>
+                        <span className="ml-auto flex items-center gap-1 text-white font-[900] text-[14.5px]">
                           去填單 <ChevronRight className="w-4 h-4 stroke-[3px]" />
                         </span>
                       </div>
@@ -169,10 +169,10 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                       ? <img src={t.cover} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                       : <ShoppingBag className="w-7 h-7 text-[#283d3e]/25 stroke-[2px]" />}
                   {t.open > 0 && (
-                    <span className="absolute inset-x-0 bottom-0 bg-white/92 text-[#283d3e] text-[10px] font-[900] text-center py-0.5 border-t border-black/8">{t.open} 團</span>
+                    <span className="absolute inset-x-0 bottom-0 bg-white/92 text-[#283d3e] text-[11.5px] font-[900] text-center py-0.5 border-t border-black/8">{t.open} 團</span>
                   )}
                 </span>
-                <span className="font-[900] text-[11px] leading-tight text-center line-clamp-2">{t.name}</span>
+                <span className="font-[900] text-[12.5px] leading-tight text-center line-clamp-2">{t.name}</span>
               </button>
             ))}
           </div>

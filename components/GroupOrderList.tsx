@@ -193,7 +193,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               <SlidersHorizontal className="w-5 h-5 stroke-[2.5px]" />
               篩選
               {filterCount > 0 && (
-                <span className="ml-0.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#e868a0] text-[#283d3e] text-[12px] flex items-center justify-center">{filterCount}</span>
+                <span className="ml-0.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#e868a0] text-[#283d3e] text-[13px] flex items-center justify-center">{filterCount}</span>
               )}
             </button>
           </div>
@@ -202,23 +202,23 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
           {(pickedTags.length > 0 || !showOpen || !showClosed || sortBy !== "default") && (
             <div className="flex flex-wrap gap-2 mt-3">
               {sortBy !== "default" && (
-                <button onClick={() => setSortBy("default")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#283d3e] text-white text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
+                <button onClick={() => setSortBy("default")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#283d3e] text-white text-[14px] font-[900] border-2 border-black active:opacity-60 transition-all">
                   {SORT_OPTS.find(([v]) => v === sortBy)?.[1]}
                   <X className="w-3.5 h-3.5 stroke-[3px]" />
                 </button>
               )}
               {!showClosed && showOpen && (
-                <button onClick={() => setShowClosed(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#49d5df] text-[#283d3e] text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
+                <button onClick={() => setShowClosed(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#49d5df] text-[#283d3e] text-[14px] font-[900] border-2 border-black active:opacity-60 transition-all">
                   開團中<X className="w-3.5 h-3.5 stroke-[3px]" />
                 </button>
               )}
               {!showOpen && showClosed && (
-                <button onClick={() => setShowOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#283d3e] text-white text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
+                <button onClick={() => setShowOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#283d3e] text-white text-[14px] font-[900] border-2 border-black active:opacity-60 transition-all">
                   已結單<X className="w-3.5 h-3.5 stroke-[3px]" />
                 </button>
               )}
               {pickedTags.map((t) => (
-                <button key={t} onClick={() => toggleTag(t)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e868a0] text-[#283d3e] text-[13px] font-[900] border-2 border-black active:opacity-60 transition-all">
+                <button key={t} onClick={() => toggleTag(t)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#e868a0] text-[#283d3e] text-[14px] font-[900] border-2 border-black active:opacity-60 transition-all">
                   {t}<X className="w-3.5 h-3.5 stroke-[3px]" />
                 </button>
               ))}
@@ -245,7 +245,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
 
             <div className="px-5 py-4 space-y-5">
               <div>
-                <div className="font-[900] text-[#283d3e]/60 text-[13px] tracking-widest mb-2">狀態</div>
+                <div className="font-[900] text-[#283d3e]/60 text-[14px] tracking-widest mb-2">狀態</div>
                 <div className="flex gap-2.5">
                   <button onClick={() => setShowOpen((v) => !v)} className={chip(showOpen, "open")}>
                     {showOpen && <Check className="w-4 h-4 stroke-[4px]" />}開團中
@@ -257,7 +257,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               </div>
 
               <div>
-                <div className="font-[900] text-[#283d3e]/60 text-[13px] tracking-widest mb-2">排序</div>
+                <div className="font-[900] text-[#283d3e]/60 text-[14px] tracking-widest mb-2">排序</div>
                 <div className="flex flex-wrap gap-2">
                   {SORT_OPTS.map(([val, label]) => (
                     <button
@@ -274,7 +274,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               </div>
 
               <div>
-                <div className="font-[900] text-[#283d3e]/60 text-[13px] tracking-widest mb-2">檢視方式</div>
+                <div className="font-[900] text-[#283d3e]/60 text-[14px] tracking-widest mb-2">檢視方式</div>
                 <div className="flex gap-2">
                   {([["grid", "方塊", LayoutGrid], ["list", "條列", Rows3]] as const).map(([mode, label, Icon]) => (
                     <button
@@ -292,7 +292,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
 
               {tagIndex.all.length > 0 && (
                 <div>
-                  <div className="font-[900] text-[#283d3e]/60 text-[13px] tracking-widest mb-2">
+                  <div className="font-[900] text-[#283d3e]/60 text-[14px] tracking-widest mb-2">
                     作品{pickedTags.length > 0 && <span className="text-[#e868a0]">（已選 {pickedTags.length}）</span>}
                   </div>
                   <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto">
@@ -302,7 +302,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                         <button
                           key={t}
                           onClick={() => toggleTag(t)}
-                          className={`px-3 py-1.5 rounded-full text-[13px] font-[900] border-2 border-black transition-all active:opacity-60 ${
+                          className={`px-3 py-1.5 rounded-full text-[14px] font-[900] border-2 border-black transition-all active:opacity-60 ${
                             on ? "bg-[#49d5df] text-[#283d3e]" : "bg-white text-[#283d3e]"
                           }`}
                         >
@@ -362,22 +362,22 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                   {cover
                     ? <img src={cover} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className={`absolute inset-0 w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
                     : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-[#283d3e]/25 stroke-[2px]" /></div>}
-                  <span className={`absolute top-2 left-2 text-[12px] font-[900] px-3 py-1 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${
+                  <span className={`absolute top-2 left-2 text-[13px] font-[900] px-3 py-1 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${
                     open ? "text-[#283d3e] before:bg-[#49d5df]" : "text-gray-500 before:bg-gray-400"
                   }`}>
                     {open ? "開團中" : "已結單"}
                   </span>
                 </div>
                 <div className="p-3 flex flex-col gap-1.5 flex-1">
-                  <div className={`font-[900] text-[13.5px] leading-tight line-clamp-3 min-h-[51px] ${open ? "text-[#283d3e]" : "text-gray-400"}`}>{t.name}</div>
-                  <span className={`text-[12px] font-[900] leading-none line-clamp-1 min-h-[12px] ${open ? "text-[#e868a0]" : "text-gray-400"}`}>{ip}</span>
+                  <div className={`font-[900] text-[14.5px] leading-tight line-clamp-3 min-h-[55px] ${open ? "text-[#283d3e]" : "text-gray-400"}`}>{t.name}</div>
+                  <span className={`text-[13px] font-[900] leading-none line-clamp-1 min-h-[12px] ${open ? "text-[#e868a0]" : "text-gray-400"}`}>{ip}</span>
                   <div className="mt-auto pt-1 flex flex-wrap gap-1.5">
-                    {open && <span className="text-[11px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>}
+                    {open && <span className="text-[12.5px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>}
                     {(t.joinPeople ?? 0) > 0 && (
-                      <span className={`text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${open ? "text-[#283d3e] before:bg-[#e868a0]" : "text-gray-500 before:bg-gray-400"}`}>{t.joinPeople} 人跟團</span>
+                      <span className={`text-[12.5px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${open ? "text-[#283d3e] before:bg-[#e868a0]" : "text-gray-500 before:bg-gray-400"}`}>{t.joinPeople} 人跟團</span>
                     )}
                   </div>
-                  {t.openAt && <span className={`text-[12px] font-bold ${open ? "text-black/65" : "text-gray-400"}`}>開團日期：{fmtYMD(t.openAt)}</span>}
+                  {t.openAt && <span className={`text-[12.5px] font-bold whitespace-nowrap tabular-nums ${open ? "text-black/65" : "text-gray-400"}`}>開團日期：{fmtYMD(t.openAt)}</span>}
                 </div>
               </button>
             );
@@ -406,10 +406,10 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               <div className="min-w-0 flex-1">
                 <div className={`font-[900] text-base line-clamp-2 leading-snug ${open ? "text-[#283d3e]" : "text-gray-400"}`}>{t.name}</div>
                 {open && (
-                  <span className="mt-1.5 text-[11px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>
+                  <span className="mt-1.5 text-[12.5px] font-[900] text-[#283d3e] before:bg-[#e46b58] inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white px-2.5 py-0.5 rounded-full">剩餘 {left} 天結單</span>
                 )}
                 {(t.joinPeople ?? 0) > 0 && (
-                  <span className={`mt-1.5 ml-1.5 text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${open ? "text-[#283d3e] before:bg-[#e868a0]" : "text-gray-500 before:bg-gray-400"}`}>{t.joinPeople} 人跟團</span>
+                  <span className={`mt-1.5 ml-1.5 text-[12.5px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${open ? "text-[#283d3e] before:bg-[#e868a0]" : "text-gray-500 before:bg-gray-400"}`}>{t.joinPeople} 人跟團</span>
                 )}
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">
@@ -417,7 +417,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
                   {open ? "開團中" : "已結單"}
                 </span>
                 {t.openAt && (
-                  <span className="text-black font-bold text-[13px] leading-tight text-right">
+                  <span className="text-black font-bold text-[14px] leading-tight text-right">
                     <span className="text-black/55">開團日期</span><br />{fmtYMD(t.openAt)}
                   </span>
                 )}

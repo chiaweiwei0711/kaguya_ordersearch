@@ -33,9 +33,9 @@ const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
                 <div className="text-[#283d3e] font-bold text-sm leading-relaxed mt-1">{st.desc}</div>
                 <div className="flex flex-wrap gap-1.5 mt-2.5">
                   {st.tags.map((t) => (
-                    <span key={t} className="text-[11px] font-[900] rounded-full px-2.5 py-1 bg-[#e9f5f6] text-[#1f9ead]">{t}</span>
+                    <span key={t} className="text-[12.5px] font-[900] rounded-full px-2.5 py-1 bg-[#e9f5f6] text-[#1f9ead]">{t}</span>
                   ))}
-                  {st.warn && <span className="text-[11px] font-[900] rounded-full px-2.5 py-1 bg-[#fbe3ef] text-[#c4265e]">{st.warn}</span>}
+                  {st.warn && <span className="text-[12.5px] font-[900] rounded-full px-2.5 py-1 bg-[#fbe3ef] text-[#c4265e]">{st.warn}</span>}
                 </div>
               </div>
             </li>

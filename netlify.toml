@@ -12,6 +12,16 @@
   # Default build command.
   command = "npm run build"
 
+# Netlify 原始網址導回正式網域。
+# 客人開 kaguyagoods-order-search.netlify.app 會被 LIFF 判成「測試站」而改用測試 LIFF，
+# 但那支註冊的是 main-- 開頭的網址 → 對不上 → LINE 回 400 Bad Request（2026-09-29 客人回報）。
+# main-- 開頭的預覽站不受影響，驗收照舊。
+[[redirects]]
+  from = "https://kaguyagoods-order-search.netlify.app/*"
+  to = "https://kgygoods.com/:splat"
+  status = 301
+  force = true
+
 # The following redirect is intended for use with most SPAs that handle routing internally.
 [[redirects]]
   from = "/*"

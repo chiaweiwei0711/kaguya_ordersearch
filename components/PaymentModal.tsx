@@ -136,7 +136,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
             </span>
           )}
         </div>
-        <div className="text-[13px] leading-relaxed text-gray-700 whitespace-pre-wrap break-words font-mono">
+        <div className="text-[14px] leading-relaxed text-gray-700 whitespace-pre-wrap break-words font-mono">
           {generateDetailMessage()}
         </div>
         <div className={`mt-3 flex items-center justify-center gap-1.5 text-center text-xs font-[900] rounded-2xl py-2.5 transition-colors ${detailCopied ? 'bg-[#49d5df]/15 text-[#49d5df]' : 'bg-[#e868a0]/15 text-[#283d3e]'}`}>
@@ -197,7 +197,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
               <div>
                 <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-3">
                   <span className="text-gray-400 font-[900] text-xs tracking-widest uppercase">訂單項目清單</span>
-                  <span className="bg-[#283d3e] text-white text-[10px] px-3 py-1 rounded-full font-[900] tracking-widest">{orders.length} 筆</span>
+                  <span className="bg-[#283d3e] text-white text-[11.5px] px-3 py-1 rounded-full font-[900] tracking-widest">{orders.length} 筆</span>
                 </div>
                 <div className="space-y-3">
                   {orders.map((order, index) => (

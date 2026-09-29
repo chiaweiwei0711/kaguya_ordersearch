@@ -92,14 +92,14 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
             <div className="bg-white p-4 rounded-[20px] flex items-center gap-3">
               <Calendar className="w-7 h-7 text-[#e868a0] stroke-[2px]" />
               <div>
-                <p className="text-[10px] text-gray-400 font-[900] mb-1">預計出貨</p>
+                <p className="text-[11.5px] text-gray-400 font-[900] mb-1">預計出貨</p>
                 <p className="text-sm font-[900] text-black leading-tight">{order.shippingDate || "尚未排定"}</p>
               </div>
             </div>
             <div className="bg-white p-4 rounded-[20px] flex items-center gap-3">
               <CreditCard className="w-7 h-7 text-[#49d5df] stroke-[2px]" />
               <div>
-                <p className="text-[10px] text-gray-400 font-[900] mb-1">付款方式</p>
+                <p className="text-[11.5px] text-gray-400 font-[900] mb-1">付款方式</p>
                 <p className="text-sm font-[900] text-black leading-tight">{order.paymentMethod}</p>
               </div>
             </div>
@@ -201,7 +201,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="text-gray-500 text-sm font-[900] tracking-widest">追加倉儲費</div>
-                          <div className="text-[11px] text-gray-400 font-bold leading-snug mt-0.5">
+                          <div className="text-[12.5px] text-gray-400 font-bold leading-snug mt-0.5">
                             {storageInfo.arrival.getMonth() + 1}/{storageInfo.arrival.getDate()} 抵台・免費保管至 {storageInfo.freeUntil.getMonth() + 1}/{storageInfo.freeUntil.getDate()}・逾期 {storageInfo.overdueDays} 天 × $5
                           </div>
                         </div>
@@ -218,7 +218,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                       </>
                     )}
                     {storageInfo && !order.isShipped && fee === 0 && (
-                      <p className="text-[11px] text-gray-500 font-bold leading-relaxed">{storageInfo.detail}</p>
+                      <p className="text-[12.5px] text-gray-500 font-bold leading-relaxed">{storageInfo.detail}</p>
                     )}
                   </>
                 );

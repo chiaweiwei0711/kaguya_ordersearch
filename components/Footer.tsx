@@ -21,7 +21,7 @@ const ToTop: React.FC = () => (
       if (sc) sc.scrollTo({ top: 0, behavior: "smooth" });
       else window.scrollTo({ top: 0, behavior: "smooth" });
     }}
-    className="w-full flex items-center justify-center gap-1.5 py-3 font-[900] text-[12.5px] text-[#283d3e]/60 active:opacity-60 transition"
+    className="w-full flex items-center justify-center gap-1.5 py-3 font-[900] text-[13.5px] text-[#283d3e]/60 active:opacity-60 transition"
   >
     <ArrowUp className="w-4 h-4 stroke-[3px]" />回到最上面
   </button>
@@ -31,14 +31,14 @@ const ToTop: React.FC = () => (
 export const SlimFooter: React.FC = () => (
   <div className="w-full mt-10 pt-2 pb-8 border-t border-[#283d3e]/10 text-center">
     <ToTop />
-    <div className="font-[900] text-[11.5px] text-[#283d3e]/55 tracking-wide">瓦多次元工作室 · 統一編號 60071756</div>
-    <div className="font-bold text-[11px] text-[#283d3e]/35 mt-1">© {new Date().getFullYear()} KAGUYA 日本動漫周邊專業代購</div>
+    <div className="font-[900] text-[13px] text-[#283d3e]/55 tracking-wide">瓦多次元工作室 · 統一編號 60071756</div>
+    <div className="font-bold text-[12.5px] text-[#283d3e]/35 mt-1">© {new Date().getFullYear()} KAGUYA 日本動漫周邊專業代購</div>
   </div>
 );
 
 const Footer: React.FC<Props> = ({ onGuide, onFaq, onAbout, onNews }) => {
-  const link = "flex items-center gap-2 py-2 font-[900] text-[13.5px] text-[#283d3e]/80 whitespace-nowrap active:opacity-60 transition";
-  const head = "font-[900] text-[11px] tracking-[0.2em] text-[#283d3e]/40 mb-1";
+  const link = "flex items-center gap-2 py-2 font-[900] text-[14.5px] text-[#283d3e]/80 whitespace-nowrap active:opacity-60 transition";
+  const head = "font-[900] text-[12.5px] tracking-[0.2em] text-[#283d3e]/40 mb-1";
 
   return (
     <footer className="w-full max-w-lg mx-auto px-4 sm:px-0 pt-10 pb-12">
@@ -62,9 +62,9 @@ const Footer: React.FC<Props> = ({ onGuide, onFaq, onAbout, onNews }) => {
 
         <div className="mt-5 pt-2 border-t border-[#283d3e]/10 text-center">
           <ToTop />
-          <div className="font-[900] text-[12px] text-[#283d3e]/70">瓦多次元工作室</div>
-          <div className="font-bold text-[11.5px] text-[#283d3e]/50 mt-0.5">統一編號 60071756</div>
-          <div className="font-bold text-[11px] text-[#283d3e]/35 mt-2">© {new Date().getFullYear()} KAGUYA 日本動漫周邊專業代購</div>
+          <div className="font-[900] text-[13px] text-[#283d3e]/70">瓦多次元工作室</div>
+          <div className="font-bold text-[13px] text-[#283d3e]/50 mt-0.5">統一編號 60071756</div>
+          <div className="font-bold text-[12.5px] text-[#283d3e]/35 mt-2">© {new Date().getFullYear()} KAGUYA 日本動漫周邊專業代購</div>
         </div>
       </div>
     </footer>

@@ -217,7 +217,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
             <div className="bg-pink-500 w-2 h-6 rounded-full shadow-[0_0_10px_#ec4899]"></div>
             <div>
                 <h2 className="text-lg font-black text-white tracking-tight">快速輸入系統</h2>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rapid Entry Mode</p>
+                <p className="text-[11.5px] text-gray-500 font-bold uppercase tracking-widest">Rapid Entry Mode</p>
             </div>
          </div>
          <div className="flex gap-2">
@@ -245,7 +245,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
                 
                 {/* 1. 團名 (Sticky) */}
                 <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800 relative group focus-within:border-pink-500 transition-colors">
-                    <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">團名 / 系列 (可釘選)</label>
+                    <label className="text-[11.5px] text-gray-500 font-bold uppercase mb-1 block">團名 / 系列 (可釘選)</label>
                     <div className="flex gap-2">
                         <input 
                             required
@@ -266,7 +266,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
 
                 {/* 2. 匯款日期 (Sticky) */}
                 <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800 relative focus-within:border-pink-500 transition-colors">
-                    <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">匯款日期 (可釘選)</label>
+                    <label className="text-[11.5px] text-gray-500 font-bold uppercase mb-1 block">匯款日期 (可釘選)</label>
                     <div className="flex gap-2">
                         <input 
                             type="date"
@@ -288,7 +288,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
 
                 {/* 3. 社群暱稱 */}
                 <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800 relative focus-within:border-pink-500 transition-colors">
-                    <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">社群暱稱</label>
+                    <label className="text-[11.5px] text-gray-500 font-bold uppercase mb-1 block">社群暱稱</label>
                     <div className="flex gap-2">
                         <input 
                             ref={customerInputRef}
@@ -311,7 +311,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
                 {/* 4. 商品明細 */}
                 <div className="space-y-3">
                     <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800">
-                        <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">商品名稱</label>
+                        <label className="text-[11.5px] text-gray-500 font-bold uppercase mb-1 block">商品名稱</label>
                         <input 
                             ref={itemInputRef}
                             required
@@ -324,7 +324,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
 
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800">
-                            <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">單價</label>
+                            <label className="text-[11.5px] text-gray-500 font-bold uppercase mb-1 block">單價</label>
                             <input 
                                 type="number"
                                 required
@@ -335,7 +335,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
                             />
                         </div>
                         <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800">
-                            <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">數量</label>
+                            <label className="text-[11.5px] text-gray-500 font-bold uppercase mb-1 block">數量</label>
                             <input 
                                 type="number"
                                 required
@@ -377,7 +377,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800">
-                    <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">付款方式</label>
+                    <label className="text-[11.5px] text-gray-500 font-bold uppercase mb-1 block">付款方式</label>
                     <select 
                         value={formData.paymentMethod}
                         onChange={e => setFormData({...formData, paymentMethod: e.target.value})}
@@ -426,7 +426,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
                     </div>
                 ) : (
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-900/80 text-gray-400 text-[10px] font-bold uppercase sticky top-0 backdrop-blur-md z-10">
+                        <thead className="bg-gray-900/80 text-gray-400 text-[11.5px] font-bold uppercase sticky top-0 backdrop-blur-md z-10">
                             <tr>
                                 <th className="p-3 border-b border-gray-800">ID</th>
                                 <th className="p-3 border-b border-gray-800">社群暱稱</th>
@@ -443,7 +443,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
                                     <td className="p-3 font-mono text-gray-500 text-xs">{order.id}</td>
                                     <td className="p-3 text-white">
                                         <div>{order.customerPhone}</div>
-                                        <div className="text-[10px] text-gray-500 font-normal">{order.groupName}</div>
+                                        <div className="text-[11.5px] text-gray-500 font-normal">{order.groupName}</div>
                                     </td>
                                     <td className="p-3 text-gray-300">
                                         {order.items[0].name} <span className="text-pink-500 text-xs">x{order.totalQuantity}</span>
@@ -466,7 +466,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
                 )}
             </div>
             
-            <div className="mt-4 text-[10px] text-gray-500 text-center font-mono">
+            <div className="mt-4 text-[11.5px] text-gray-500 text-center font-mono">
                 * 確認無誤後，請按右上角「複製到 Excel」並貼回您的 Google Sheet
             </div>
         </div>

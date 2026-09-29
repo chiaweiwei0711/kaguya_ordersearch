@@ -8,7 +8,7 @@ import { ChevronRight } from "lucide-react";
 export const SectionHead: React.FC<{ en: string; title: string; count?: number }> = ({ en, title, count }) => (
   <div className="mb-3">
     {/* movic 與 KADOKAWA 都是「淺色英文小標＋主標」兩層，區塊之間才有一致的節奏 */}
-    <div className="text-[11px] font-[900] tracking-[0.22em] text-[#283d3e]/40 leading-none mb-1.5">{en}</div>
+    <div className="text-[12.5px] font-[900] tracking-[0.22em] text-[#283d3e]/40 leading-none mb-1.5">{en}</div>
     <h2 className="font-[900] text-xl tracking-widest leading-none text-[#49d5df]">
       {title}
       {count != null && <span className="ml-2 text-sm opacity-45">{count}</span>}
