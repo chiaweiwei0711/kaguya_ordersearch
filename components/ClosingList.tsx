@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, AlarmClock, ShoppingBag } from "lucide-react";
 import { GroupTeam, GroupProduct } from "../types";
-import { closingSoon, fmtMDHM } from "../services/groupOrderService";
+import { closingSoon, fmtMDHM, fmtYMD } from "../services/groupOrderService";
 import { usePullToRefresh } from "./usePullToRefresh";
 
 interface Props {
@@ -14,9 +14,32 @@ interface Props {
   onRefresh?: () => Promise<any> | any; // 下拉重整：重抓團表
 }
 
+// 倒數：這頁的重點就是「快來不及了」，數字真的在走比靜態文字有用。
+// 不到 1 小時才顯示到秒（那時候秒數才有意義）；其他時候只到分，免得整片數字亂閃。
+const useTick = (on: boolean) => {
+  const [, set] = useState(0);
+  useEffect(() => {
+    if (!on) return;
+    const id = setInterval(() => set((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [on]);
+};
+
+const countdown = (closeAt: string) => {
+  const end = new Date(closeAt).getTime();
+  if (!end) return null;
+  const ms = end - Date.now();
+  if (ms <= 0) return { text: "已結單", urgent: true, over: true };
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (h >= 1) return { text: `剩 ${h} 小時 ${m} 分`, urgent: h < 6, over: false };
+  return { text: `剩 ${m}:${String(sec).padStart(2, "0")}`, urgent: true, over: false };
+};
+
 // 明日結單專頁（#/closing，可直接發連結到群組）：列出今明兩天要收單的團
 const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBack, onAll, onRefresh }) => {
   const { ref: ptrRef, indicator: ptrIndicator } = usePullToRefresh(onRefresh);
+  useTick(true);   // 每秒重畫，倒數才會動
   const list = teams
     .map((t) => ({ t, when: closingSoon(t) }))
     .filter((x): x is { t: GroupTeam; when: "today" | "tomorrow" } => x.when !== null)
@@ -49,6 +72,7 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {list.map(({ t, when }) => {
             const img = imgOf(t.code);
+            const cd = countdown(t.closeAt);
             return (
               <button
                 key={t.code}
@@ -67,7 +91,18 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
                 </div>
                 <div className="p-3 flex flex-col gap-1.5 flex-1">
                   <div className="font-[900] text-[13.5px] leading-tight line-clamp-3 min-h-[51px] text-[#283d3e]">{t.name}</div>
-                  <span className="mt-auto text-[12px] font-[900] text-[#e46b58] leading-none">{fmtMDHM(t.closeAt)} 止</span>
+                  <div className="mt-auto pt-1 flex flex-wrap gap-1.5">
+                    {cd && (
+                      <span className={`text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 tabular-nums before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 ${
+                        cd.urgent ? "bg-[#fdecea] text-[#c4362a] before:bg-[#e46b58] motion-safe:before:animate-pulse" : "bg-[#f0f4f4] text-[#283d3e] before:bg-[#e46b58]"
+                      }`}>{cd.text}</span>
+                    )}
+                    {(t.joinPeople ?? 0) > 0 && (
+                      <span className="text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 bg-[#fce7f3] text-[#a3346b] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 before:bg-[#e868a0]">{t.joinPeople} 人跟團</span>
+                    )}
+                  </div>
+                  <span className="text-[12px] font-[900] text-[#e46b58] leading-none">{fmtMDHM(t.closeAt)} 止</span>
+                  {t.openAt && <span className="text-[12px] font-bold text-black/65">開團日期：{fmtYMD(t.openAt)}</span>}
                 </div>
               </button>
             );
