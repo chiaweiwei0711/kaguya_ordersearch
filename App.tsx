@@ -879,11 +879,12 @@ const App: React.FC = () => {
                     <div ref={tabBarRef} className="w-full max-w-md -mx-1 overflow-x-auto no-scrollbar border-b border-[#283d3e]/10">
                       <div className="flex gap-1 px-1 min-w-max">
                         {[
-                          ...(pendingSubs.length ? [{ id: 'pending', label: '尚未結單', n: pendingSubs.length }] : []),
-                          { id: 'deposit', label: '待付款', n: 0 },
-                          { id: 'balance', label: '可出貨', n: 0 },
-                          { id: 'completed', label: '已完成', n: 0 },
-                          { id: 'all', label: '全部', n: 0 }
+                          // 待付款／可出貨是要客人馬上動作的，數字用醒目色；尚未結單只是登記，數字灰的
+                          ...(pendingSubs.length ? [{ id: 'pending', label: '尚未結單', n: pendingSubs.length, hot: false }] : []),
+                          { id: 'deposit', label: '待付款', n: foundOrders.filter(o => o.status === OrderStatus.PENDING).length, hot: true },
+                          { id: 'balance', label: '可出貨', n: foundOrders.filter(o => o.status === OrderStatus.PAID && o.shippingStatus.includes('已抵台') && !o.isShipped).length, hot: true },
+                          { id: 'completed', label: '已完成', n: 0, hot: false },
+                          { id: 'all', label: '全部', n: 0, hot: false }
                         ].map(tab => {
                           const on = activeTab === tab.id;
                           return (
@@ -902,7 +903,7 @@ const App: React.FC = () => {
                             >
                               {tab.label}
                               {tab.n > 0 && (
-                                <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded-full ${on ? 'bg-[#283d3e]/10 text-[#283d3e]' : 'bg-[#283d3e]/10 text-[#283d3e]/50'}`}>{tab.n}</span>
+                                <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded-full font-[900] ${tab.hot ? 'bg-[#e868a0] text-white' : (on ? 'bg-[#283d3e]/10 text-[#283d3e]' : 'bg-[#283d3e]/10 text-[#283d3e]/50')}`}>{tab.n}</span>
                               )}
                             </button>
                           );
