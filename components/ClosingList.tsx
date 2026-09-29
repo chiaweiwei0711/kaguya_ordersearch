@@ -77,7 +77,7 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
               <button
                 key={t.code}
                 onClick={() => onSelect(t.code)}
-                className="text-left rounded-2xl overflow-hidden flex flex-col border-2 border-transparent bg-white active:opacity-60 transition-all"
+                className="min-w-0 text-left rounded-2xl overflow-hidden flex flex-col border-2 border-transparent bg-white active:opacity-60 transition-all"
               >
                 <div className="relative aspect-square bg-[#e9f5f6]">
                   {img
@@ -93,16 +93,16 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
                   <div className="font-[900] text-[13.5px] leading-tight line-clamp-3 min-h-[51px] text-[#283d3e]">{t.name}</div>
                   <div className="mt-auto pt-1 flex flex-wrap gap-1.5">
                     {cd && (
-                      <span className={`text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 tabular-nums before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 ${
+                      <span className={`text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap tabular-nums before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 ${
                         cd.urgent ? "bg-[#fdecea] text-[#c4362a] before:bg-[#e46b58] motion-safe:before:animate-pulse" : "bg-[#f0f4f4] text-[#283d3e] before:bg-[#e46b58]"
                       }`}>{cd.text}</span>
                     )}
                     {(t.joinPeople ?? 0) > 0 && (
-                      <span className="text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 bg-[#fce7f3] text-[#a3346b] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 before:bg-[#e868a0]">{t.joinPeople} 人跟團</span>
+                      <span className="text-[11px] font-[900] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap bg-[#fce7f3] text-[#a3346b] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 before:bg-[#e868a0]">{t.joinPeople} 人跟團</span>
                     )}
                   </div>
                   <span className="text-[12px] font-[900] text-[#e46b58] leading-none">{fmtMDHM(t.closeAt)} 止</span>
-                  {t.openAt && <span className="text-[12px] font-bold text-black/65">開團日期：{fmtYMD(t.openAt)}</span>}
+                  {t.openAt && <span className="text-[11px] font-bold text-black/65 tabular-nums">開團日期：{fmtYMD(t.openAt)}</span>}
                 </div>
               </button>
             );
