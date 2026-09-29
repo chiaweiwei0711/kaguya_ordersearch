@@ -3,7 +3,7 @@ import { Trash2, ShoppingCart, AlertTriangle, CheckCircle2, Loader2, ChevronRigh
 import { GroupTeam, GroupCartItem, MySubmission } from "../types";
 import { submitGroupOrder, isOpen, daysLeft, checkNickBound, checkNickOwner, fetchMySubmissions, fmtMDHM, fetchItemStats } from "../services/groupOrderService";
 import type { NickOwner } from "../services/groupOrderService";
-import { getLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
+import { getLineIdentity, refreshLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
 import type { LineIdentity } from "../services/lineIdentity";
 import { cartTeams, removeTeam, removeTeams, cartTotal, subscribeCart, setItemQty, removeItem, stepOf, CartTeam } from "../services/cart";
 import { APP_CONFIG } from "../config";
@@ -72,13 +72,17 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
   // 身分：跟填單頁同一套規則（社群點進來 LIFF 起不來＝放行，不能把老客人鎖在外面）
   useEffect(() => {
     let alive = true;
-    getLineIdentity().then(async (id) => {
+    const apply = async (id: any) => {
       if (!alive) return;
       setLineId(id);
       if (id.nickname && !nickTouched.current) setNick(id.nickname);
       if (id.status === "ready") { const f = await checkFriendship(); if (alive) setIsFriend(f); }
-    });
-    return () => { alive = false; };
+    };
+    getLineIdentity().then(apply);
+    // 同填單頁：bfcache 還原時重問身分，不然會看到登入前的狀態
+    const onShow = (e: PageTransitionEvent) => { if (e.persisted) refreshLineIdentity().then(apply).catch(() => {}); };
+    window.addEventListener("pageshow", onShow);
+    return () => { alive = false; window.removeEventListener("pageshow", onShow); };
   }, []);
 
   useEffect(() => {

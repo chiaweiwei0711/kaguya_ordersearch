@@ -21,7 +21,7 @@ import HomeHero from './components/HomeHero';
 import WorksPage from './components/WorksPage';
 import OrdersPage from './components/OrdersPage';
 import TopBar from './components/TopBar';
-import { LIFF_ID, getLineIdentity, loginWithLine, logoutLine } from './services/lineIdentity';
+import { LIFF_ID, getLineIdentity, refreshLineIdentity, cleanLineRedirectParams, loginWithLine, logoutLine } from './services/lineIdentity';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
@@ -268,9 +268,21 @@ const App: React.FC = () => {
   }, [loadTeams, selectedTeamCode]);
 
   useEffect(() => {
-    getLineIdentity()
-      .then((id) => { setBoundNick(id.nickname || null); setLineState(id.status); setLineProfile({ name: id.displayName, picture: id.picture }); })
-      .catch(() => setLineState('unavailable'));
+    const apply = (id: { nickname?: string | null; status: 'ready' | 'can-login' | 'unavailable'; displayName?: string; picture?: string }) => {
+      setBoundNick(id.nickname || null); setLineState(id.status); setLineProfile({ name: id.displayName, picture: id.picture });
+    };
+    cleanLineRedirectParams();   // 登入回來的 ?code=...&state=... 清掉，網址才乾淨、重整也不會再跑一次授權
+    getLineIdentity().then(apply).catch(() => setLineState('unavailable'));
+
+    // 按「上一頁」回到登入前那一頁時，瀏覽器會整頁還原（bfcache），
+    // 畫面就又長出「用 LINE 登入」——其實早就登入了，只是還原的是登入前的狀態。
+    // 這裡在還原當下重問一次身分，登入狀態就接得回來。
+    const onShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      refreshLineIdentity().then(apply).catch(() => {});
+    };
+    window.addEventListener('pageshow', onShow);
+    return () => window.removeEventListener('pageshow', onShow);
   }, []);
 
   // 從左邊緣往右滑＝返回上一頁（iOS 的習慣手勢）。

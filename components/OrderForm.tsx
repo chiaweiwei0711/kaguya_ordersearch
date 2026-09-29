@@ -6,7 +6,7 @@ import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, checkNickOw
 import type { NickOwner } from "../services/groupOrderService";
 import type { TeamStat } from "../services/groupOrderService";
 import { APP_CONFIG } from "../config";
-import { getLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
+import { getLineIdentity, refreshLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
 import type { LineIdentity } from "../services/lineIdentity";
 import { usePullToRefresh } from "./usePullToRefresh";
 import ProductCarousel from "./ProductCarousel";
@@ -115,7 +115,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
   // 在 LINE 裡開填單頁 → 直接用他綁定的暱稱，不用再打一次（拿不到就安靜維持手打，見 lineIdentity.ts）
   useEffect(() => {
     let alive = true;
-    getLineIdentity().then(async (id) => {
+    const apply = async (id: any) => {
       if (!alive) return;
       setLineId(id);
       if (id.nickname && !nickTouched.current) { setNick(id.nickname); setAutoNick(true); }
@@ -123,8 +123,12 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
         const f = await checkFriendship();
         if (alive) setIsFriend(f);
       }
-    });
-    return () => { alive = false; };
+    };
+    getLineIdentity().then(apply);
+    // 按上一頁回到這頁時瀏覽器會整頁還原（bfcache），登入前的「用 LINE 登入」會又冒出來 → 重問一次
+    const onShow = (e: PageTransitionEvent) => { if (e.persisted) refreshLineIdentity().then(apply).catch(() => {}); };
+    window.addEventListener("pageshow", onShow);
+    return () => { alive = false; window.removeEventListener("pageshow", onShow); };
   }, []);
 
   // 暱稱綁定即時檢查：停手 0.5 秒才問，打錯當場就會變 ❌，改對了自己變 ✅、送出鈕自動解鎖

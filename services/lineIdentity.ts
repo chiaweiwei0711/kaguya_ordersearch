@@ -61,6 +61,27 @@ export const getLineIdentity = (): Promise<LineIdentity> => {
   return cached;
 };
 
+// 重新問一次身分（丟掉這個 session 的快取）。
+// 用在「從 bfcache 還原」的時候：客人在別頁按過登入，返回上一頁時瀏覽器會把整頁狀態原封還原，
+// 畫面於是又長出「用 LINE 登入」——其實他早就登入了，只是那份 React state 是登入前的。
+export const refreshLineIdentity = (): Promise<LineIdentity> => {
+  cached = null;
+  return getLineIdentity();
+};
+
+// 登入回來後把網址上的 OAuth 參數清掉（code / state / liffClientId…）。
+// 不清的話網址很醜，重新整理還會拿舊的 code 再跑一次授權流程。
+export const cleanLineRedirectParams = () => {
+  try {
+    const u = new URL(window.location.href);
+    const junk = ['code', 'state', 'liffClientId', 'liffRedirectUri', 'liff.state', 'error', 'errorCode', 'errorMessage'];
+    let hit = false;
+    junk.forEach((k) => { if (u.searchParams.has(k)) { u.searchParams.delete(k); hit = true; } });
+    if (hit) window.history.replaceState(null, '', u.pathname + (u.search === '?' ? '' : u.search) + u.hash);
+    return hit;
+  } catch { return false; }
+};
+
 // 是不是官方帳號的好友（要先登入才問得到）。
 // 查不出來就回 null → 呼叫端當作「不擋」，寧可放一單過去，也不要把付錢的客人鎖在外面。
 export const checkFriendship = async (): Promise<boolean | null> => {
