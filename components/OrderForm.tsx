@@ -272,11 +272,6 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
           </div>
           <h2 className="text-2xl font-[900] text-[#283d3e]">填單已送出！</h2>
           <p className="text-[#283d3e] font-[900] text-lg">共 {count} 件　預估 ${total} 元</p>
-          {landed && (
-            <p className="text-[#49d5df] font-[900] text-sm bg-white rounded-full px-4 py-1.5 border-2 border-[#49d5df]">
-              系統已記錄 {landed.items.reduce((s, it) => s + it.qty, 0)} 件　{landed.time.slice(11, 16)}
-            </p>
-          )}
           <p className="text-[#283d3e]/75 text-xs font-bold leading-relaxed max-w-xs">本金額未包含可能需要二補的國際運費或境內運費，實際金額以結單後訂單狀態查詢顯示為主！</p>
           <div className="bg-white text-[#283d3e] font-bold rounded-2xl px-5 py-3 max-w-sm text-sm leading-relaxed shadow-sm flex items-start gap-2 text-left">
             <AlertTriangle className="w-5 h-5 shrink-0 text-[#e46b58] stroke-[2.5px] mt-0.5" />
@@ -690,7 +685,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
               <button onClick={() => setShowConfirm(false)} disabled={submitting} className="flex-1 bg-white border-2 border-[#49d5df] text-[#283d3e] font-[900] py-3 rounded-full">修改訂單</button>
               <button onClick={doSend} disabled={submitting || !pay} className="flex-1 bg-[#e868a0] text-[#283d3e] font-[900] py-3 rounded-full active:scale-95 transition disabled:opacity-40">{submitting ? "送出中…" : !pay ? "請先選付款方式" : "確認送出"}</button>
             </div>
-            {submitting && <div className="text-xs text-gray-500 mt-2 text-center">正在寫入訂單並跟系統核對，請不要關閉畫面（最多約一分鐘）</div>}
+            {submitting && <div className="text-xs text-gray-500 mt-2 text-center">系統正在寫入，請稍後，不要關閉畫面</div>}
             {sendNotice && <div className="text-[#e46b58] font-bold text-sm mt-2 text-center leading-relaxed">{sendNotice}</div>}
           </div>
         </div>

@@ -459,10 +459,12 @@ const App: React.FC = () => {
     setFoundOrders([]); setMySubs([]); setSelectedOrderIds(new Set()); setCargoFilters([]); setDeliveryFilter(null);
     setSubQuery(''); setSortBy('default');
     try {
+      // 填單明細（尚未結單）跟查單同時打：本來是查完單才開始查填單，兩支 GAS 排隊等於慢兩次，
+      // 「尚未結單」那格永遠比訂單晚很久才出現。先開槍再等查單，回來各自顯示。
+      const subsPromise = fetchMySubmissions(queryToSearch).then(setMySubs).catch(() => setMySubs([]));
       const results = await fetchOrdersFromSheet(queryToSearch);
       setFoundOrders(results);
-      // 填單明細一起帶回來：查單和查填單本來是兩個入口，客人得查兩次才知道自己的東西在哪
-      fetchMySubmissions(queryToSearch).then(setMySubs).catch(() => setMySubs([]));
+      void subsPromise;
       setHasSearched(true);
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -900,7 +902,7 @@ const App: React.FC = () => {
                             >
                               {tab.label}
                               {tab.n > 0 && (
-                                <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded-full ${on ? 'bg-[#e868a0] text-[#283d3e]' : 'bg-[#283d3e]/10 text-[#283d3e]/50'}`}>{tab.n}</span>
+                                <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded-full ${on ? 'bg-[#283d3e]/10 text-[#283d3e]' : 'bg-[#283d3e]/10 text-[#283d3e]/50'}`}>{tab.n}</span>
                               )}
                             </button>
                           );
