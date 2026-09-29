@@ -2,6 +2,7 @@ import React from "react";
 import { SlimFooter } from "./Footer";
 import { SectionHead } from "./Section";
 import { ChevronLeft, ArrowRight } from "lucide-react";
+import RuleQuiz from "./RuleQuiz";
 
 interface Props {
   onBack: () => void;
@@ -41,9 +42,11 @@ const GuideSection: React.FC<Props> = ({ onBack, onFaq }) => {
           ))}
         </ol>
 
+        <RuleQuiz />
+
         <button
           onClick={onFaq}
-          className="mt-8 w-full flex items-center justify-center gap-2 py-4 rounded-full bg-white text-[#49d5df] font-[900] active:scale-95 transition"
+          className="mt-4 w-full flex items-center justify-center gap-2 py-4 rounded-full bg-white text-[#49d5df] font-[900] active:scale-95 transition"
         >
           完整規則與常見問題
           <ArrowRight className="w-5 h-5 stroke-[3px]" />

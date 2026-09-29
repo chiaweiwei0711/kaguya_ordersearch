@@ -1,6 +1,7 @@
 import { APP_CONFIG } from "../config";
 import { Order, OrderStatus, OrderItem, Announcement } from "../types";
 import { gasGet } from "./edge";
+import { setFeeEnabled } from "./storage";
 
 const IMPORTANT_KEYWORDS = ["重要", "通知", "延遲", "公告", "提醒", "緊急", "注意"];
 
@@ -13,6 +14,8 @@ const fetchOrdersRaw = async (query: string): Promise<any[]> => {
   // 先走 Netlify 邊緣快取（60 秒），失敗才直接打 GAS；回 HTML 錯誤頁會丟錯 → 交給外面重試
   const data = await gasGet("query", { search: query.trim() }, { timeoutMs: 30000 });
   if (data.status === "error") throw new Error(data.message || "Google Sheet 發生錯誤");
+  // 倉儲費開關跟著每次查單回來（後台選單一按就變），沒帶就當關著
+  setFeeEnabled(data.feeOn === true);
   return Array.isArray(data.data) ? data.data : [];
 };
 

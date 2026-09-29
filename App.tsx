@@ -1144,7 +1144,7 @@ const App: React.FC = () => {
 
                                   {/* 🎯 3: 完美復活！併單倒數標籤 (顯示在卡片外面、正確！) */}
                                   {(() => {
-                                    const storageStatus = getStorageStatus(order.arrivalDate);
+                                    const storageStatus = order.status === OrderStatus.PAID ? getStorageStatus(order.arrivalDate) : null;
                                     if (storageStatus && !order.isShipped) {
                                       return (
                                         <span className={`${storageStatus.className} px-3 py-1.5 rounded-full text-[11px] font-[900]`}>

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { SlimFooter } from "./Footer";
 import { SectionHead } from "./Section";
 import { ChevronLeft, ChevronDown, ArrowRight } from "lucide-react";
+import RuleQuiz from "./RuleQuiz";
 
 interface Props {
   onBack: () => void;
@@ -126,6 +127,8 @@ const FaqSection: React.FC<Props> = ({ onBack, onGuide }) => {
         <p className="text-center text-[#283d3e]/65 font-bold text-xs mt-8 leading-relaxed">
           還有其他問題嗎？歡迎私訊官方 LINE，我們會儘速協助你！
         </p>
+        <RuleQuiz />
+
         <SlimFooter />
       </div>
     </div>

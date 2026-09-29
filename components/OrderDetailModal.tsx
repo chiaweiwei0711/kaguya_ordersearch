@@ -26,7 +26,8 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
   const isArrived = (order.shippingStatus || '').includes('已抵台');
   const payLabel = isPending ? '前往付款' : (isArrived && !order.isShipped ? '賣貨便下單' : null);
 
-  const storageInfo = getStorageStatus(order.arrivalDate);
+  // 沒付訂金的不顯示倉儲倒數（跟 storageFeeOf 同一條規則）
+  const storageInfo = order.status === OrderStatus.PAID ? getStorageStatus(order.arrivalDate) : null;
 
   return (
     <div className="fixed inset-0 bg-[#283d3e]/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in">

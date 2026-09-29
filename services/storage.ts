@@ -1,7 +1,7 @@
 // 倉儲倒數／倉儲費 —— 整站唯一算式（瓦多 2026-09-19 定）
 // 每團各自從自己的抵台日起算：抵台日＝第 0 天，免費 30 天；第 31 天起每天 5 元、直接加進尾款；
 // 收費滿 90 天（抵台後第 121 天起）視為放棄。改政策改這三個常數就好，前端所有畫面跟著變。
-import { Order } from '../types';
+import { Order, OrderStatus } from '../types';
 
 export const FREE_DAYS = 30;
 export const FEE_PER_DAY = 5;
@@ -34,7 +34,15 @@ const parseLocalDate = (s?: string): Date | null => {
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 const md = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`;
 
+// 倉儲費總開關 —— 唯一真相在後台選單（寫進試算表「系統設定」），查單回應帶 feeOn 過來。
+// 關著的時候客人端要跟倉儲費上線前長得一模一樣：不顯示倒數膠囊、尾款不含倉儲費。
+// 預設 false：萬一 API 沒帶這個欄位（舊部署、離線、解析失敗），寧可不收也不要誤收。
+let feeEnabled = false;
+export const setFeeEnabled = (on: boolean) => { feeEnabled = on; };
+export const isFeeEnabled = () => feeEnabled;
+
 export const getStorageInfo = (arrivalDate?: string, today: Date = new Date()): StorageInfo | null => {
+  if (!feeEnabled) return null;
   const arrival = parseLocalDate(arrivalDate);
   if (!arrival) return null;
   const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -66,12 +74,16 @@ export const getStorageInfo = (arrivalDate?: string, today: Date = new Date()): 
 // 這張訂單現在要收的倉儲費（已出貨的不再變動；出貨當下的金額由後台凍結進 Sheet）
 // storageFeeAdjust 是瓦多在後台「倉儲費審核」頁免除或改過的金額 —— 有值就以它為準。
 // 一定要用 undefined 判斷不能用 falsy：0 是「真的清 0」，跟「沒動過」是兩回事。
-export const storageFeeOf = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'storageFeeAdjust'>): number => {
+export const storageFeeOf = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'storageFeeAdjust' | 'status'>): number => {
+  if (!feeEnabled) return 0;
   if (order.isShipped) return 0;
+  // 訂金都還沒付的不算倉儲費 —— 他欠的是訂金。
+  // 「你欠我錢，所以我再多算你錢」講不通，那種情況要做的是催訂金（瓦多 2026-09-29 定）。
+  if (order.status !== OrderStatus.PAID) return 0;
   if (order.storageFeeAdjust !== undefined && !isNaN(order.storageFeeAdjust)) return order.storageFeeAdjust;
   return getStorageInfo(order.arrivalDate)?.fee ?? 0;
 };
 
 // 賣貨便要下單的金額＝原尾款（含二補）＋倉儲費
-export const balanceWithFee = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'balanceDue' | 'storageFeeAdjust'>): number =>
+export const balanceWithFee = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'balanceDue' | 'storageFeeAdjust' | 'status'>): number =>
   order.balanceDue + storageFeeOf(order);
