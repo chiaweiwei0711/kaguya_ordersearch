@@ -903,7 +903,7 @@ const App: React.FC = () => {
                             >
                               {tab.label}
                               {tab.n > 0 && (
-                                <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded-full font-[900] ${tab.hot ? 'bg-[#e868a0] text-white' : (on ? 'bg-[#283d3e]/10 text-[#283d3e]' : 'bg-[#283d3e]/10 text-[#283d3e]/50')}`}>{tab.n}</span>
+                                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[11px] leading-none font-[900] ${tab.hot ? 'bg-[#e5484d] text-white' : (on ? 'bg-[#283d3e]/10 text-[#283d3e]' : 'bg-[#283d3e]/10 text-[#283d3e]/50')}`}>{tab.n}</span>
                               )}
                             </button>
                           );
