@@ -398,7 +398,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               }`}
             >
               {/* 封面圖：一眼看出是什麼團的商品 */}
-              <div className={`w-16 h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center ${open ? "bg-[#e9f5f6]" : "bg-gray-200"}`}>
+              <div className={`relative w-16 h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center ${open ? "bg-[#e9f5f6]" : "bg-gray-200"}`}>
                 {cover
                   ? <img src={cover} alt="" referrerPolicy="no-referrer" loading="lazy" className={`absolute inset-0 w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
                   : <ShoppingBag className="w-7 h-7 text-[#283d3e]/25 stroke-[2px]" />}
