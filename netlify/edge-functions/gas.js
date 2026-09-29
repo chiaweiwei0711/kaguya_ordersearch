@@ -24,7 +24,10 @@ const headersFor = (ttl) => ({
   "netlify-vary": "query",
   "cache-control": "public, max-age=0, must-revalidate",             // 瀏覽器不要自己留，一律問 Netlify
   "netlify-cdn-cache-control": ttl > 0
-    ? `public, durable, s-maxage=${ttl}, stale-while-revalidate=3600`   // durable＝全球節點共用一份
+    // stale-if-error：Google 超時／回錯誤頁時（函式回 502/504），Netlify 直接拿上一份成功的答案頂上，
+    // 24 小時內查過的人不會再看到白畫面。2026-09-29 一整晚 502 就是少了這個——有 stale-while-revalidate
+    // 但那只管「過期後背景更新」，錯誤時沒被授權給舊的。
+    ? `public, durable, s-maxage=${ttl}, stale-while-revalidate=3600, stale-if-error=86400`   // durable＝全球節點共用一份
     : "no-store",
   "x-edge-ttl": String(ttl),
 });
