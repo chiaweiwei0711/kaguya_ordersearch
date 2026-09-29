@@ -74,7 +74,8 @@ export const refreshLineIdentity = (): Promise<LineIdentity> => {
 export const cleanLineRedirectParams = () => {
   try {
     const u = new URL(window.location.href);
-    const junk = ['code', 'state', 'liffClientId', 'liffRedirectUri', 'liff.state', 'error', 'errorCode', 'errorMessage'];
+    // 只在 liff.init() 之後呼叫；LIFF 靠 code/state 換 token，提早清掉會讓登入無聲失敗。
+    const junk = ['code', 'state', 'liffClientId', 'liffRedirectUri', 'liff.state'];
     let hit = false;
     junk.forEach((k) => { if (u.searchParams.has(k)) { u.searchParams.delete(k); hit = true; } });
     if (hit) window.history.replaceState(null, '', u.pathname + (u.search === '?' ? '' : u.search) + u.hash);

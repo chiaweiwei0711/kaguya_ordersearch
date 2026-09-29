@@ -271,8 +271,12 @@ const App: React.FC = () => {
     const apply = (id: { nickname?: string | null; status: 'ready' | 'can-login' | 'unavailable'; displayName?: string; picture?: string }) => {
       setBoundNick(id.nickname || null); setLineState(id.status); setLineProfile({ name: id.displayName, picture: id.picture });
     };
-    cleanLineRedirectParams();   // 登入回來的 ?code=...&state=... 清掉，網址才乾淨、重整也不會再跑一次授權
-    getLineIdentity().then(apply).catch(() => setLineState('unavailable'));
+    // ⚠️ 網址上的 ?code=&state= 一定要等 liff.init() 讀完才能清 —— LIFF 是靠它們換 token 的。
+    // 2026-09-29 我把清除放在前面，等於在 LIFF 讀到之前就刪掉，新登入的人一律失敗、
+    // 只有本機已存 token 的人沒事（瓦多的手機能登入、她妹不行就是這個）。順序不能再換回去。
+    getLineIdentity()
+      .then((id) => { apply(id); cleanLineRedirectParams(); })
+      .catch(() => { setLineState('unavailable'); cleanLineRedirectParams(); });
 
     // 按「上一頁」回到登入前那一頁時，瀏覽器會整頁還原（bfcache），
     // 畫面就又長出「用 LINE 登入」——其實早就登入了，只是還原的是登入前的狀態。
