@@ -150,6 +150,10 @@ const App: React.FC = () => {
   const [searchNotice, setSearchNotice] = useState('');   // 查單重試三次都沒成功時，回到搜尋框給的一行提示
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('deposit');
+  // LINE 通知點進來時網址會帶 ?tab=balance 之類的，指定要落在哪個分頁。
+  // 查完單才套用（查單本來就會自己挑分頁），而且只在那個分頁真的有東西時才聽它——
+  // 客人可能早就處理完了，把他丟到空分頁比預設還糟。
+  const wantTab = useRef<TabType | null>(null);
 
   // 分頁列只捲自己（水平），絕不能用 scrollIntoView ——
   // 寫在 ref callback 裡每次重繪都會跑，按「顯示更多訂單」就會把整頁拉回分頁列的位置
@@ -320,7 +324,18 @@ const App: React.FC = () => {
         const clean = h.slice(1) + window.location.search;
         window.history.replaceState(null, '', clean);   // 舊連結 → 新網址，客人只看到網址列變乾淨
       }
-      const p = window.location.pathname;
+      // LIFF 帶路徑進來時，LINE 常常先開 endpoint、把真正的目的地塞在 ?liff.state=，
+      // 要等 liff.init() 跑完 SDK 才會把網址換回來——那時候這支早就跑完了，會看不到 /orders?tab=。
+      // 只「讀」不刪：code/state 的教訓，SDK 還要用。
+      let p = window.location.pathname;
+      let qs = window.location.search;
+      const ls = new URLSearchParams(qs).get('liff.state');
+      if (ls) { try { const u = new URL(ls, window.location.origin); p = u.pathname; qs = u.search; } catch { /* 壞格式就當沒帶 */ } }
+
+      if (p.startsWith('/orders')) {
+        const t = new URLSearchParams(qs).get('tab');
+        if (t === 'deposit' || t === 'balance' || t === 'completed' || t === 'all') wantTab.current = t;
+      }
       if (p.startsWith('/closing')) { setMainView('closing'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/faq')) { setMainView('faq'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/guide')) { setMainView('guide'); setSelectedTeamCode(null); return; }
@@ -487,7 +502,15 @@ const App: React.FC = () => {
       }, 100);
       const hasPending = results.some(o => o.status === OrderStatus.PENDING);
       const hasReadyToShip = results.some(o => o.status === OrderStatus.PAID && o.shippingStatus.includes("已抵台") && !o.isShipped);
-      if (hasPending) setActiveTab('deposit');
+      const hasCompleted = results.some(o => o.isShipped);
+      const want = wantTab.current;
+      wantTab.current = null;                  // 只認第一次，之後切分頁是客人自己的事
+      const wantHasRows = want === 'all'
+        || (want === 'deposit' && hasPending)
+        || (want === 'balance' && hasReadyToShip)
+        || (want === 'completed' && hasCompleted);
+      if (want && wantHasRows) setActiveTab(want);
+      else if (hasPending) setActiveTab('deposit');
       else if (hasReadyToShip) setActiveTab('balance');
       else setActiveTab('all');
     } catch (error: any) {
