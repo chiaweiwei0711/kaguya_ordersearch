@@ -845,12 +845,17 @@ const App: React.FC = () => {
                     {/* 查的是誰。已登入就把 LINE 大頭貼與本名一起顯示，
                         客人能一眼對照「我的 LINE ↔ 綁定的暱稱」對不對 */}
                     <div className="w-full max-w-md bg-white rounded-2xl px-5 py-3.5 flex items-center gap-3">
-                      {boundNick && lineProfile.picture && (
+                      {/* 大頭貼只在「查的就是自己」時放；員工在查別人時放了自己的頭貼，看起來像在查自己（瓦多被搞混過） */}
+                      {boundNick && boundNick === searchQuery && lineProfile.picture ? (
                         <img src={lineProfile.picture} alt="" referrerPolicy="no-referrer" className="w-10 h-10 rounded-full object-cover shrink-0 bg-[#e9f5f6]" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full shrink-0 bg-[#e9f5f6] flex items-center justify-center text-[#49d5df]">
+                          <User className="w-5 h-5 stroke-[2.6px]" />
+                        </div>
                       )}
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-[11.5px] text-[#283d3e]/50 truncate">
-                          {boundNick && boundNick === searchQuery ? `LINE：${lineProfile.name || '已登入'}` : '查詢中的暱稱'}
+                          {boundNick && boundNick === searchQuery ? `LINE：${lineProfile.name || '已登入'}` : (isStaff ? '員工查詢 · 別人的訂單' : '查詢中的暱稱')}
                         </div>
                         <div className="font-[900] text-[17px] text-[#283d3e] truncate">{searchQuery || 'Guest'}</div>
                       </div>
