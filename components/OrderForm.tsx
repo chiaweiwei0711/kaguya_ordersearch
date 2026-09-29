@@ -337,10 +337,10 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
             {/* 第 2 張：跟團熱度。只給數字，不會出現任何人的暱稱。
                 已結單又沒人填單就整張不顯示（那團已經不能跟了，講「當第一個」很怪） */}
             {showJoinCard && (
-            <div className="snap-start shrink-0 w-[87%] bg-[#283d3e] rounded-2xl px-6 py-5 flex flex-col justify-center">
-              <span className="self-start bg-[#f6f9f9] text-[#283d3e] text-[13px] font-[900] px-3 py-1 rounded-full">填單統計</span>
+            <div className="snap-start shrink-0 w-[87%] bg-[#49d5df] rounded-2xl px-6 py-5 flex flex-col justify-center">
+              <span className="self-start bg-white text-[#283d3e] text-[13px] font-[900] px-3 py-1 rounded-full">填單統計</span>
               {people > 0 ? (
-                <div className="mt-4 text-white font-[900] text-xl">
+                <div className="mt-4 text-[#283d3e] font-[900] text-xl">
                   <div className="flex items-baseline">
                     已有<span className="text-[44px] leading-none mx-1.5">{people}</span>人填單
                   </div>
@@ -349,9 +349,9 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                   </div>
                 </div>
               ) : !stat && statLoading ? (
-                <div className="mt-4 text-white/80 font-[900] text-2xl leading-snug">人數更新中…</div>
+                <div className="mt-4 text-[#283d3e]/70 font-[900] text-2xl leading-snug">人數更新中…</div>
               ) : (
-                <div className="mt-4 text-white font-[900] text-2xl leading-snug">持續開放喊單中～</div>
+                <div className="mt-4 text-[#283d3e] font-[900] text-2xl leading-snug">持續開放喊單中～</div>
               )}
             </div>
             )}

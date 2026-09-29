@@ -112,7 +112,7 @@ const RuleQuiz: React.FC = () => {
               <p className="mt-4 rounded-[16px] bg-[#e9f5f6] text-[#1f7f8a] font-bold text-[13px] leading-relaxed px-4 py-3">{cur.why}</p>
               <button
                 onClick={() => { setPicked(null); setIdx((n) => n + 1); }}
-                className="mt-4 w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#283d3e] text-white font-[900] active:scale-95 transition"
+                className="mt-4 w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#49d5df] text-white font-[900] active:scale-95 transition"
               >
                 {idx + 1 === quiz.length ? "看結果" : "下一題"}
                 <ArrowRight className="w-5 h-5 stroke-[3px]" />
