@@ -80,9 +80,9 @@ const ClosingList: React.FC<Props> = ({ teams, products, loading, onSelect, onBa
                 className="min-w-0 text-left rounded-2xl overflow-hidden flex flex-col border-2 border-transparent bg-white active:opacity-60 transition-all"
               >
                 <div className="relative aspect-square bg-[#e9f5f6]">
-                  {img
-                    ? <img src={img} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-[#283d3e]/25 stroke-[2px]" /></div>}
+                  {/* 底墊永遠在，圖掛掉(onError 隱藏)就露出來，不會只剩一塊空色塊 */}
+                  <div className="absolute inset-0 flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-[#283d3e]/25 stroke-[2px]" /></div>
+                  {img && <img src={img} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />}
                   <span className={`absolute top-2 left-2 text-[12px] font-[900] px-3 py-1 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 ${
                     when === "today" ? "bg-white text-[#e46b58] before:bg-[#e46b58]" : "bg-white text-[#283d3e] before:bg-[#49d5df]"
                   }`}>
