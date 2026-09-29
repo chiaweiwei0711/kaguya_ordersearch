@@ -63,7 +63,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ orders, totalAmount, isOpen
       setIsCopied(true);
       setTimeout(() => {
         if (targetUrl) {
-          // 💡 魔法在這裡：放棄 window.open('_blank')
+          // 💡 魔法在這裡：拋棄 window.open('_blank')
           // 改用 window.location.href 直接跳轉，LINE 絕對不會擋！
           window.location.href = targetUrl;
         }

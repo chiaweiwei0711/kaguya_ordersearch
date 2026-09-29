@@ -33,7 +33,7 @@ import { getStorageInfo, balanceWithFee } from './services/storage';
 type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing' | 'works' | 'orders' | 'cart';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all' | 'pending';
 
-// --- 📅 倉儲倒數／倉儲費：算式統一在 services/storage.ts（30 天免費、之後每天 $5、收費 90 天後視為放棄） ---
+// --- 📅 倉儲倒數／倉儲費：算式統一在 services/storage.ts（30 天免費、之後每天 $5、收費 90 天後視為拋棄） ---
 const getStorageStatus = (dateStr?: string) => getStorageInfo(dateStr);
 
 // --- 篩選選項 ---

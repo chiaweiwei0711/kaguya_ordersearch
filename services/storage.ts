@@ -1,12 +1,12 @@
 // 倉儲倒數／倉儲費 —— 整站唯一算式（瓦多 2026-09-19 定）
 // 每團各自從自己的抵台日起算：抵台日＝第 0 天，免費 30 天；第 31 天起每天 5 元、直接加進尾款；
-// 收費滿 90 天（抵台後第 121 天起）視為放棄。改政策改這三個常數就好，前端所有畫面跟著變。
+// 收費滿 90 天（抵台後第 121 天起）視為拋棄。改政策改這三個常數就好，前端所有畫面跟著變。
 import { Order, OrderStatus } from '../types';
 
 export const FREE_DAYS = 30;
 export const FEE_PER_DAY = 5;
 export const FEE_DAYS = 90;                       // 收費期長度
-export const ABANDON_DAY = FREE_DAYS + FEE_DAYS;  // 第 121 天起視為放棄
+export const ABANDON_DAY = FREE_DAYS + FEE_DAYS;  // 第 121 天起視為拋棄
 
 export type StorageState = 'free' | 'soon' | 'overdue' | 'abandoned';
 
@@ -17,7 +17,7 @@ export interface StorageInfo {
   freeLeft: number;       // 還剩幾天免費（<0 表示已逾期）
   overdueDays: number;    // 已逾期幾天（0 表示還沒逾期）
   fee: number;            // 目前累計倉儲費
-  daysToAbandon: number;  // 再幾天視為放棄（逾期後才有意義）
+  daysToAbandon: number;  // 再幾天視為拋棄（逾期後才有意義）
   state: StorageState;
   label: string;          // 短標籤（卡片膠囊用）
   detail: string;         // 長說明（訂單詳情用）
@@ -55,10 +55,10 @@ export const getStorageInfo = (arrivalDate?: string, today: Date = new Date()): 
 
   let state: StorageState, label: string, className: string;
   if (dayIndex >= ABANDON_DAY) {
-    state = 'abandoned'; label = `逾期 ${overdueDays} 天・已達放棄期限`; className = 'bg-[#1a1a1a] text-white';
+    state = 'abandoned'; label = `逾期 ${overdueDays} 天・已達拋棄期限`; className = 'bg-[#1a1a1a] text-white';
   } else if (overdueDays > 0) {
     state = 'overdue';
-    label = daysToAbandon <= 7 ? `逾期 ${overdueDays} 天・再 ${daysToAbandon} 天視為放棄` : `逾期 ${overdueDays} 天・倉儲費 +$${fee}`;
+    label = daysToAbandon <= 7 ? `逾期 ${overdueDays} 天・再 ${daysToAbandon} 天視為拋棄` : `逾期 ${overdueDays} 天・倉儲費 +$${fee}`;
     className = 'bg-[#f8a3f4] text-white';
   } else if (freeLeft <= 5) {
     state = 'soon'; label = `剩 ${freeLeft} 天免費`; className = 'bg-[#fff170] text-black';

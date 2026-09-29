@@ -109,7 +109,7 @@ export const fetchTeams = async (onLive?: (p: TeamsPayload) => void): Promise<Te
     if (onLive) {
       liveCheck = (async () => {
         try {
-          // 先走 Netlify 邊緣快取（20 秒，全站共用一份）；10 秒沒回才放棄，畫面維持靜態檔內容
+          // 先走 Netlify 邊緣快取（20 秒，全站共用一份）；10 秒沒回才拋棄，畫面維持靜態檔內容
           const ld = await gasGet("order", { type: "live" }, { timeoutMs: 10000 });
           if (ld.status !== "success" || !Array.isArray(ld.teams) || !ld.teams.length) return;
           // 版號一致＝靜態檔與試算表同步 → 商品明細可以吃 CDN（秒開）；不一致代表她剛改過 → 走 GAS 拿最新
