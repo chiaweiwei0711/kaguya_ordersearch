@@ -120,9 +120,9 @@ const WorksPage: React.FC<Props> = ({ teams, products, loading, onBack, onSelect
               >
                 <span className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-black/10 flex items-center justify-center">
                   {w.logo
-                    ? <img src={w.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[86%] h-[72%] object-contain" />
+                    ? <img src={w.logo} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="w-[86%] h-[72%] object-contain" />
                     : w.cover
-                      ? <img src={w.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                      ? <img src={w.cover} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                       : <ShoppingBag className="w-8 h-8 text-[#283d3e]/25 stroke-[2px]" />}
                   {w.open > 0 && (
                     <span className="absolute inset-x-0 bottom-0 bg-[#49d5df]/95 text-[#283d3e] text-[10px] font-[900] text-center py-0.5">開團中 {w.open}</span>

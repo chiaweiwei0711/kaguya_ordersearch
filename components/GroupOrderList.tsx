@@ -360,7 +360,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               >
                 <div className={`relative aspect-square ${open ? "bg-[#e9f5f6]" : "bg-gray-200"}`}>
                   {cover
-                    ? <img src={cover} alt="" referrerPolicy="no-referrer" loading="lazy" className={`absolute inset-0 w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
+                    ? <img src={cover} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className={`absolute inset-0 w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
                     : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-[#283d3e]/25 stroke-[2px]" /></div>}
                   <span className={`absolute top-2 left-2 text-[12px] font-[900] px-3 py-1 rounded-full inline-flex items-center gap-1.5 before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:shrink-0 border border-black/12 bg-white ${
                     open ? "text-[#283d3e] before:bg-[#49d5df]" : "text-gray-500 before:bg-gray-400"
@@ -400,7 +400,7 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
               {/* 封面圖：一眼看出是什麼團的商品 */}
               <div className={`relative w-16 h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center ${open ? "bg-[#e9f5f6]" : "bg-gray-200"}`}>
                 {cover
-                  ? <img src={cover} alt="" referrerPolicy="no-referrer" loading="lazy" className={`absolute inset-0 w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
+                  ? <img src={cover} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className={`absolute inset-0 w-full h-full object-cover ${open ? "" : "grayscale opacity-70"}`} />
                   : <ShoppingBag className="w-7 h-7 text-[#283d3e]/25 stroke-[2px]" />}
               </div>
               <div className="min-w-0 flex-1">

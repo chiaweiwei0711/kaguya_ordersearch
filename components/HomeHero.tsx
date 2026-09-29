@@ -103,7 +103,7 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                 >
                   <div className="relative w-full aspect-square bg-[#e9f5f6]">
                     {cover
-                      ? <img src={cover} alt="" referrerPolicy="no-referrer" loading={i === 0 ? "eager" : "lazy"} className="absolute inset-0 w-full h-full object-cover" />
+                      ? <img src={cover} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading={i === 0 ? "eager" : "lazy"} className="absolute inset-0 w-full h-full object-cover" />
                       : <div className="absolute inset-0 flex items-center justify-center"><ShoppingBag className="w-12 h-12 text-[#283d3e]/25 stroke-[2px]" /></div>}
 
                     {/* 遮罩＝整張卡的形狀：資訊列也放進圖裡，遮罩的下緣就是卡片的圓角，
@@ -164,9 +164,9 @@ const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onS
                 {/* 方形不是圓形：官方 logo 幾乎都是橫長型，圓形會把左右裁掉、字縮到看不清（movic／ensky 都用方形） */}
                 <span className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white border border-black/10 flex items-center justify-center">
                   {t.logo
-                    ? <img src={t.logo} alt="" referrerPolicy="no-referrer" loading="lazy" className="w-[86%] h-[72%] object-contain" />
+                    ? <img src={t.logo} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="w-[86%] h-[72%] object-contain" />
                     : t.cover
-                      ? <img src={t.cover} alt="" referrerPolicy="no-referrer" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                      ? <img src={t.cover} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = "none"; }} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                       : <ShoppingBag className="w-7 h-7 text-[#283d3e]/25 stroke-[2px]" />}
                   {t.open > 0 && (
                     <span className="absolute inset-x-0 bottom-0 bg-white/92 text-[#283d3e] text-[10px] font-[900] text-center py-0.5 border-t border-black/8">{t.open} 團</span>
