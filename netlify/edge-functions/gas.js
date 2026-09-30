@@ -27,7 +27,9 @@ const headersFor = (ttl) => ({
     // stale-if-error：Google 超時／回錯誤頁時（函式回 502/504），Netlify 直接拿上一份成功的答案頂上，
     // 24 小時內查過的人不會再看到白畫面。2026-09-29 一整晚 502 就是少了這個——有 stale-while-revalidate
     // 但那只管「過期後背景更新」，錯誤時沒被授權給舊的。
-    ? `public, durable, s-maxage=${ttl}, stale-while-revalidate=3600, stale-if-error=86400`   // durable＝全球節點共用一份
+    // ⚠️ 2026-09-30 查明：Netlify 文件寫明 durable「尚未支援邊緣函式的回應」，掛著它整組快取指令等於無效，
+    //    邊緣層從 9/17 上線起就從來沒有命中過（連 20 秒 TTL 的 live 都 1 秒後再打還是 miss）。拿掉。
+    ? `public, s-maxage=${ttl}, stale-while-revalidate=3600, stale-if-error=86400`
     : "no-store",
   "x-edge-ttl": String(ttl),
 });
