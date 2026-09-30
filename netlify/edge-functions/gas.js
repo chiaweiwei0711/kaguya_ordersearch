@@ -22,7 +22,9 @@ const headersFor = (ttl) => ({
   // ⚠️ 2026-09-17 事故：Netlify 的快取鍵預設「不看問號後面的參數」→ 所有 ?search=誰 都共用同一份，
   //    白白白查完換瓦多查還是白白白的單。這行讓每組參數各自一份快取。
   "netlify-vary": "query",
-  "cache-control": "public, max-age=0, must-revalidate",             // 瀏覽器不要自己留，一律問 Netlify
+  // ttl=0（錯誤／fresh=1）連瀏覽器層也用 no-store：實測 Netlify 曾把一個 502 存起來、77 分鐘後還當 stale 發出去
+  // （cache-status: fwd=stale; fwd-status=502; ttl=-4655）。public+max-age=0 仍算「可存需驗證」，改成明確不存。
+  "cache-control": ttl > 0 ? "public, max-age=0, must-revalidate" : "no-store",
   "netlify-cdn-cache-control": ttl > 0
     // stale-if-error：Google 超時／回錯誤頁時（函式回 502/504），Netlify 直接拿上一份成功的答案頂上，
     // 24 小時內查過的人不會再看到白畫面。2026-09-29 一整晚 502 就是少了這個——有 stale-while-revalidate

@@ -678,7 +678,11 @@ const App: React.FC = () => {
       <div className="w-full max-w-2xl min-h-screen relative flex flex-col pt-16 z-0 mx-auto px-6 md:px-12">
 
         <div className="w-full flex-1 relative z-10 flex flex-col items-center">
-          {mainView === 'orders' && !showAllOrders ? (
+          {/* 2026-09-30 瓦多：「底部是首頁、上面轉載入中」「按看全部訂單會跑到首頁」。
+              原因：員工查別人（onSearch）或按看全部都會把 showAllOrders 設成 true，這個分支就被跳過，
+              掉到下面共用分支；而 hasSearched 要查成功才會變 true → 查詢中或查失敗那段時間畫的是首頁。
+              改成：在訂單頁而且還沒有結果，就一律留在訂單頁的殼（會顯示載入／逾時提示），不要掉回首頁。 */}
+          {mainView === 'orders' && (!showAllOrders || !hasSearched) ? (
             <OrdersPage
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
