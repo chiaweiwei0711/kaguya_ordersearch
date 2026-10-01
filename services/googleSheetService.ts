@@ -89,6 +89,8 @@ export const fetchOrdersFromSheet = async (query: string): Promise<Order[]> => {
           // 後台免除／改過的倉儲費。空字串＝沒動過（要照算），0＝真的被清 0，兩者不能混為一談
           storageFeeAdjust: (row["倉儲費調整"] === "" || row["倉儲費調整"] === null || row["倉儲費調整"] === undefined)
             ? undefined : Number(row["倉儲費調整"]),
+          // 已在賣貨便下單的日子：倉儲費凍結在這天（後台賣貨便核對也是這樣算），網站要顯示「已下單」
+          placedDate: String(row["下單日期"] || ""),
           createdAt: new Date().toISOString().split('T')[0]
         });
       }

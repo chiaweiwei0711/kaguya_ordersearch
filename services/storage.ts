@@ -8,7 +8,7 @@ export const FEE_PER_DAY = 5;
 export const FEE_DAYS = 90;                       // 收費期長度
 export const ABANDON_DAY = FREE_DAYS + FEE_DAYS;  // 第 121 天起視為拋棄
 
-export type StorageState = 'free' | 'soon' | 'overdue' | 'abandoned';
+export type StorageState = 'free' | 'soon' | 'overdue' | 'abandoned' | 'placed';
 
 export interface StorageInfo {
   arrival: Date;
@@ -41,10 +41,14 @@ let feeEnabled = false;
 export const setFeeEnabled = (on: boolean) => { feeEnabled = on; };
 export const isFeeEnabled = () => feeEnabled;
 
-export const getStorageInfo = (arrivalDate?: string, today: Date = new Date()): StorageInfo | null => {
+// placedDate＝客人在賣貨便下單那天（後台匯入賣貨便報表時回寫）。有的話倉儲費「算到那天為止」——
+// 她一週才寄一次貨，下單之後等她寄的那幾天不該再算客人的錢（後台賣貨便核對也是這樣算，兩邊才對得起來）。
+export const getStorageInfo = (arrivalDate?: string, today: Date = new Date(), placedDate?: string): StorageInfo | null => {
   if (!feeEnabled) return null;
   const arrival = parseLocalDate(arrivalDate);
   if (!arrival) return null;
+  const placed = parseLocalDate(placedDate);
+  if (placed) today = placed;
   const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const dayIndex = Math.floor((t0.getTime() - arrival.getTime()) / 86400000);
   const freeLeft = FREE_DAYS - dayIndex;
@@ -54,6 +58,13 @@ export const getStorageInfo = (arrivalDate?: string, today: Date = new Date()): 
   const daysToAbandon = ABANDON_DAY - dayIndex;
 
   let state: StorageState, label: string, className: string;
+  if (placed) {
+    state = 'placed'; label = `已下單 ${md(placed)}・等待出貨`; className = 'bg-[#283d3e] text-white';
+    const detail = overdueDays > 0
+      ? `${md(arrival)} 抵台・${md(placed)} 已在賣貨便下單，倉儲費算到下單日：逾期 ${overdueDays} 天 × $${FEE_PER_DAY}`
+      : `${md(arrival)} 抵台・${md(placed)} 已在賣貨便下單，免費期內下單不收倉儲費`;
+    return { arrival, freeUntil, dayIndex, freeLeft, overdueDays, fee, daysToAbandon, state, label, detail, className };
+  }
   if (dayIndex >= ABANDON_DAY) {
     state = 'abandoned'; label = `逾期 ${overdueDays} 天・已達拋棄期限`; className = 'bg-[#1a1a1a] text-white';
   } else if (overdueDays > 0) {
@@ -74,16 +85,20 @@ export const getStorageInfo = (arrivalDate?: string, today: Date = new Date()): 
 // 這張訂單現在要收的倉儲費（已出貨的不再變動；出貨當下的金額由後台凍結進 Sheet）
 // storageFeeAdjust 是瓦多在後台「倉儲費審核」頁免除或改過的金額 —— 有值就以它為準。
 // 一定要用 undefined 判斷不能用 falsy：0 是「真的清 0」，跟「沒動過」是兩回事。
-export const storageFeeOf = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'storageFeeAdjust' | 'status'>): number => {
+export const storageFeeOf = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'storageFeeAdjust' | 'status' | 'placedDate'>): number => {
   if (!feeEnabled) return 0;
   if (order.isShipped) return 0;
   // 訂金都還沒付的不算倉儲費 —— 他欠的是訂金。
   // 「你欠我錢，所以我再多算你錢」講不通，那種情況要做的是催訂金（瓦多 2026-09-29 定）。
   if (order.status !== OrderStatus.PAID) return 0;
   if (order.storageFeeAdjust !== undefined && !isNaN(order.storageFeeAdjust)) return order.storageFeeAdjust;
-  return getStorageInfo(order.arrivalDate)?.fee ?? 0;
+  return getStorageInfo(order.arrivalDate, undefined, order.placedDate)?.fee ?? 0;
 };
 
+// 已經在賣貨便下單、還沒出貨 → 不用再付一次，網站把「賣貨便下單」藏起來、勾選也勾不到（瓦多 2026-10-01 定）
+export const isPlaced = (order: Pick<Order, 'placedDate' | 'isShipped'>): boolean =>
+  !order.isShipped && !!parseLocalDate(order.placedDate);
+
 // 賣貨便要下單的金額＝原尾款（含二補）＋倉儲費
-export const balanceWithFee = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'balanceDue' | 'storageFeeAdjust' | 'status'>): number =>
+export const balanceWithFee = (order: Pick<Order, 'arrivalDate' | 'isShipped' | 'balanceDue' | 'storageFeeAdjust' | 'status' | 'placedDate'>): number =>
   order.balanceDue + storageFeeOf(order);

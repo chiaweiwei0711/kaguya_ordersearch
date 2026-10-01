@@ -1,8 +1,8 @@
 import React from 'react';
-import { X, ExternalLink, Package, DollarSign, Calendar, CreditCard, User, ArrowRight } from 'lucide-react';
+import { X, ExternalLink, Package, DollarSign, Calendar, CreditCard, User, ArrowRight, Check } from 'lucide-react';
 import { Order, OrderStatus } from '../types';
 import { APP_CONFIG } from '../config';
-import { getStorageInfo, balanceWithFee } from '../services/storage';
+import { getStorageInfo, balanceWithFee, storageFeeOf, isPlaced } from '../services/storage';
 
 interface OrderDetailModalProps {
   order: Order | null;
@@ -12,7 +12,7 @@ interface OrderDetailModalProps {
 }
 
 // 倉儲倒數／倉儲費：算式統一在 services/storage.ts
-const getStorageStatus = (dateStr?: string) => getStorageInfo(dateStr);
+const getStorageStatus = (o: Order) => getStorageInfo(o.arrivalDate, undefined, o.placedDate);
 
 const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onClose, onPay }) => {
   if (!isOpen || !order) return null;
@@ -24,10 +24,11 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
   // 這張訂單「當下該做的付款動作」：待付款→付訂金；已付訂金且已抵台未出貨→付尾款；其餘→無
   const isPending = order.status !== OrderStatus.PAID;
   const isArrived = (order.shippingStatus || '').includes('已抵台');
-  const payLabel = isPending ? '前往付款' : (isArrived && !order.isShipped ? '賣貨便下單' : null);
+  const placed = isPlaced(order);   // 已在賣貨便下單：不給再下一次
+  const payLabel = isPending ? '前往付款' : (isArrived && !order.isShipped && !placed ? '賣貨便下單' : null);
 
   // 沒付訂金的不顯示倉儲倒數（跟 storageFeeOf 同一條規則）
-  const storageInfo = order.status === OrderStatus.PAID ? getStorageStatus(order.arrivalDate) : null;
+  const storageInfo = order.status === OrderStatus.PAID ? getStorageStatus(order) : null;
 
   return (
     <div className="fixed inset-0 bg-[#283d3e]/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in">
@@ -159,7 +160,8 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
               {(() => {
                 const intl = order.internationalShipping && order.internationalShipping > 0 ? order.internationalShipping : 0;
                 const baseBalance = order.productTotal - order.depositAmount;           // 純尾款（每團預留 100）
-                const fee = storageInfo && !order.isShipped ? storageInfo.fee : 0;
+                // 用 storageFeeOf（會套後台免除／改過的金額）—— 原本直接拿 storageInfo.fee，被免除的人會看到「+$80」但總尾款沒加，對不起來
+                const fee = storageInfo && !order.isShipped ? storageFeeOf(order) : 0;
                 const hasExtra = intl > 0 || fee > 0;
                 const total = balanceWithFee(order);
                 return (
@@ -202,7 +204,9 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                         <div>
                           <div className="text-gray-500 text-sm font-[900] tracking-widest">追加倉儲費</div>
                           <div className="text-[12.5px] text-gray-400 font-bold leading-snug mt-0.5">
-                            {storageInfo.arrival.getMonth() + 1}/{storageInfo.arrival.getDate()} 抵台・免費保管至 {storageInfo.freeUntil.getMonth() + 1}/{storageInfo.freeUntil.getDate()}・逾期 {storageInfo.overdueDays} 天 × $5
+                            {storageInfo.state === 'placed'
+                              ? storageInfo.detail
+                              : `${storageInfo.arrival.getMonth() + 1}/${storageInfo.arrival.getDate()} 抵台・免費保管至 ${storageInfo.freeUntil.getMonth() + 1}/${storageInfo.freeUntil.getDate()}・逾期 ${storageInfo.overdueDays} 天 × $5`}
                           </div>
                         </div>
                         <span className="font-[900] text-[#e868a0] whitespace-nowrap">+ $ {fee.toLocaleString()}</span>
@@ -236,6 +240,18 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
                 <ArrowRight className="w-5 h-5 stroke-[3px]" />
                 {payLabel}
               </button>
+              <button onClick={openLine} className="flex items-center justify-center gap-2 px-5 py-4 rounded-full bg-gray-100 text-gray-600 font-[900] border-[2.5px] border-black active:translate-x-[3px] active:opacity-60 transition-all">
+                <ExternalLink className="w-5 h-5 stroke-[2.5px]" />
+                客服
+              </button>
+            </>
+          ) : placed && storageInfo ? (
+            <>
+              {/* 已在賣貨便下單：原本「賣貨便下單」的位置改成狀態，不能再按 */}
+              <div className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-[#283d3e] text-white font-[900] border-[2.5px] border-black">
+                <Check className="w-5 h-5 stroke-[3px]" />
+                {storageInfo.label.split('・')[0]}
+              </div>
               <button onClick={openLine} className="flex items-center justify-center gap-2 px-5 py-4 rounded-full bg-gray-100 text-gray-600 font-[900] border-[2.5px] border-black active:translate-x-[3px] active:opacity-60 transition-all">
                 <ExternalLink className="w-5 h-5 stroke-[2.5px]" />
                 客服

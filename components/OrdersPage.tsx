@@ -1,6 +1,7 @@
 import React from "react";
 import { ShieldCheck, Search, ArrowRight, BookOpen, HelpCircle, Shield, MessageCircle, Users, Instagram, ChevronRight, UserCheck, Link2, LogIn, Loader2 } from "lucide-react";
 import { Order, OrderStatus } from "../types";
+import { balanceWithFee, isPlaced } from "../services/storage";
 import { APP_CONFIG } from "../config";
 import { logoutLine } from "../services/lineIdentity";
 import { SectionHead } from "./Section";
@@ -152,17 +153,20 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                 {previewOrders.map((o) => {
                   const pending = o.status === OrderStatus.PENDING;
                   const ready = o.status === OrderStatus.PAID && o.shippingStatus.includes("已抵台") && !o.isShipped;
+                  // 已在賣貨便下單：灰掉、標「已下單 9/30」，不再寫「應付」（2026-10-01）
+                  const placed = ready && isPlaced(o);
+                  const placedMd = placed ? (() => { const m = String(o.placedDate).match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); return m ? `${+m[2]}/${+m[3]}` : ""; })() : "";
                   return (
                     <button
                       key={o.id}
                       onClick={() => onOpenOrder?.(o)}
-                      className="w-full text-left px-5 py-3.5 border-t border-[#283d3e]/[0.07] first:border-t-0 active:bg-[#283d3e]/[0.03] transition flex items-start gap-3"
+                      className={`w-full text-left px-5 py-3.5 border-t border-[#283d3e]/[0.07] first:border-t-0 active:bg-[#283d3e]/[0.03] transition flex items-start gap-3 ${placed ? "bg-[#283d3e]/[0.04] opacity-70" : ""}`}
                     >
                       <div className="min-w-0 flex-1">
                         <span className={`inline-flex items-center gap-1.5 border border-black/12 bg-white px-2 py-0.5 rounded-full text-[10.5px] font-[900] before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full ${
-                          o.isShipped ? "before:bg-[#49d5df]" : pending ? "before:bg-[#e46b58]" : ready ? "before:bg-[#e868a0]" : "before:bg-[#283d3e]/35"
+                          o.isShipped ? "before:bg-[#49d5df]" : pending ? "before:bg-[#e46b58]" : placed ? "before:bg-[#283d3e]" : ready ? "before:bg-[#e868a0]" : "before:bg-[#283d3e]/35"
                         }`}>
-                          {o.isShipped ? "已出貨" : pending ? "待付款" : ready ? "可出貨" : "尚未出貨"}
+                          {o.isShipped ? "已出貨" : pending ? "待付款" : placed ? `已下單 ${placedMd}・等待出貨` : ready ? "可出貨" : "尚未出貨"}
                         </span>
                         <div className="font-[900] text-[14.5px] leading-snug mt-1.5 line-clamp-2">{o.groupName}</div>
                         {o.createdAt && (
@@ -172,10 +176,11 @@ const OrdersPage: React.FC<Props> = ({ searchQuery, setSearchQuery, onSearch, se
                       <div className="shrink-0 text-right">
                         {/* 金額跟著狀態走：待付款看訂金、可出貨看尾款、其他看商品總額 */}
                         <div className="font-bold text-[10.5px] text-[#283d3e]/40 leading-none">
-                          {pending ? "應付訂金" : ready ? "應付尾款" : "訂單金額"}
+                          {pending ? "應付訂金" : placed ? "已下單金額" : ready ? "應付尾款" : "訂單金額"}
                         </div>
                         <div className="font-[900] text-[17px] tabular-nums leading-tight mt-0.5">
-                          ${pending ? o.depositAmount : ready ? o.balanceDue : o.productTotal}
+                          {/* 尾款要含倉儲費（跟點進去看到的總尾款一樣）—— 原本寫 balanceDue，少了倉儲費 */}
+                          ${pending ? o.depositAmount : ready ? balanceWithFee(o) : o.productTotal}
                         </div>
                         <div className="font-bold text-[12.5px] text-[#283d3e]/40">{o.totalQuantity} 件</div>
                       </div>

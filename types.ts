@@ -34,6 +34,7 @@ export interface Order {
   notes?: string;                   // 備註（補充說明）
   orderKey?: string;                // KG-xxxxxx 不可變主鍵（2026-09 搬遷後才有；舊單可能沒有）
   storageFeeAdjust?: number;        // 瓦多在後台免除／改過的倉儲費。undefined＝沒動過，照算
+  placedDate?: string;              // 賣貨便下單日（後台匯入賣貨便報表時回寫）。有值＝已下單，倉儲費算到這天為止
 }
 
 export interface Announcement {

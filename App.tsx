@@ -27,14 +27,14 @@ import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
 import OrderForm from './components/OrderForm';
 import { fetchTeams, fetchTeamItems, closingSoon, fmtMDHM, fetchMySubmissions, isOpen } from './services/groupOrderService';
-import { getStorageInfo, balanceWithFee } from './services/storage';
+import { getStorageInfo, balanceWithFee, isPlaced } from './services/storage';
 
 // --- 類型定義 ---
 type MainView = 'query' | 'info' | 'about' | 'order' | 'faq' | 'guide' | 'closing' | 'works' | 'orders' | 'cart';
 type TabType = 'deposit' | 'balance' | 'completed' | 'all' | 'pending';
 
 // --- 📅 倉儲倒數／倉儲費：算式統一在 services/storage.ts（30 天免費、之後每天 $5、收費 90 天後視為拋棄） ---
-const getStorageStatus = (dateStr?: string) => getStorageInfo(dateStr);
+const getStorageStatus = (o: Order) => getStorageInfo(o.arrivalDate, undefined, o.placedDate);
 
 // --- 篩選選項 ---
 const ITEM_STATUS_OPTIONS = ['已登記', '已訂購', '日方發貨', '轉送中', '已抵台'];
@@ -139,7 +139,7 @@ const App: React.FC = () => {
   const previewOrders = useMemo(() => {
     const rank = (o: Order) => {
       if (o.status === OrderStatus.PENDING) return 0;                                              // 待付款
-      if (o.status === OrderStatus.PAID && o.shippingStatus.includes("已抵台") && !o.isShipped) return 1;  // 可出貨
+      if (o.status === OrderStatus.PAID && o.shippingStatus.includes("已抵台") && !o.isShipped) return isPlaced(o) ? 2 : 1;  // 可出貨（已下單的不用再動作，排後面）
       return 2;
     };
     // 同一組內照日期新到舊；沒有訂單日期的一定是舊單，一律排最後，
@@ -471,6 +471,11 @@ const App: React.FC = () => {
       const ts = (o: Order) => { const t = new Date(o.createdAt || '').getTime(); return isNaN(t) ? -Infinity : t; };
       result.sort((a, b) => ts(b) - ts(a));
     }
+    // 可出貨分頁：已在賣貨便下單的沉到最下面（還要付的排前面，客人一眼看到該做什麼）
+    if (activeTab === 'balance') {
+      const rank = (o: Order) => (isPlaced(o) ? 1 : 0);
+      result.sort((a, b) => rank(a) - rank(b));   // 穩定排序，同一組內維持上面的順序
+    }
     return result;
   }, [foundOrders, activeTab, cargoFilters, deliveryFilter, subQuery, sortBy]);
 
@@ -540,14 +545,20 @@ const App: React.FC = () => {
     executeSearch(override ?? searchQuery);
   };
 
+  // 可出貨分頁裡「已在賣貨便下單」的勾不到 —— 不讓客人同一筆再付一次（瓦多 2026-10-01 定）
+  const isSelectable = (o: Order) => !(activeTab === 'balance' && isPlaced(o));
+  const selectableOrders = filteredOrders.filter(isSelectable);
+
   const toggleOrderSelection = (id: string) => {
+    const o = filteredOrders.find(x => x.id === id);
+    if (o && !isSelectable(o)) return;
     const newSet = new Set(selectedOrderIds);
     if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
     setSelectedOrderIds(newSet);
   };
 
   const handleSelectAll = () => {
-    const currentIds = filteredOrders.map(o => o.id);
+    const currentIds = selectableOrders.map(o => o.id);
     const areAllSelected = currentIds.every(id => selectedOrderIds.has(id));
     if (areAllSelected) { const newSet = new Set(selectedOrderIds); currentIds.forEach(id => newSet.delete(id)); setSelectedOrderIds(newSet); }
     else { const newSet = new Set(selectedOrderIds); currentIds.forEach(id => newSet.add(id)); setSelectedOrderIds(newSet); }
@@ -930,7 +941,8 @@ const App: React.FC = () => {
                           // 待付款／可出貨是要客人馬上動作的，數字用醒目色；尚未結單只是登記，數字灰的
                           ...(pendingSubs.length ? [{ id: 'pending', label: '尚未結單', n: pendingSubs.length, hot: false }] : []),
                           { id: 'deposit', label: '待付款', n: foundOrders.filter(o => o.status === OrderStatus.PENDING).length, hot: true },
-                          { id: 'balance', label: '可出貨', n: foundOrders.filter(o => o.status === OrderStatus.PAID && o.shippingStatus.includes('已抵台') && !o.isShipped).length, hot: true },
+                          // 紅點＝還要付的筆數：已在賣貨便下單的不算（它們還在這分頁裡，只是灰掉）
+                          { id: 'balance', label: '可出貨', n: foundOrders.filter(o => o.status === OrderStatus.PAID && o.shippingStatus.includes('已抵台') && !o.isShipped && !isPlaced(o)).length, hot: true },
                           { id: 'completed', label: '已完成', n: 0, hot: false },
                           { id: 'all', label: '全部', n: 0, hot: false }
                         ].map(tab => {
@@ -999,13 +1011,13 @@ const App: React.FC = () => {
                         {(activeTab === 'deposit' || activeTab === 'balance') ? (
                           <button onClick={handleSelectAll} className="flex items-center gap-2 text-[14px] font-[900] text-[#283d3e]/70 active:opacity-50 transition pr-1">
                             <span className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition ${
-                              filteredOrders.length > 0 && filteredOrders.every(o => selectedOrderIds.has(o.id))
+                              selectableOrders.length > 0 && selectableOrders.every(o => selectedOrderIds.has(o.id))
                                 ? 'bg-[#49d5df] border-[#49d5df] text-white'
                                 : 'bg-white border-[#283d3e]/25 text-transparent'
                             }`}>
                               <Check size={13} strokeWidth={4} />
                             </span>
-                            {filteredOrders.length > 0 && filteredOrders.every(o => selectedOrderIds.has(o.id)) ? '取消全選' : '全選'}
+                            {selectableOrders.length > 0 && selectableOrders.every(o => selectedOrderIds.has(o.id)) ? '取消全選' : '全選'}
                           </button>
                         ) : (
                           <span className="text-[#283d3e]/55 font-[900] tracking-widest text-[14px] pr-1">
@@ -1160,15 +1172,19 @@ const App: React.FC = () => {
                           : filteredOrders
                         ).map(order => {
                           const isSelected = selectedOrderIds.has(order.id);
+                          // 已在賣貨便下單（可出貨分頁）：整張卡變灰、沒勾選圈，金額改寫「已下單」——一眼看出不用再付
+                          const placedCard = activeTab === 'balance' && isPlaced(order);
                           return (
                             <div
                               key={order.id}
                               onClick={() => { setSelectedDetailOrder(order); setIsDetailModalOpen(true); }}
                               // 🎯 白色卡片 (#ffffff) + 細黑邊框
-                              className={`bg-white rounded-3xl p-5 cursor-pointer transition-all relative overflow-hidden flex items-start gap-4 border ${isSelected ? 'border-[#49d5df] ring-2 ring-[#49d5df]/30' : 'border-black/[0.07] active:opacity-70'}`}
+                              className={`${placedCard ? 'bg-[#283d3e]/[0.04] opacity-70' : 'bg-white'} rounded-3xl p-5 cursor-pointer transition-all relative overflow-hidden flex items-start gap-4 border ${isSelected ? 'border-[#49d5df] ring-2 ring-[#49d5df]/30' : 'border-black/[0.07] active:opacity-70'}`}
                             >
                               {/* 圓形 Checkbox */}
-                              {(activeTab === 'deposit' || activeTab === 'balance') && (
+                              {/* 已下單的沒有勾選圈，留同寬空位讓卡片內容跟其他張對齊 */}
+                              {activeTab === 'balance' && !isSelectable(order) && <div className="w-6 shrink-0" aria-hidden="true" />}
+                              {(activeTab === 'deposit' || activeTab === 'balance') && isSelectable(order) && (
                                 <div
                                   onClick={e => { e.stopPropagation(); toggleOrderSelection(order.id); }}
                                   className={`w-6 h-6 mt-1 rounded-full flex items-center justify-center border-2 transition-all shrink-0 ${isSelected ? 'bg-[#49d5df] border-[#49d5df] text-white' : 'bg-white border-[#283d3e]/25 text-transparent'}`}
@@ -1202,7 +1218,7 @@ const App: React.FC = () => {
 
                                   {/* 🎯 3: 完美復活！併單倒數標籤 (顯示在卡片外面、正確！) */}
                                   {(() => {
-                                    const storageStatus = order.status === OrderStatus.PAID ? getStorageStatus(order.arrivalDate) : null;
+                                    const storageStatus = order.status === OrderStatus.PAID ? getStorageStatus(order) : null;
                                     if (storageStatus && !order.isShipped) {
                                       return (
                                         <span className={`${storageStatus.className} px-3 py-1.5 rounded-full text-[12.5px] font-[900]`}>
@@ -1221,7 +1237,7 @@ const App: React.FC = () => {
                                   <span className="text-[#283d3e]/55 text-[13.5px] font-bold leading-none pb-1">共 {order.totalQuantity} 件</span>
 
                                   <div className="text-right flex flex-col items-end">
-                                    <span className="text-[12.5px] text-[#283d3e]/55 font-bold mb-0.5">{activeTab === 'deposit' ? '應付訂金' : activeTab === 'balance' ? '應付餘款' : '商品總額'}</span>
+                                    <span className="text-[12.5px] text-[#283d3e]/55 font-bold mb-0.5">{placedCard ? '已下單金額' : activeTab === 'deposit' ? '應付訂金' : activeTab === 'balance' ? '應付餘款' : '商品總額'}</span>
                                     {/* 金額縮一級：本來 text-4xl 跟團名互相打架，眼睛沒地方停 */}
                                     <span className="text-[28px] font-[900] text-[#283d3e] tracking-tight leading-none">
                                       ${(activeTab === 'deposit' ? order.depositAmount : activeTab === 'balance' ? balanceWithFee(order) : order.productTotal).toLocaleString()}
@@ -1297,23 +1313,24 @@ const App: React.FC = () => {
       {/* 🎯 完美還原圖 4 的底部結帳條 (帶有滑出動效 animate-fade-in-up) */}
       {hasSearched && selectedOrdersData.length > 0 && (activeTab === 'deposit' || activeTab === 'balance') && (
         <div className="fixed bottom-0 left-0 right-0 z-40 animate-fade-in-up">
-          <div className="w-full max-w-2xl mx-auto bg-[#49d5df] rounded-t-[40px] px-8 py-6 shadow-[0_-10px_20px_rgba(0,0,0,0.15)] flex items-center justify-between">
-            <div className="flex flex-col">
-              <p className="text-[#283d3e] text-lg font-[900] tracking-widest mb-1">
+          {/* 手機寬 375 時原本 px-8＋金額 text-4xl 把按鈕擠到折成兩行（「賣貨便下\n單」），手機縮內距與字級、按鈕不換行 */}
+          <div className="w-full max-w-2xl mx-auto bg-[#49d5df] rounded-t-[40px] px-6 sm:px-8 py-6 shadow-[0_-10px_20px_rgba(0,0,0,0.15)] flex items-center justify-between gap-3">
+            <div className="flex flex-col min-w-0">
+              <p className="text-[#283d3e] text-base sm:text-lg font-[900] tracking-widest mb-1 whitespace-nowrap">
                 已選 <span className="text-[#e868a0] text-2xl mx-1">{selectedOrdersData.length}</span> 筆訂單
               </p>
               <div className="flex items-baseline gap-2">
-                <span className="text-[#283d3e] font-[900] text-xl">共</span>
-                <span className="text-[#283d3e] font-[900] text-3xl">$</span>
-                <span className="text-4xl md:text-5xl font-[900] text-[#f6f9f9] tracking-tighter">{totalSelectedAmount.toLocaleString()}</span>
-                <span className="text-white font-[900] text-xl">元</span>
+                <span className="text-[#283d3e] font-[900] text-lg sm:text-xl">共</span>
+                <span className="text-[#283d3e] font-[900] text-2xl sm:text-3xl">$</span>
+                <span className="text-3xl sm:text-4xl md:text-5xl font-[900] text-[#f6f9f9] tracking-tighter">{totalSelectedAmount.toLocaleString()}</span>
+                <span className="text-white font-[900] text-lg sm:text-xl">元</span>
               </div>
             </div>
 
             <button
               onClick={openPaymentModal}
               // 🎯 #49d5df 深薄荷綠按鈕 + 黑邊框與黑陰影
-              className="bg-[#49d5df] text-white py-3 md:py-4 px-6 md:px-8 rounded-full font-[900] text-lg md:text-xl border-2 border-black active:opacity-60 transition-all flex items-center gap-2"
+              className="bg-[#49d5df] text-white py-3 md:py-4 px-5 md:px-8 rounded-full font-[900] text-lg md:text-xl border-2 border-black active:opacity-60 transition-all flex items-center gap-2 whitespace-nowrap shrink-0"
             >
               {activeTab === 'deposit' ? (
                 <><MessageCircle size={20} className="stroke-[2.5px]" /> 前往付款</>
