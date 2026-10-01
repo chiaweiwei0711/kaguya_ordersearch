@@ -6,7 +6,7 @@ import { submitGroupOrder, daysLeft, fmtYMD, isOpen, checkNickBound, checkNickOw
 import type { NickOwner } from "../services/groupOrderService";
 import type { TeamStat } from "../services/groupOrderService";
 import { APP_CONFIG } from "../config";
-import { getLineIdentity, refreshLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
+import { getLineIdentity, refreshLineIdentity, loginWithLine, checkFriendship, onIdentityChange } from "../services/lineIdentity";
 import type { LineIdentity } from "../services/lineIdentity";
 import { usePullToRefresh } from "./usePullToRefresh";
 import ProductCarousel from "./ProductCarousel";
@@ -131,7 +131,8 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
     // 按上一頁回到這頁時瀏覽器會整頁還原（bfcache），登入前的「用 LINE 登入」會又冒出來 → 重問一次
     const onShow = (e: PageTransitionEvent) => { if (e.persisted) refreshLineIdentity().then(apply).catch(() => {}); };
     window.addEventListener("pageshow", onShow);
-    return () => { alive = false; window.removeEventListener("pageshow", onShow); };
+    const off = onIdentityChange(() => { refreshLineIdentity().then(apply).catch(() => {}); });   // web app 配對登入完成
+    return () => { alive = false; window.removeEventListener("pageshow", onShow); off(); };
   }, []);
 
   // 暱稱綁定即時檢查：停手 0.5 秒才問，打錯當場就會變 ❌，改對了自己變 ✅、送出鈕自動解鎖
@@ -505,8 +506,10 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
                           <ProductCarousel images={p.images} onTap={() => teamOpen && setQ(idx, q >= 1 ? 0 : 1)} className={teamOpen ? "cursor-pointer" : ""} />
                           <button type="button" aria-label="看大圖" onClick={(e) => { e.stopPropagation(); setZoomP(p); setZoomIdx(0); }} className="absolute top-1 right-1 w-9 h-9 rounded-full bg-black/35 text-white flex items-center justify-center backdrop-blur-sm active:scale-90 transition"><ZoomIn size={16} /></button>
                         </div>
-                        <div className="text-[14px] text-[#283d3e] font-bold mt-1 leading-tight truncate">#{p.no} {p.name}</div>
-                        {p.spec && <div className="text-[12.5px] text-[#283d3e]/60 font-bold leading-tight truncate">{p.spec}</div>}
+                        {/* 2026-10-02 瓦多：品名太長被切掉 → 完整顯示（折行）。編號客人用不到、只佔位置，卡片上不放；
+                            送單、成團件數、後台仍用「#編號 品名」認商品（itemKey、label），資料面沒動 */}
+                        <div className="text-[14px] text-[#283d3e] font-bold mt-1 leading-tight break-words">{p.name}</div>
+                        {p.spec && <div className="text-[12.5px] text-[#283d3e]/60 font-bold leading-tight break-words">{p.spec}</div>}
                         <div className="text-[#283d3e] font-[900] text-base">${p.price}</div>
                         {(p.minQty ?? 1) > 1 && <MinBar min={p.minQty!} ordered={stats[itemKey(p)] || 0} />}
                         {teamOpen && (
@@ -738,7 +741,7 @@ const OrderForm: React.FC<Props> = ({ team, products, loadingItems, onBack, onGo
               )}
             </div>
             <div className="p-4">
-              <div className="font-[900] text-[#283d3e] text-base leading-snug">#{zoomP.no} {zoomP.name}</div>
+              <div className="font-[900] text-[#283d3e] text-base leading-snug">{zoomP.name}</div>
               {zoomP.spec && <div className="text-sm text-[#283d3e]/70 font-bold mt-1.5 leading-relaxed">{zoomP.spec}</div>}
               <div className="text-[#283d3e] font-[900] text-xl mt-2">${zoomP.price}</div>
               {(zoomP.minQty ?? 1) > 1 && <MinBar min={zoomP.minQty!} ordered={stats[itemKey(zoomP)] || 0} big />}

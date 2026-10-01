@@ -3,7 +3,7 @@ import { Trash2, ShoppingCart, AlertTriangle, CheckCircle2, Loader2, ChevronRigh
 import { GroupTeam, GroupCartItem, MySubmission } from "../types";
 import { submitGroupOrder, isOpen, daysLeft, checkNickBound, checkNickOwner, fetchMySubmissions, fmtMDHM, fetchItemStats } from "../services/groupOrderService";
 import type { NickOwner } from "../services/groupOrderService";
-import { getLineIdentity, refreshLineIdentity, loginWithLine, checkFriendship } from "../services/lineIdentity";
+import { getLineIdentity, refreshLineIdentity, loginWithLine, checkFriendship, onIdentityChange } from "../services/lineIdentity";
 import type { LineIdentity } from "../services/lineIdentity";
 import { cartTeams, removeTeam, removeTeams, cartTotal, subscribeCart, setItemQty, removeItem, stepOf, CartTeam } from "../services/cart";
 import { APP_CONFIG } from "../config";
@@ -82,7 +82,8 @@ const CartPage: React.FC<Props> = ({ teams, onSelectTeam, onBrowse }) => {
     // 同填單頁：bfcache 還原時重問身分，不然會看到登入前的狀態
     const onShow = (e: PageTransitionEvent) => { if (e.persisted) refreshLineIdentity().then(apply).catch(() => {}); };
     window.addEventListener("pageshow", onShow);
-    return () => { alive = false; window.removeEventListener("pageshow", onShow); };
+    const off = onIdentityChange(() => { refreshLineIdentity().then(apply).catch(() => {}); });   // web app 配對登入完成
+    return () => { alive = false; window.removeEventListener("pageshow", onShow); off(); };
   }, []);
 
   useEffect(() => {

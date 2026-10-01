@@ -21,7 +21,8 @@ import HomeHero from './components/HomeHero';
 import WorksPage from './components/WorksPage';
 import OrdersPage from './components/OrdersPage';
 import TopBar from './components/TopBar';
-import { LIFF_ID, getLineIdentity, refreshLineIdentity, cleanLineRedirectParams, loginWithLine, logoutLine } from './services/lineIdentity';
+import { LIFF_ID, getLineIdentity, refreshLineIdentity, cleanLineRedirectParams, loginWithLine, logoutLine, onIdentityChange } from './services/lineIdentity';
+import LoginPairBanner from './components/LoginPairBanner';
 import ClosingList from './components/ClosingList';
 import FaqSection from './components/FaqSection';
 import GuideSection from './components/GuideSection';
@@ -290,7 +291,9 @@ const App: React.FC = () => {
       refreshLineIdentity().then(apply).catch(() => {});
     };
     window.addEventListener('pageshow', onShow);
-    return () => window.removeEventListener('pageshow', onShow);
+    // 主畫面 web app 配對領到卡、或卡被判無效 → 重問一次身分
+    const off = onIdentityChange(() => { refreshLineIdentity().then(apply).catch(() => {}); });
+    return () => { window.removeEventListener('pageshow', onShow); off(); };
   }, []);
 
   // 從左邊緣往右滑＝返回上一頁（iOS 的習慣手勢）。
@@ -343,7 +346,19 @@ const App: React.FC = () => {
       if (p.startsWith('/news')) { setMainView('info'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/cart')) { setMainView('cart'); setSelectedTeamCode(null); return; }
       if (p.startsWith('/works')) { setMainView('works'); setSelectedTeamCode(null); return; }
-      if (p.startsWith('/orders')) { setMainView('orders'); setSelectedTeamCode(null); return; }   // ⚠️ 要排在 /order 之前，不然會被填單頁的規則吃掉
+      if (p.startsWith('/orders')) {   // ⚠️ 要排在 /order 之前，不然會被填單頁的規則吃掉
+        setMainView('orders'); setSelectedTeamCode(null);
+        // 訂單頁自己的上一頁／下一頁：完整列表（看全部、員工查別人）各記了一頁，state 說明是哪一種
+        const st = (window.history.state || {}) as { who?: string; all?: number };
+        if (st.who) { setSearchQuery(st.who); setShowAllOrders(true); executeSearch(st.who); }
+        else if (st.all) setShowAllOrders(true);
+        else {
+          setShowAllOrders(false);
+          // 剛剛在看別人的單 → 退回來要換回自己的：清掉結果，下面的自動查詢會重查本人
+          if (viewingOther.current) { setHasSearched(false); autoQueried.current = ''; }
+        }
+        return;
+      }
       const m = p.match(/^\/order(?:\/([^/?]+))?/);
       if (m) { setMainView('order'); setSelectedTeamCode(m[1] ? decodeURIComponent(m[1]) : null); }
       else { setMainView((mv) => (mv === 'order' || mv === 'closing' || mv === 'faq' || mv === 'guide' || mv === 'about' || mv === 'works' || mv === 'orders' || mv === 'info' || mv === 'cart' ? 'query' : mv)); setSelectedTeamCode(null); }
@@ -373,6 +388,7 @@ const App: React.FC = () => {
   const goCart = () => { setMainView('cart'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/cart'); window.scrollTo(0, 0); };
   const goOrders = () => {
     setMainView('orders'); setSelectedTeamCode(null); setIsMenuOpen(false); setHasSearched(false); setShowAllOrders(false);
+    autoQueried.current = '';   // 員工看完別人再按「我的訂單」：一定要重查本人，不能被「查過了」擋住
     nav('/orders'); window.scrollTo(0, 0);
   };
   const goWorks = () => { setMainView('works'); setSelectedTeamCode(null); setIsMenuOpen(false); nav('/works'); window.scrollTo(0, 0); };
@@ -529,6 +545,9 @@ const App: React.FC = () => {
   // 認得出他是誰就自動查自己的單。用狀態驅動而不是掛在點擊上——
   // 直接開 /orders 網址、或從 LINE 連結進來的人也要能自動查到。
   const autoQueried = useRef<string>("");
+  // 現在畫面上是不是「別人的」單（員工查詢）。給上一頁的處理讀，那邊是掛一次的監聽，讀不到最新 state
+  const viewingOther = useRef(false);
+  viewingOther.current = hasSearched && !!boundNick && searchQuery.trim() !== boundNick;
   useEffect(() => {
     // 離開訂單頁就把保險清掉——不然下次再進來會被自己擋住而不查，
     // 畫面就會停在入口頁什麼都沒有（goOrders 會把 hasSearched 重設成 false）
@@ -596,7 +615,7 @@ const App: React.FC = () => {
       }}
     >
       {/* 🎯 全新加入：靜態糖果色背景圓點 (放底層不擋點擊) */}
-      {mainView === 'query' && !hasSearched && (
+      {mainView === 'query' && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           {BACKGROUND_DOTS.map(dot => (
             <div
@@ -632,7 +651,7 @@ const App: React.FC = () => {
           onOrders={goOrders}
           onCart={goCart}
           cartCount={cartCount}
-          showBack={mainView !== 'query' || hasSearched}
+          showBack={mainView !== 'query'}
           tone="light"
         />
       )}
@@ -697,7 +716,13 @@ const App: React.FC = () => {
             <OrdersPage
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              onSearch={() => { handleSearch(); setShowAllOrders(true); }}
+              onSearch={() => {
+                handleSearch(); setShowAllOrders(true);
+                // 查別人（員工查詢）要多記一頁：按上一頁才會回到「我的訂單」看自己的，而不是直接離開訂單頁。
+                // 暱稱放在瀏覽紀錄的 state 裡，不放進網址。
+                const who = searchQuery.trim();
+                if (who && who !== boundNick) window.history.pushState({ who }, '', '/orders');
+              }}
               searchNotice={searchNotice}
               boundNick={boundNick}
               lineState={lineState}
@@ -705,7 +730,7 @@ const App: React.FC = () => {
               quietLoading={quietLoading}
               previewOrders={previewOrders}
               totalOrders={foundOrders.length}
-              onSeeAll={() => { setShowAllOrders(true); window.scrollTo(0, 0); }}
+              onSeeAll={() => { setShowAllOrders(true); window.history.pushState({ all: 1 }, '', '/orders'); window.scrollTo(0, 0); }}
               isStaff={isStaff}
               onOpenOrder={(o) => { setSelectedDetailOrder(o); setIsDetailModalOpen(true); }}
               onLogin={loginWithLine}
@@ -716,8 +741,10 @@ const App: React.FC = () => {
           ) : (mainView === 'query' || mainView === 'orders') ? (
             <>
               {/* ⚠️ 一定要把 mainView 一起判斷：在「我的訂單」但還沒查完的那一瞬間，
-                  只看 hasSearched 會掉回來渲染首頁 —— 客人按了人頭會覺得沒反應 */}
-              {!hasSearched ? (
+                  只看 hasSearched 會掉回來渲染首頁 —— 客人按了人頭會覺得沒反應
+                  2026-10-02：反過來也要擋——首頁（query）永遠畫首頁，不畫查單結果。
+                  員工查完別人按上一頁回到首頁，這裡原本會把「別人的訂單」掛在「我的訂單」標題下畫出來。 */}
+              {!(hasSearched && mainView === 'orders') ? (
                 // --- 🎯 首頁未搜尋狀態 ---
                 <div className="flex flex-col items-center animate-fade-in-up w-full">
 
@@ -1311,7 +1338,7 @@ const App: React.FC = () => {
       </div>
 
       {/* 🎯 完美還原圖 4 的底部結帳條 (帶有滑出動效 animate-fade-in-up) */}
-      {hasSearched && selectedOrdersData.length > 0 && (activeTab === 'deposit' || activeTab === 'balance') && (
+      {hasSearched && mainView === 'orders' && selectedOrdersData.length > 0 && (activeTab === 'deposit' || activeTab === 'balance') && (
         <div className="fixed bottom-0 left-0 right-0 z-40 animate-fade-in-up">
           {/* 手機寬 375 時原本 px-8＋金額 text-4xl 把按鈕擠到折成兩行（「賣貨便下\n單」），手機縮內距與字級、按鈕不換行 */}
           <div className="w-full max-w-2xl mx-auto bg-[#49d5df] rounded-t-[40px] px-6 sm:px-8 py-6 shadow-[0_-10px_20px_rgba(0,0,0,0.15)] flex items-center justify-between gap-3">
@@ -1429,6 +1456,9 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 主畫面 web app 的配對登入提示（沒在配對時什麼都不畫） */}
+      <LoginPairBanner />
 
     </div >
   );
