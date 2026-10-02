@@ -72,8 +72,11 @@ const GroupOrderList: React.FC<Props> = ({ teams, products, onSelect, loading, p
 
   const filtered = useMemo(() => {
     const openFirst = (a: { t: GroupTeam }, b: { t: GroupTeam }) => Number(isOpen(b.t)) - Number(isOpen(a.t));
+    // 後台「首頁排版」置頂的團：只在填單專區的預設排序（最新開團）排最上面；結單後自動不置頂
+    const pinRank = (t: GroupTeam) => (!preview && t.pin && isOpen(t) ? t.pin : 1e9);
+    const pinFirst = (a: { t: GroupTeam }, b: { t: GroupTeam }) => pinRank(a.t) - pinRank(b.t);
     const cmp: Record<SortKey, (a: { t: GroupTeam; i: number }, b: { t: GroupTeam; i: number }) => number> = {
-      default:    (a, b) => openFirst(a, b) || (b.i - a.i),
+      default:    (a, b) => openFirst(a, b) || pinFirst(a, b) || (b.i - a.i),
       close_asc:  (a, b) => openFirst(a, b) || (closeMs(a.t) - closeMs(b.t)) || (b.i - a.i),
       close_desc: (a, b) => openFirst(a, b) || (closeMs(b.t) - closeMs(a.t)) || (b.i - a.i),
       people_desc: (a, b) => openFirst(a, b) || ((b.t.joinPeople ?? 0) - (a.t.joinPeople ?? 0)) || (b.i - a.i),

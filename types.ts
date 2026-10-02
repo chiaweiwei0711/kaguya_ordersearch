@@ -60,6 +60,9 @@ export interface GroupTeam {
   tags?: string[];     // 作品標籤（後台「標籤」欄，留空前端自動從團名／品名推導）
   joinPeople?: number; // 已有幾人填單（後端彙總，不含任何暱稱）
   joinQty?: number;    // 已被訂走幾件
+  pin?: number;        // 填單專區置頂順序（後台「首頁排版」；0＝沒置頂）
+  slot?: number;       // 首頁輪播指定第幾格（0＝照熱門自動排）
+  noCarousel?: boolean; // 後台設「不播」：不進首頁輪播
 }
 
 export interface GroupProduct {

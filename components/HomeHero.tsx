@@ -15,15 +15,27 @@ interface Props {
 }
 
 const AUTO_MS = 4500;
+const SLOTS = 8;   // 輪播最多幾格（後台 Admin.html 的 LAY_N 要一致）
 
 // 首頁的櫥窗：大輪播（開團中的團）＋ 動漫類別。
 // 客人一進站先看到「現在能買什麼」，不是先看到查單框。
 const HomeHero: React.FC<Props> = ({ teams, products, loading, onSelectTeam, onSelectTag }) => {
   // 熱門＝開團中、跟團人數多的在前（人數要等 live 回來才有，還沒回來前就是原本的最新開團順序）
-  const openTeams = useMemo(
-    () => teams.filter(isOpen).slice().sort((a, b) => (b.joinPeople ?? 0) - (a.joinPeople ?? 0)).slice(0, 8),
-    [teams]
-  );
+  // 後台「首頁排版」可以指定某團放第幾格（slot）、或設不播（noCarousel）；沒指定的格子照熱門補上。
+  // ⚠️ 規則要跟後台 Admin.html 的 layCarousel_ 一模一樣，後台看到的順序才會等於客人看到的。
+  const openTeams = useMemo(() => {
+    const open = teams.filter(isOpen);
+    const cells: (GroupTeam | null)[] = Array(SLOTS).fill(null);
+    const used = new Set<string>();
+    open.forEach((t) => {
+      const n = t.slot ?? 0;
+      if (n >= 1 && n <= SLOTS && !cells[n - 1]) { cells[n - 1] = t; used.add(t.code); }
+    });
+    const auto = open.filter((t) => !used.has(t.code) && !t.noCarousel).sort((a, b) => (b.joinPeople ?? 0) - (a.joinPeople ?? 0));
+    let k = 0;
+    for (let i = 0; i < SLOTS; i++) if (!cells[i] && k < auto.length) cells[i] = auto[k++];
+    return cells.filter((t): t is GroupTeam => !!t);
+  }, [teams]);
   const tagIndex = useMemo(() => buildTagIndex(teams, products), [teams, products]);
   // 作品照「開團中的團數」排，沒有開團中的排後面
   const coverOf = (t: GroupTeam) => t.cover || products.find((p) => p.team === t.code && p.img)?.img || "";

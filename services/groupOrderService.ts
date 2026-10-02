@@ -22,6 +22,9 @@ const mapTeam = (t: any): GroupTeam => ({
   tags: String(t["標籤"] ?? "").split(/[、,，/｜|]+/).map((x: string) => x.trim()).filter(Boolean),
   joinPeople: Number(t["跟團人數"]) || 0,
   joinQty: Number(t["跟團件數"]) || 0,
+  pin: Number(t["置頂"]) || 0,
+  slot: Number(t["輪播"]) || 0,
+  noCarousel: String(t["輪播"] ?? "").trim() === "不播",
 });
 
 export interface TeamsPayload {
